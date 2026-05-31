@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Servicios{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-gear text-success me-2"></i>Servicios</h2>
+    {% if session.user_id %}
+    <a href="{{ url_for('servicios.nuevo') }}" class="btn btn-success">
+        <i class="bi bi-plus-lg me-1"></i>Publicar servicio
+    </a>
+    {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-2">
+            <div class="col-md-2">
+                <select name="tipo" class="form-select form-select-sm">
+                    <option value="">Ofrecer/Buscar</option>
+                    <option value="ofrecer" {% if filtros.get('tipo')=='ofrecer' %}selected{% endif %}>Ofrecer</option>
+                    <option value="buscar" {% if filtros.get('tipo')=='buscar' %}selected{% endif %}>Buscar</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="categoria" class="form-select form-select-sm">
+                    <option value="">Categoria</option>
+                    {% for c in ['Viajes compartidos', 'Clases de apoyo', 'Trabajos', 'Ninera', 'Consultoria', 'Otros'] %}
+                    <option value="{{ c }}" {% if filtros.get('categoria')==c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="modalidad" class="form-select form-select-sm">
+                    <option value="">Modalidad</option>
+                    <option value="presencial" {% if filtros.get('modalidad')=='presencial' %}selected{% endif %}>Presencial</option>
+                    <option value="online" {% if filtros.get('modalidad')=='online' %}selected{% endif %}>Online</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="ciudad" class="form-control form-control-sm"
+                       placeholder="Ciudad" value="{{ filtros.get('ciudad', '') }}">
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-success btn-sm w-100"><i class="bi bi-search"></i></button>
+                <a href="{{ url_for('servicios.listar') }}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-x"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if anuncios %}
+<div class="row g-3">
+    {% for a in anuncios %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-{{ 'success' if a.tipo == 'ofrecer' else 'info' }} text-{{ '' if a.tipo == 'ofrecer' else 'dark' }}">{{ a.tipo|capitalize }}</span>
+                    <span class="badge bg-light text-dark">{{ a.categoria }}</span>
+                </div>
+                <h6 class="card-title">{{ a.titulo }}</h6>
+                <p class="text-muted small">
+                    <i class="bi bi-geo-alt me-1"></i>{{ a.ciudad }} &bull;
+                    <i class="bi bi-laptop me-1"></i>{{ a.modalidad }}
+                    {% if a.precio %}<br><i class="bi bi-currency-euro me-1"></i>{{ a.precio }}{% endif %}
+                </p>
+                <p class="text-muted small">{{ a.descripcion|truncate(80) }}</p>
+            </div>
+            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                <small class="text-muted"><i class="bi bi-person me-1"></i>{{ a.nombre_usuario }}</small>
+                <div class="d-flex gap-1">
+                    <a href="{{ url_for('servicios.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-success">Ver</a>
+                    {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
+                    <a href="{{ url_for('servicios.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                    <form method="POST" action="{{ url_for('servicios.eliminar', anuncio_id=a._id) }}"
+                          onsubmit="return confirmarEliminacion()">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-gear fs-1 d-block mb-3"></i>
+    <p>No hay servicios disponibles.</p>
+    {% if session.user_id %}
+    <a href="{{ url_for('servicios.nuevo') }}" class="btn btn-success">Publicar el primero</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

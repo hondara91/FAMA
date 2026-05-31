@@ -246,3 +246,180 @@ git push -u origin main
   - `fama_mongo1`: estado `healthy`, puerto `27018:27017`.
   - `fama_web1`: estado `Up`, puerto `8000:5000`.
 - Aplicacion disponible en `http://localhost:8000`.
+
+## 2026-05-31 HH:MM:SS CEST
+
+### Integracion completa de modulos funcionales (migracion desde Proyecto_FAMA_1.0)
+
+Se incorporan al proyecto FAMA todos los modulos de negocio desarrollados en
+Proyecto_FAMA_1.0, respetando y mejorando la politica de organizacion, calidad
+y facilidad de seguimiento de errores propia del proyecto FAMA base.
+Los contenedores Docker (`fama_web1`, `fama_mongo1`) y los puertos (`8000`, `27018`)
+no se modifican para evitar conflictos con Proyecto_FAMA_1.0.
+
+#### utils/helpers.py (nuevo)
+
+- Se crea `utils/helpers.py` con las funciones auxiliares transversales:
+  - Decoradores de control de acceso: `login_required`, `admin_required`, `gestor_required`.
+  - `registrar_log`: inserta entradas de auditoria en la coleccion `logs` de MongoDB.
+  - `actualizar_contadores`: guarda un snapshot de contadores en el log de control.
+  - `exportar_logs_pdf`: genera un PDF de logs con ReportLab (A4, tabla formateada).
+
+#### utils/db.py (actualizado)
+
+- Se añade `get_db = get_database` como alias corto para uso en rutas y modelos.
+- Se conserva la implementacion superior de FAMA base: lazy init, timeout 3 s, `PyMongoError`.
+
+#### models/ (nuevo directorio)
+
+- Se crea `models/__init__.py` para registrar el paquete.
+- Se crean los cinco modelos de datos, cada uno encapsulando su logica de negocio:
+  - `models/usuario.py`: creacion con hash de contrasenia, autenticacion, roles,
+    reseteo de contrasenia, pregunta de seguridad y soft-delete.
+  - `models/vivienda.py`: CRUD de anuncios de vivienda con buscador por filtros.
+  - `models/servicio.py`: CRUD de anuncios de servicios con buscador por filtros.
+  - `models/compraventa.py`: CRUD de articulos, seccion especial de merchandising Armada.
+  - `models/ocio.py`: CRUD de eventos, inscripciones/desinscripciones con control de aforo,
+    colores por tipo de evento y formato para FullCalendar.js.
+
+#### routes/ (nuevas rutas)
+
+- `routes/auth.py`: registro, login, logout, cambio de contrasenia, recuperacion por
+  pregunta de seguridad.
+- `routes/viviendas.py`: listado con buscador, crear, editar, eliminar, detalle.
+  Control de permisos: propietario o rol privilegiado (gestor/admin).
+- `routes/servicios.py`: misma estructura CRUD que viviendas.
+- `routes/compraventa.py`: CRUD con ruta adicional `/armada` para merchandising.
+- `routes/ocio.py`: CRUD de eventos mas rutas de inscripcion/desinscripcion y calendario.
+- `routes/admin.py`: panel de estadisticas, gestion de usuarios (editar, cambiar rol,
+  resetear contrasenia, desactivar), logs con filtrado, eliminacion selectiva y exportacion PDF.
+- `routes/main.py` (actualizado): dashboard con los 4 ultimos anuncios de cada modulo
+  y conserva el healthcheck de MongoDB.
+
+#### app.py (actualizado)
+
+- Se registran los siete blueprints: `main`, `auth`, `viviendas`, `servicios`,
+  `compraventa`, `ocio`, `admin`.
+- Se añade `context_processor` que inyecta `now` (fecha actual) en todas las plantillas.
+- Se conserva la instancia global `app = create_app()` para compatibilidad con gunicorn.
+
+#### requirements.txt (actualizado)
+
+- Se añaden `Werkzeug==3.0.3` (hash de contrasenias), `reportlab==4.2.2` (PDF)
+  y `python-docx==1.1.2`.
+- Se actualiza `pymongo` de `4.7.3` a `4.8.0`.
+
+#### templates/ (actualizadas y nuevas)
+
+- `templates/base.html`: barra de navegacion naval completa con dropdowns para
+  Compra-Venta y Ocio, menu de usuario con badge de rol, mensajes flash con
+  autocerrado, footer con año dinamico.
+- `templates/index.html`: hero con indicador de estado MongoDB, tarjetas de modulos
+  con efecto hover, dashboard de ultimos anuncios por modulo.
+- Nuevas: `auth/` (4 plantillas), `viviendas/` (3), `servicios/` (3),
+  `compraventa/` (4 incluyendo Tienda Armada), `ocio/` (4 incluyendo calendario
+  FullCalendar), `admin/` (4: panel, usuarios, editar usuario, logs).
+
+#### static/ (actualizados)
+
+- `static/css/estilos.css`: identidad visual naval completa (navbar degradado azul marino,
+  hero, tarjetas de modulo con hover, hero Armada, footer, tablas admin, responsive).
+- `static/js/scripts.js`: `confirmarEliminacion()` para formularios de borrado,
+  autocerrado de alertas flash a los 5 segundos.
+
+#### crear_admin.py (nuevo)
+
+- Script idempotente para crear el usuario `admin@fama.es` / `Admin1234`.
+- Usa `Config.MONGO_URI` y `Config.MONGO_DB_NAME` (sin duplicar variables de entorno).
+- Ejecutar una sola vez tras el primer arranque: `python crear_admin.py`.
+
+#### .env.example (nuevo)
+
+- Plantilla documentada con todas las variables de entorno requeridas.
+
+#### Validaciones realizadas
+
+- Sintaxis Python verificada con `python3 -m py_compile` en los 17 archivos `.py`.
+- Estructura de directorios completa: `models/`, `routes/`, `utils/`, `templates/`
+  (con subdirectorios por modulo) y `static/`.
+- Docker-compose sin cambios: `fama_web1` en puerto `8000`, `fama_mongo1` en puerto
+  `27018`, sin conflicto con Proyecto_FAMA_1.0.
+
+## 2026-05-31 HH:MM:SS CEST
+
+### Documentacion inline: comentarios en todos los archivos de codigo y plantillas
+
+Se añaden comentarios explicativos en los 17 archivos Python y en los principales
+templates HTML, distinguiendo que hace cada seccion, por que se toman ciertas
+decisiones y como se relacionan los componentes entre si.
+
+#### Python
+
+- `app.py`: proposito de cada import, seccion de blueprints, explicacion del
+  `context_processor` e instancia global para gunicorn.
+- `utils/db.py`: patron singleton/lazy-init, por que `serverSelectionTimeoutMS=3000`,
+  cuando usar `get_db` vs `get_database`.
+- `utils/helpers.py`: por que `@wraps`, diferencia admin vs gestor, tipos de log
+  `'registro'` vs `'control'`, secciones del PDF con ReportLab.
+- `models/usuario.py`: hash de contrasenias, normalizacion a minusculas de la
+  respuesta de seguridad, anti-enumeracion en `autenticar()`, soft-delete.
+- `models/ocio.py`: estructura del array `inscritos`, operadores `$push`/`$pull`,
+  proyeccion MongoDB, colores FullCalendar.
+- `models/vivienda.py`, `servicio.py`, `compraventa.py`: campos comentados,
+  logica `$regex` en buscadores, nota sobre `es_merchandising`.
+- `routes/auth.py`: flujo completo por ruta, construccion de sesion, flag
+  `debe_cambiar_password`.
+- `routes/admin.py`: jerarquia de roles, `$in` en delete_many, diferencia
+  gestor/admin por accion.
+- `routes/viviendas.py`: patron de permisos (propietario o privilegiado),
+  `getlist('extras')` para checkboxes multiples.
+- `routes/main.py`: por que `limit(4)`, orden ascendente en eventos de ocio.
+- `crear_admin.py`: idempotencia del script, uso de `Config.MONGO_URI`.
+
+#### HTML (Jinja2)
+
+- `templates/base.html`: logica de `active` en navbar, cuando se muestra Panel Admin,
+  categorizacion de mensajes flash, `now` del context_processor en el footer.
+- `templates/index.html`: hero con estado MongoDB, macro `cabecera_seccion`,
+  filtro de merchandising en compraventa, orden ascendente en eventos.
+- `templates/viviendas/listar.html`: buscador con persistencia de filtros,
+  patron de permisos en botones editar/eliminar.
+- `templates/viviendas/formulario.html`: modo crear vs editar con `accion`,
+  pre-relleno de campos en edicion, `getlist` para checkboxes.
+- `templates/ocio/detalle.html`: tres estados de inscripcion, barra de progreso
+  de aforo, bloque de acciones solo para propietario o privilegiado.
+- `templates/ocio/calendario.html`: uso de `| safe` en JSON, opciones de
+  FullCalendar, `eventClick` para navegar al detalle.
+- `templates/admin/usuarios.html`: colores de rol, significado de activo/inactivo,
+  bloque exclusivo de admin para cambio de rol y desactivacion.
+- `templates/admin/logs.html`: formulario envolvente para checkboxes, checkbox
+  maestro, filtro activo, exportacion PDF del conjunto filtrado.
+- `templates/admin/panel.html`: generacion de tarjetas con bucle, acceso a logs
+  restringido solo a admin.
+
+## 2026-05-31 HH:MM:SS CEST
+
+### Cambio de nomenclatura: "Militar" → "Multipropósito"
+
+- Se sustituye "Foro de Apoyo Militar de la Armada" por
+  "Foro de Apoyo Multipropósito de la Armada" para reflejar
+  el caracter multiuso de la plataforma.
+- Archivos modificados:
+  - `templates/base.html`: footer.
+  - `templates/index.html`: subtitulo del hero.
+- Se usa la entidad HTML `&oacute;` para garantizar la correcta
+  visualizacion de la o acentuada independientemente de la
+  codificacion del servidor.
+
+## 2026-05-31 HH:MM:SS CEST
+
+### Ajuste visual: botones del hero con la misma anchura
+
+- Se envuelven los botones "Registrarse" e "Iniciar sesion" del hero
+  de `templates/index.html` en un contenedor `d-inline-flex gap-2`.
+- Se añade `flex-fill` a ambos botones para que se repartan el espacio
+  disponible por igual y queden exactamente a la misma anchura.
+- Se conserva el formato original: "Registrarse" en `btn-light` (blanco
+  solido) e "Iniciar sesion" en `btn-outline-light` (transparente con borde).
+- En movil los botones se apilan en columna (`flex-column`) y en pantallas
+  `sm+` se muestran en fila (`flex-sm-row`).

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Compra-Venta{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-shop text-warning me-2"></i>Compra-Venta</h2>
+        <a href="{{ url_for('compraventa.armada') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-star me-1"></i>Ver Tienda Armada
+        </a>
+    </div>
+    {% if session.user_id %}
+    <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-warning">
+        <i class="bi bi-plus-lg me-1"></i>Publicar articulo
+    </a>
+    {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-2">
+            <div class="col-md-5">
+                <input type="text" name="nombre_articulo" class="form-control form-control-sm"
+                       placeholder="Nombre del articulo" value="{{ filtros.get('nombre_articulo', '') }}">
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="uco" class="form-control form-control-sm"
+                       placeholder="UCO (unidad)" value="{{ filtros.get('uco', '') }}">
+            </div>
+            <div class="col-md-3 d-flex gap-1">
+                <button type="submit" class="btn btn-warning btn-sm w-100"><i class="bi bi-search"></i></button>
+                <a href="{{ url_for('compraventa.listar') }}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-x"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if anuncios %}
+<div class="row g-3">
+    {% for a in anuncios %}
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title">{{ a.nombre_articulo }}</h6>
+                {% if a.uco %}<p class="text-muted small mb-1"><i class="bi bi-building me-1"></i>{{ a.uco }}</p>{% endif %}
+                <h5 class="text-warning">{{ a.precio }}€</h5>
+                <p class="text-muted small">{{ a.descripcion|truncate(70) }}</p>
+            </div>
+            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                <small class="text-muted"><i class="bi bi-person me-1"></i>{{ a.nombre_usuario }}</small>
+                <div class="d-flex gap-1">
+                    <a href="{{ url_for('compraventa.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-warning">Ver</a>
+                    {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
+                    <a href="{{ url_for('compraventa.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                    <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=a._id) }}"
+                          onsubmit="return confirmarEliminacion()">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-shop fs-1 d-block mb-3"></i>
+    <p>No hay articulos disponibles.</p>
+    {% if session.user_id %}
+    <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-warning">Publicar el primero</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

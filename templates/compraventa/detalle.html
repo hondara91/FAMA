@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}FAMA - {{ anuncio.nombre_articulo }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('compraventa.listar') }}">Compra-Venta</a></li>
+        {% if anuncio.es_merchandising %}
+        <li class="breadcrumb-item"><a href="{{ url_for('compraventa.armada') }}">Tienda Armada</a></li>
+        {% endif %}
+        <li class="breadcrumb-item active">{{ anuncio.nombre_articulo }}</li>
+    </ol>
+</nav>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                {% if anuncio.es_merchandising %}
+                <div class="alert alert-primary py-1 mb-3">
+                    <i class="bi bi-anchor me-1"></i>
+                    <strong>Tienda Armada</strong> - {{ anuncio.unidad_armada or 'Armada Espanola' }}
+                </div>
+                {% endif %}
+                <h3>{{ anuncio.nombre_articulo }}</h3>
+                {% if anuncio.uco %}<p class="text-muted"><i class="bi bi-building me-1"></i>{{ anuncio.uco }}</p>{% endif %}
+                <h4 class="text-warning">{{ anuncio.precio }}€</h4>
+                <hr>
+                <p>{{ anuncio.descripcion or 'Sin descripcion.' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6><i class="bi bi-person-circle me-2"></i>Vendedor</h6>
+                <p class="mb-1"><strong>{{ anuncio.nombre_usuario }}</strong></p>
+                <small class="text-muted">{{ anuncio.fecha_creacion.strftime('%d/%m/%Y') if anuncio.fecha_creacion else '' }}</small>
+            </div>
+        </div>
+        {% if session.user_id and (session.user_id == anuncio.usuario_id or session.rol in ('admin','gestor')) %}
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <a href="{{ url_for('compraventa.editar', anuncio_id=anuncio._id) }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                </a>
+                <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=anuncio._id) }}"
+                      onsubmit="return confirmarEliminacion()">
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

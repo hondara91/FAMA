@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Viviendas{% endblock %}
+
+{% block content %}
+
+{# ── Cabecera de pagina ───────────────────────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-house-door text-primary me-2"></i>Viviendas</h2>
+    {# Boton de publicar: solo visible para usuarios autenticados #}
+    {% if session.user_id %}
+    <a href="{{ url_for('viviendas.nuevo') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Publicar anuncio
+    </a>
+    {% endif %}
+</div>
+
+{# ── Buscador con filtros ─────────────────────────────────────────────────── #}
+{# Los campos envian parametros GET; la ruta los traduce a una query MongoDB.  #}
+{# Los atributos 'selected' y 'value' se rellenan con 'filtros' para conservar #}
+{# los valores del ultimo envio del formulario.                                 #}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('viviendas.listar') }}" class="row g-2">
+            {# Filtro por tipo de oferta (alquiler, intercambio, compartir) #}
+            <div class="col-md-3">
+                <select name="tipo_oferta" class="form-select form-select-sm">
+                    <option value="">Tipo de oferta</option>
+                    <option value="alquiler"    {% if filtros.get('tipo_oferta')=='alquiler' %}selected{% endif %}>Alquiler</option>
+                    <option value="intercambio" {% if filtros.get('tipo_oferta')=='intercambio' %}selected{% endif %}>Intercambio</option>
+                    <option value="compartir"   {% if filtros.get('tipo_oferta')=='compartir' %}selected{% endif %}>Compartir</option>
+                </select>
+            </div>
+            {# Filtro por tipo de inmueble; se genera con un bucle para evitar repeticion #}
+            <div class="col-md-3">
+                <select name="tipo_inmueble" class="form-select form-select-sm">
+                    <option value="">Tipo de inmueble</option>
+                    {% for t in ['Piso', 'Estudio', 'Chalet', 'Atico', 'Finca'] %}
+                    <option value="{{ t }}" {% if filtros.get('tipo_inmueble')==t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {# Filtro de texto libre: busqueda parcial insensible a mayusculas #}
+            <div class="col-md-3">
+                <input type="text" name="ciudad" class="form-control form-control-sm"
+                       placeholder="Ciudad" value="{{ filtros.get('ciudad', '') }}">
+            </div>
+            {# Filtro por numero de habitaciones #}
+            <div class="col-md-2">
+                <select name="habitaciones" class="form-select form-select-sm">
+                    <option value="">Habitaciones</option>
+                    {% for n in ['1', '2', '3', '4', '5+'] %}
+                    <option value="{{ n }}" {% if filtros.get('habitaciones')==n %}selected{% endif %}>{{ n }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {# Botones de buscar (submit) y limpiar (enlace sin parametros) #}
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search"></i></button>
+                <a href="{{ url_for('viviendas.listar') }}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-x"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ── Listado de anuncios ──────────────────────────────────────────────────── #}
+{% if anuncios %}
+<div class="row g-3">
+    {% for a in anuncios %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                {# Badges de tipo de oferta y tipo de inmueble en la cabecera de la tarjeta #}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-primary">{{ a.tipo_oferta }}</span>
+                    <span class="badge bg-secondary">{{ a.tipo_inmueble }}</span>
+                </div>
+                <h6 class="card-title">{{ a.tipo_inmueble }} en {{ a.ciudad }}</h6>
+                <p class="card-text text-muted small">
+                    <i class="bi bi-geo-alt me-1"></i>{{ a.zona }}<br>
+                    <i class="bi bi-door-closed me-1"></i>{{ a.habitaciones }} hab. / {{ a.banos }} banos
+                    {# El precio es opcional; solo se muestra si existe #}
+                    {% if a.precio %}<br><i class="bi bi-currency-euro me-1"></i><strong>{{ a.precio }}€/mes</strong>{% endif %}
+                </p>
+                {# truncate(80): limitar descripcion para que las tarjetas tengan altura uniforme #}
+                <p class="text-muted small">{{ a.descripcion|truncate(80) }}</p>
+            </div>
+            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                <small class="text-muted"><i class="bi bi-person me-1"></i>{{ a.nombre_usuario }}</small>
+                <div class="d-flex gap-1">
+                    <a href="{{ url_for('viviendas.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+                    {# Botones de editar y eliminar: visibles solo para el propietario o rol privilegiado #}
+                    {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
+                    <a href="{{ url_for('viviendas.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    {# El onsubmit llama a confirmarEliminacion() definida en scripts.js #}
+                    <form method="POST" action="{{ url_for('viviendas.eliminar', anuncio_id=a._id) }}"
+                          onsubmit="return confirmarEliminacion()">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+{# Estado vacio: se invita al usuario autenticado a publicar el primer anuncio #}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-house-door fs-1 d-block mb-3"></i>
+    <p>No hay anuncios de vivienda disponibles.</p>
+    {% if session.user_id %}
+    <a href="{{ url_for('viviendas.nuevo') }}" class="btn btn-primary">Publicar el primero</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

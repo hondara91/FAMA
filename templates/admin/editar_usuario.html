@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Editar Usuario{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="mb-4"><i class="bi bi-person-gear me-2 text-primary"></i>Editar Usuario</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre completo</label>
+                        <input type="text" class="form-control" name="nombre"
+                               value="{{ usuario.nombre }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email"
+                               value="{{ usuario.email }}" required>
+                    </div>
+                    {% if session.rol == 'admin' %}
+                    <div class="mb-4">
+                        <label class="form-label">Rol</label>
+                        <select class="form-select" name="rol">
+                            {% for r in ['usuario', 'gestor', 'admin'] %}
+                            <option value="{{ r }}" {% if usuario.rol == r %}selected{% endif %}>{{ r|capitalize }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Guardar cambios
+                        </button>
+                        <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,40 +1,208 @@
 {% extends "base.html" %}
-
-{% block title %}Inicio | Proyecto FAMA{% endblock %}
+{% block title %}FAMA - Inicio{% endblock %}
 
 {% block content %}
-<section class="fama-panel">
-  <div class="row align-items-center g-4">
-    <div class="col-lg-7">
-      <p class="text-uppercase text-secondary small fw-semibold mb-2">Base inicial Docker + Flask + MongoDB</p>
-      <h1 class="display-5 fw-bold mb-3">Proyecto FAMA</h1>
-      <p class="lead mb-4">
-        Foro de Apoyo Multiproposito de la Armada preparado como aplicacion Flask
-        portable para Docker y futura instalacion en Ubuntu Server.
-      </p>
-      <div class="d-flex flex-column flex-sm-row gap-3">
-        <div class="status-pill status-ok">
-          <span class="status-dot"></span>
-          Flask funcionando
+
+{# ── Hero principal ──────────────────────────────────────────────────────────
+   Muestra el nombre de la plataforma, el estado de MongoDB y,
+   si el usuario no esta autenticado, los botones de acceso.
+#}
+<div class="fama-hero rounded-3 mb-5 p-5 text-center">
+    <h1 class="display-5 fw-bold text-white">
+        <i class="bi bi-anchor me-2"></i>FAMA
+    </h1>
+    <p class="lead text-white-50">Foro de Apoyo Multiprop&oacute;sito de la Armada</p>
+
+    {# Alerta visible solo si MongoDB no esta disponible (mongo_ok=False) #}
+    {% if not mongo_ok %}
+        <div class="alert alert-warning d-inline-block mt-2 py-1 px-3 small">
+            <i class="bi bi-exclamation-triangle me-1"></i>{{ mongo_message }}
         </div>
-        <div class="status-pill {{ 'status-ok' if mongo_ok else 'status-error' }}">
-          <span class="status-dot"></span>
-          {{ mongo_message }}
+    {% endif %}
+
+    {# Botones de acceso: solo para usuarios anonimos (sin sesion activa) #}
+    {# flex-fill en cada boton los iguala en anchura dentro del contenedor flex #}
+    {% if not session.user_id %}
+    <div class="d-inline-flex flex-column flex-sm-row gap-2 mt-3">
+        <a href="{{ url_for('auth.registro') }}" class="btn btn-light btn-lg flex-fill">
+            NOVEDADES
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg flex-fill">
+            FORO
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{# ── Tarjetas de acceso rapido a modulos ─────────────────────────────────────
+   Cuatro tarjetas con efecto hover que llevan directamente al listado
+   de cada modulo principal de la aplicacion.
+#}
+<div class="row g-4 mb-5">
+    {# Modulo Viviendas #}
+    <div class="col-md-3">
+        <a href="{{ url_for('viviendas.listar') }}" class="text-decoration-none">
+            <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="fama-icono-modulo bg-primary bg-opacity-10 rounded-circle mx-auto mb-3">
+                        <i class="bi bi-house-door text-primary fs-2"></i>
+                    </div>
+                    <h5 class="card-title">Viviendas</h5>
+                    <p class="card-text text-muted small">Alquiler, intercambio y pisos compartidos</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    {# Modulo Servicios #}
+    <div class="col-md-3">
+        <a href="{{ url_for('servicios.listar') }}" class="text-decoration-none">
+            <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="fama-icono-modulo bg-success bg-opacity-10 rounded-circle mx-auto mb-3">
+                        <i class="bi bi-gear text-success fs-2"></i>
+                    </div>
+                    <h5 class="card-title">Servicios</h5>
+                    <p class="card-text text-muted small">Ofrece o busca servicios entre companeros</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    {# Modulo Compra-Venta (segunda mano + Tienda Armada) #}
+    <div class="col-md-3">
+        <a href="{{ url_for('compraventa.listar') }}" class="text-decoration-none">
+            <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="fama-icono-modulo bg-warning bg-opacity-10 rounded-circle mx-auto mb-3">
+                        <i class="bi bi-shop text-warning fs-2"></i>
+                    </div>
+                    <h5 class="card-title">Compra-Venta</h5>
+                    <p class="card-text text-muted small">Cambalache y tienda de la Armada</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    {# Modulo Ocio (eventos y calendario) #}
+    <div class="col-md-3">
+        <a href="{{ url_for('ocio.listar') }}" class="text-decoration-none">
+            <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="fama-icono-modulo bg-info bg-opacity-10 rounded-circle mx-auto mb-3">
+                        <i class="bi bi-calendar-event text-info fs-2"></i>
+                    </div>
+                    <h5 class="card-title">Ocio</h5>
+                    <p class="card-text text-muted small">Eventos, actividades y calendario</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+{# ── Dashboard de ultimos anuncios ───────────────────────────────────────────
+   Macro reutilizable para generar el titulo de cada seccion del dashboard
+   evitando repetir el mismo bloque HTML cuatro veces.
+#}
+{% macro cabecera_seccion(titulo, icono, color) %}
+<h5 class="mb-3"><i class="bi bi-{{ icono }} text-{{ color }} me-2"></i>{{ titulo }}</h5>
+{% endmacro %}
+
+<div class="row g-4 justify-content-center">
+
+    {# Seccion: ultimas 4 viviendas publicadas (ordenadas por fecha_creacion desc) #}
+    <div class="col-lg-3">
+        {{ cabecera_seccion('Ultimas Viviendas', 'house-door', 'primary') }}
+        {% for v in viviendas %}
+        <div class="card mb-2 border-0 shadow-sm">
+            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-primary me-2">{{ v.tipo_oferta }}</span>
+                    <strong>{{ v.tipo_inmueble }}</strong> en {{ v.ciudad }}
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">{{ v.precio }}€/mes</small>
+                    <a href="{{ url_for('viviendas.detalle', anuncio_id=v._id) }}"
+                       class="btn btn-sm btn-outline-primary ms-2">Ver</a>
+                </div>
+            </div>
         </div>
-      </div>
+        {% else %}
+            {# Mensaje cuando no hay viviendas en la base de datos todavia #}
+            <p class="text-muted small">Sin anuncios todavia.</p>
+        {% endfor %}
+        <a href="{{ url_for('viviendas.listar') }}" class="btn btn-sm btn-primary mt-1">Ver todos</a>
     </div>
-    <div class="col-lg-5">
-      <div class="checklist">
-        <h2 class="h5 mb-3">Base preparada</h2>
-        <ul class="list-unstyled mb-0">
-          <li>Backend Flask con Jinja2</li>
-          <li>MongoDB conectado con PyMongo</li>
-          <li>Bootstrap cargado para la interfaz</li>
-          <li>Configuracion por variables de entorno</li>
-          <li>Estructura inicial orientada a MVC</li>
-        </ul>
-      </div>
+
+    {# Seccion: ultimos 4 servicios publicados #}
+    <div class="col-lg-3">
+        {{ cabecera_seccion('Ultimos Servicios', 'gear', 'success') }}
+        {% for s in servicios %}
+        <div class="card mb-2 border-0 shadow-sm">
+            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-success me-2">{{ s.tipo }}</span>
+                    <strong>{{ s.titulo }}</strong>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">{{ s.ciudad }}</small>
+                    <a href="{{ url_for('servicios.detalle', anuncio_id=s._id) }}"
+                       class="btn btn-sm btn-outline-success ms-2">Ver</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+            <p class="text-muted small">Sin anuncios todavia.</p>
+        {% endfor %}
+        <a href="{{ url_for('servicios.listar') }}" class="btn btn-sm btn-success mt-1">Ver todos</a>
     </div>
-  </div>
-</section>
+
+    {# Seccion: ultimos 4 articulos de segunda mano (sin merchandising) #}
+    <div class="col-lg-3">
+        {{ cabecera_seccion('Ultimos Articulos', 'shop', 'warning') }}
+        {% for c in compraventa %}
+        <div class="card mb-2 border-0 shadow-sm">
+            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ c.nombre_articulo }}</strong>
+                    {# UCO = Unidad, Centro u Organismo del vendedor #}
+                    <small class="text-muted ms-2">{{ c.uco }}</small>
+                </div>
+                <div class="text-end">
+                    <span class="text-warning fw-bold">{{ c.precio }}€</span>
+                    <a href="{{ url_for('compraventa.detalle', anuncio_id=c._id) }}"
+                       class="btn btn-sm btn-outline-warning ms-2">Ver</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+            <p class="text-muted small">Sin articulos todavia.</p>
+        {% endfor %}
+        <a href="{{ url_for('compraventa.listar') }}" class="btn btn-sm btn-warning mt-1">Ver todos</a>
+    </div>
+
+    {# Seccion: proximos 4 eventos de ocio (ordenados por fecha asc) #}
+    <div class="col-lg-3">
+        {{ cabecera_seccion('Proximos Eventos', 'calendar-event', 'info') }}
+        {% for e in eventos %}
+        <div class="card mb-2 border-0 shadow-sm">
+            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-info text-dark me-2">{{ e.tipo_evento }}</span>
+                    <strong>{{ e.titulo }}</strong>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">{{ e.fecha }}</small>
+                    <a href="{{ url_for('ocio.detalle', evento_id=e._id) }}"
+                       class="btn btn-sm btn-outline-info ms-2">Ver</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+            <p class="text-muted small">Sin eventos todavia.</p>
+        {% endfor %}
+        {# Enlace al calendario en lugar de al listado para los eventos de ocio #}
+        <a href="{{ url_for('ocio.calendario') }}" class="btn btn-sm btn-info mt-1">
+            <i class="bi bi-calendar3 me-1"></i>Calendario
+        </a>
+    </div>
+</div>
+
 {% endblock %}

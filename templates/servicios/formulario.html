@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}FAMA - {{ accion }} Servicio{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="mb-4"><i class="bi bi-gear text-success me-2"></i>{{ accion }} servicio</h3>
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Que necesitas? *</label>
+                            <select class="form-select" name="tipo" required>
+                                <option value="">Selecciona...</option>
+                                <option value="ofrecer" {% if anuncio and anuncio.tipo=='ofrecer' %}selected{% endif %}>Ofrecer servicio</option>
+                                <option value="buscar" {% if anuncio and anuncio.tipo=='buscar' %}selected{% endif %}>Buscar servicio</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Categoria *</label>
+                            <select class="form-select" name="categoria" required>
+                                <option value="">Selecciona...</option>
+                                {% for c in ['Viajes compartidos', 'Clases de apoyo', 'Trabajos', 'Ninera', 'Consultoria', 'Otros'] %}
+                                <option value="{{ c }}" {% if anuncio and anuncio.categoria==c %}selected{% endif %}>{{ c }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Titulo del anuncio *</label>
+                            <input type="text" class="form-control" name="titulo" required
+                                   value="{{ anuncio.titulo if anuncio else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Precio (€)</label>
+                            <input type="number" class="form-control" name="precio" min="0" step="1"
+                                   value="{{ anuncio.precio if anuncio else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Modalidad</label>
+                            <select class="form-select" name="modalidad">
+                                <option value="">-</option>
+                                <option value="presencial" {% if anuncio and anuncio.modalidad=='presencial' %}selected{% endif %}>Presencial</option>
+                                <option value="online" {% if anuncio and anuncio.modalidad=='online' %}selected{% endif %}>Online</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ciudad</label>
+                            <input type="text" class="form-control" name="ciudad"
+                                   value="{{ anuncio.ciudad if anuncio else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Telefono de contacto</label>
+                            <input type="tel" class="form-control" name="telefono"
+                                   value="{{ anuncio.telefono if anuncio else '' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Descripcion</label>
+                            <textarea class="form-control" name="descripcion" rows="4">{{ anuncio.descripcion if anuncio else '' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg me-1"></i>{{ accion }} servicio
+                        </button>
+                        <a href="{{ url_for('servicios.listar') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

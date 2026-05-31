@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}FAMA - {{ accion }} Articulo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="mb-4"><i class="bi bi-shop text-warning me-2"></i>{{ accion }} articulo</h3>
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Nombre del articulo *</label>
+                            <input type="text" class="form-control" name="nombre_articulo" required
+                                   value="{{ anuncio.nombre_articulo if anuncio else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">UCO (Unidad, Centro u Organismo)</label>
+                            <input type="text" class="form-control" name="uco"
+                                   placeholder="Ej: BIM IV, FAMET..."
+                                   value="{{ anuncio.uco if anuncio else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Precio (€) *</label>
+                            <input type="number" class="form-control" name="precio" min="0" step="0.5" required
+                                   value="{{ anuncio.precio if anuncio else '' }}">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="es_merchandising"
+                                       id="esMerch" onchange="toggleMerch(this)"
+                                       {% if anuncio and anuncio.es_merchandising %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="esMerch">
+                                    <i class="bi bi-star text-primary me-1"></i>Es merchandising de unidad Armada
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12" id="campoUnidad"
+                             style="{{ '' if (anuncio and anuncio.es_merchandising) else 'display:none' }}">
+                            <label class="form-label">Unidad de la Armada</label>
+                            <input type="text" class="form-control" name="unidad_armada"
+                                   placeholder="Ej: Fragata Alvaro de Bazan, BIM I..."
+                                   value="{{ anuncio.unidad_armada if anuncio else '' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Descripcion</label>
+                            <textarea class="form-control" name="descripcion" rows="4"
+                                      placeholder="Describe el articulo, estado, etc.">{{ anuncio.descripcion if anuncio else '' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-lg me-1"></i>{{ accion }} articulo
+                        </button>
+                        <a href="{{ url_for('compraventa.listar') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+function toggleMerch(cb) {
+    document.getElementById('campoUnidad').style.display = cb.checked ? '' : 'none';
+}
+</script>
+{% endblock %}

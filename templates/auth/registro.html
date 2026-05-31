@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Registro{% endblock %}
+
+{% block content %}
+{# Tarjeta centrada de ancho medio para el formulario de alta #}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center mb-4">
+                    <i class="bi bi-person-plus me-2 text-primary"></i>Crear cuenta
+                </h3>
+
+                <form method="POST" action="{{ url_for('auth.registro') }}">
+
+                    {# ── Datos de identificacion basicos ──────────────────── #}
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre completo</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        {# El email se normaliza a minusculas en la ruta antes de guardarlo #}
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+
+                    {# ── Contrasenia con confirmacion ─────────────────────── #}
+                    {# minlength="6" aplica validacion HTML5 antes de enviar el formulario #}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Contrasenia</label>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmar_password" class="form-label">Confirmar contrasenia</label>
+                            <input type="password" class="form-control" id="confirmar_password" name="confirmar_password" required>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {# ── Pregunta de seguridad para recuperacion de cuenta ── #}
+                    {# La respuesta se hashea en la BD; se usa en /auth/recuperar #}
+                    <p class="text-muted small">Pregunta de seguridad para recuperacion de cuenta</p>
+                    <div class="mb-3">
+                        <label for="pregunta_seguridad" class="form-label">Pregunta de seguridad</label>
+                        <input type="text" class="form-control" id="pregunta_seguridad" name="pregunta_seguridad"
+                               placeholder="Ej: Nombre de tu primera mascota?" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="respuesta_seguridad" class="form-label">Respuesta</label>
+                        {# La respuesta se normaliza a minusculas al guardarla y al verificarla #}
+                        <input type="text" class="form-control" id="respuesta_seguridad" name="respuesta_seguridad" required>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-person-check me-1"></i>Registrarme
+                        </button>
+                    </div>
+                </form>
+
+                {# Enlace de vuelta al login para usuarios que ya tienen cuenta #}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Ya tienes cuenta? Inicia sesion</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}FAMA - {{ anuncio.titulo }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('servicios.listar') }}">Servicios</a></li>
+        <li class="breadcrumb-item active">{{ anuncio.titulo }}</li>
+    </ol>
+</nav>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-{{ 'success' if anuncio.tipo == 'ofrecer' else 'info' }} fs-6">{{ anuncio.tipo|capitalize }}</span>
+                    <span class="badge bg-secondary">{{ anuncio.categoria }}</span>
+                    {% if anuncio.modalidad %}<span class="badge bg-light text-dark">{{ anuncio.modalidad }}</span>{% endif %}
+                </div>
+                <h3>{{ anuncio.titulo }}</h3>
+                <p class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ anuncio.ciudad or 'Sin especificar' }}</p>
+                {% if anuncio.precio %}<h5 class="text-success">{{ anuncio.precio }}€</h5>{% endif %}
+                <hr>
+                <p>{{ anuncio.descripcion or 'Sin descripcion.' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6><i class="bi bi-person-circle me-2"></i>Contacto</h6>
+                <p class="mb-1"><strong>{{ anuncio.nombre_usuario }}</strong></p>
+                {% if anuncio.telefono %}<p><i class="bi bi-telephone me-1"></i>{{ anuncio.telefono }}</p>{% endif %}
+                <small class="text-muted">{{ anuncio.fecha_creacion.strftime('%d/%m/%Y') if anuncio.fecha_creacion else '' }}</small>
+            </div>
+        </div>
+        {% if session.user_id and (session.user_id == anuncio.usuario_id or session.rol in ('admin','gestor')) %}
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <a href="{{ url_for('servicios.editar', anuncio_id=anuncio._id) }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                </a>
+                <form method="POST" action="{{ url_for('servicios.eliminar', anuncio_id=anuncio._id) }}"
+                      onsubmit="return confirmarEliminacion()">
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

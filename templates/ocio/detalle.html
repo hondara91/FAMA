@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}FAMA - {{ evento.titulo }}{% endblock %}
+
+{% block content %}
+
+{# ── Ruta de navegacion (breadcrumb) ─────────────────────────────────────── #}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('ocio.listar') }}">Ocio</a></li>
+        <li class="breadcrumb-item active">{{ evento.titulo }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    {# ── Columna principal: datos del evento ─────────────────────────────── #}
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                {# Badge de tipo con color dinamico segun la categoria del evento #}
+                <span class="badge fs-6 mb-3"
+                      style="background: {{ '#198754' if evento.tipo_evento=='Deporte' else '#0d6efd' if evento.tipo_evento=='Cultural' else '#6c757d' }}">
+                    {{ evento.tipo_evento }}
+                </span>
+                <h3>{{ evento.titulo }}</h3>
+
+                {# Tres celdas de resumen: fecha, hora y lugar #}
+                <div class="row g-3 my-2">
+                    <div class="col-4 text-center p-3 bg-light rounded">
+                        <i class="bi bi-calendar3 fs-4 text-info"></i>
+                        <p class="mb-0 mt-1"><strong>{{ evento.fecha }}</strong><br><small>Fecha</small></p>
+                    </div>
+                    <div class="col-4 text-center p-3 bg-light rounded">
+                        <i class="bi bi-clock fs-4 text-info"></i>
+                        <p class="mb-0 mt-1"><strong>{{ evento.hora }}</strong><br><small>Hora</small></p>
+                    </div>
+                    <div class="col-4 text-center p-3 bg-light rounded">
+                        <i class="bi bi-geo-alt fs-4 text-info"></i>
+                        <p class="mb-0 mt-1"><strong>{{ evento.lugar }}</strong><br><small>Lugar</small></p>
+                    </div>
+                </div>
+
+                <hr>
+                <p>{{ evento.descripcion or 'Sin descripcion.' }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# ── Columna lateral: aforo e inscripcion ─────────────────────────────── #}
+    <div class="col-lg-4">
+
+        {# ── Bloque de aforo e inscripcion ────────────────────────────────── #}
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h6><i class="bi bi-people me-2"></i>Aforo</h6>
+
+                {# Barra de progreso que muestra el porcentaje de ocupacion #}
+                {# ocupacion se calcula como porcentaje de inscritos / aforo_maximo #}
+                <div class="progress mb-2" style="height: 10px;">
+                    {% set ocupacion = ((evento.inscritos|length / evento.aforo_maximo) * 100)|int if evento.aforo_maximo else 0 %}
+                    {# El color cambia segun la ocupacion: verde < 75%, amarillo < 100%, rojo = lleno #}
+                    <div class="progress-bar bg-{{ 'danger' if ocupacion >= 100 else 'warning' if ocupacion >= 75 else 'success' }}"
+                         style="width: {{ ocupacion }}%"></div>
+                </div>
+
+                {# plazas_libres viene calculado en la ruta ocio.detalle #}
+                <p class="mb-2 small">
+                    <strong>{{ evento.inscritos|length }}</strong> / {{ evento.aforo_maximo }} inscritos
+                    ({{ plazas_libres }} libres)
+                </p>
+
+                {# ── Logica de inscripcion (3 estados posibles) ───────────── #}
+                {% if session.user_id %}
+                    {% if user_inscrito %}
+                    {# Estado 1: el usuario ya esta inscrito → ofrecer desinscripcion #}
+                    <form method="POST" action="{{ url_for('ocio.desinscribir', evento_id=evento._id) }}">
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar inscripcion
+                        </button>
+                    </form>
+                    {% elif plazas_libres > 0 %}
+                    {# Estado 2: hay plazas libres → ofrecer inscripcion #}
+                    <form method="POST" action="{{ url_for('ocio.inscribir', evento_id=evento._id) }}">
+                        <button type="submit" class="btn btn-info text-white w-100">
+                            <i class="bi bi-person-plus me-1"></i>Inscribirme
+                        </button>
+                    </form>
+                    {% else %}
+                    {# Estado 3: aforo completo → boton desactivado #}
+                    <button class="btn btn-secondary w-100" disabled>Aforo completo</button>
+                    {% endif %}
+                {% else %}
+                {# Usuario anonimo: no puede inscribirse, se le invita a hacer login #}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-info w-100">
+                    Inicia sesion para inscribirte
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ── Informacion del organizador ──────────────────────────────────── #}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6><i class="bi bi-person-circle me-2"></i>Organizador</h6>
+                <p class="mb-1"><strong>{{ evento.nombre_usuario }}</strong></p>
+                <small class="text-muted">{{ evento.fecha_creacion.strftime('%d/%m/%Y') if evento.fecha_creacion else '' }}</small>
+            </div>
+        </div>
+
+        {# ── Acciones de edicion/borrado (propietario o privilegiado) ─────── #}
+        {% if session.user_id and (session.user_id == evento.usuario_id or session.rol in ('admin','gestor')) %}
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <a href="{{ url_for('ocio.editar', evento_id=evento._id) }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                </a>
+                {# confirmarEliminacion() muestra un dialogo de confirmacion antes de enviar #}
+                <form method="POST" action="{{ url_for('ocio.eliminar', evento_id=evento._id) }}"
+                      onsubmit="return confirmarEliminacion()">
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

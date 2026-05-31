@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Calendario de Eventos{% endblock %}
+
+{# ── CSS adicional: FullCalendar necesita su propia hoja de estilos ────────── #}
+{% block head_extra %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+{# ── Cabecera con navegacion y acciones ──────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar3 text-info me-2"></i>Calendario de Eventos</h2>
+    <div>
+        {# Enlace para volver a la vista de lista de eventos #}
+        <a href="{{ url_for('ocio.listar') }}" class="btn btn-sm btn-outline-info me-2">
+            <i class="bi bi-list-ul me-1"></i>Ver lista
+        </a>
+        {# Boton de crear evento: solo visible para usuarios autenticados #}
+        {% if session.user_id %}
+        <a href="{{ url_for('ocio.nuevo') }}" class="btn btn-sm btn-info text-white">
+            <i class="bi bi-plus-lg me-1"></i>Crear evento
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{# ── Leyenda de colores por tipo de evento ───────────────────────────────── #}
+{# Los colores coinciden con los definidos en Ocio._COLORES_TIPO del modelo #}
+<div class="d-flex gap-3 mb-3">
+    <span><span class="badge" style="background:#198754">&#9679;</span> Deporte</span>
+    <span><span class="badge" style="background:#0d6efd">&#9679;</span> Cultural</span>
+    <span><span class="badge" style="background:#6c757d">&#9679;</span> Otros</span>
+</div>
+
+{# ── Contenedor donde FullCalendar renderizara el widget ─────────────────── #}
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-3">
+        <div id="calendario"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{# ── Script de inicializacion de FullCalendar ─────────────────────────────── #}
+{% block scripts_extra %}
+{# Libreria FullCalendar: bundle global que incluye todos los plugins necesarios #}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 'eventos_json' contiene el array JSON generado por Ocio.obtener_para_calendario()
+    // El filtro '| safe' evita que Jinja2 escape las comillas del JSON
+    const eventos = {{ eventos_json | safe }};
+
+    const cal = new FullCalendar.Calendar(document.getElementById('calendario'), {
+        initialView: 'dayGridMonth',  // Vista por defecto: mes en cuadricula
+        locale: 'es',                 // Localizacion en espanol (cabecera y navegacion)
+        headerToolbar: {
+            left:   'prev,next today',            // Navegacion temporal
+            center: 'title',                       // Titulo del mes/semana actual
+            right:  'dayGridMonth,timeGridWeek,listWeek'  // Cambio de vista
+        },
+        events: eventos,  // Array de objetos {id, title, start, color}
+
+        // Al hacer clic en un evento, navegar a su pagina de detalle
+        eventClick: function(info) {
+            window.location.href = '/ocio/detalle/' + info.event.id;
+        },
+
+        height: 'auto'  // La altura se ajusta al contenido para evitar scroll interno
+    });
+
+    cal.render();
+});
+</script>
+{% endblock %}

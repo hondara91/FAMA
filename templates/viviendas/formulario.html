@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{# 'accion' vale 'Crear' o 'Editar'; se usa en el titulo y en el boton de submit #}
+{% block title %}FAMA - {{ accion }} Vivienda{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="mb-4">
+                    <i class="bi bi-house-door text-primary me-2"></i>{{ accion }} anuncio de vivienda
+                </h3>
+
+                {# El formulario envia POST a la URL actual (sin action explicito) #}
+                {# En modo edicion la ruta es /viviendas/editar/<id>; en creacion /viviendas/nuevo #}
+                <form method="POST">
+                    <div class="row g-3">
+
+                        {# ── Tipo de oferta y tipo de inmueble ────────────── #}
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de oferta *</label>
+                            <select class="form-select" name="tipo_oferta" required>
+                                <option value="">Selecciona...</option>
+                                {% for t in ['alquiler', 'intercambio', 'compartir'] %}
+                                {# En modo edicion, el 'selected' marca el valor actual del anuncio #}
+                                <option value="{{ t }}" {% if anuncio and anuncio.tipo_oferta == t %}selected{% endif %}>{{ t|capitalize }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de inmueble *</label>
+                            <select class="form-select" name="tipo_inmueble" required>
+                                <option value="">Selecciona...</option>
+                                {% for t in ['Piso', 'Estudio', 'Chalet', 'Atico', 'Finca'] %}
+                                <option value="{{ t }}" {% if anuncio and anuncio.tipo_inmueble == t %}selected{% endif %}>{{ t }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {# ── Ubicacion ─────────────────────────────────────── #}
+                        <div class="col-md-6">
+                            <label class="form-label">Ciudad *</label>
+                            {# 'if anuncio else ""' rellena el campo en modo edicion y lo deja vacio en creacion #}
+                            <input type="text" class="form-control" name="ciudad" required
+                                   value="{{ anuncio.ciudad if anuncio else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Zona / Barrio</label>
+                            <input type="text" class="form-control" name="zona"
+                                   value="{{ anuncio.zona if anuncio else '' }}">
+                        </div>
+
+                        {# ── Caracteristicas del inmueble ──────────────────── #}
+                        <div class="col-md-3">
+                            <label class="form-label">Habitaciones</label>
+                            <select class="form-select" name="habitaciones">
+                                <option value="">-</option>
+                                {% for n in ['1', '2', '3', '4', '5+'] %}
+                                <option value="{{ n }}" {% if anuncio and anuncio.habitaciones == n %}selected{% endif %}>{{ n }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Banos</label>
+                            <select class="form-select" name="banos">
+                                <option value="">-</option>
+                                {% for n in ['1', '2', '3+'] %}
+                                <option value="{{ n }}" {% if anuncio and anuncio.banos == n %}selected{% endif %}>{{ n }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Planta</label>
+                            <input type="text" class="form-control" name="planta"
+                                   placeholder="Ej: 3a" value="{{ anuncio.planta if anuncio else '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Precio alquiler (€/mes)</label>
+                            <input type="number" class="form-control" name="precio" min="0" step="10"
+                                   value="{{ anuncio.precio if anuncio else '' }}">
+                        </div>
+
+                        {# ── Extras: checkboxes multiples ──────────────────── #}
+                        {# La ruta usa request.form.getlist('extras') para recoger todos los seleccionados #}
+                        <div class="col-md-6">
+                            <label class="form-label">Extras</label>
+                            <div>
+                                {% for extra in ['garaje', 'ascensor', 'mascotas'] %}
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="extras"
+                                           value="{{ extra }}" id="extra_{{ extra }}"
+                                           {# En edicion, marcar si el extra estaba en la lista del anuncio #}
+                                           {% if anuncio and extra in (anuncio.extras or []) %}checked{% endif %}>
+                                    <label class="form-check-label" for="extra_{{ extra }}">{{ extra|capitalize }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Telefono de contacto</label>
+                            <input type="tel" class="form-control" name="telefono"
+                                   value="{{ anuncio.telefono if anuncio else '' }}">
+                        </div>
+
+                        {# ── Descripcion libre ─────────────────────────────── #}
+                        <div class="col-12">
+                            <label class="form-label">Descripcion</label>
+                            <textarea class="form-control" name="descripcion" rows="4"
+                                      placeholder="Describe el inmueble...">{{ anuncio.descripcion if anuncio else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    {# ── Botones de accion ─────────────────────────────────── #}
+                    <div class="mt-4 d-flex gap-2">
+                        {# El texto del boton refleja si estamos creando o editando #}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>{{ accion }} anuncio
+                        </button>
+                        <a href="{{ url_for('viviendas.listar') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

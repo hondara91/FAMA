@@ -1,77 +1,104 @@
+/* =========================================================
+   estilos.css - Estilos personalizados de la aplicacion FAMA
+   Complementa Bootstrap 5 con la identidad visual naval.
+   ========================================================= */
+
+/* ── Variables de color ──────────────────────────────────── */
 :root {
-  --fama-navy: #15324a;
-  --fama-sea: #0f766e;
-  --fama-ink: #18212f;
-  --fama-muted: #667085;
-  --fama-surface: #f5f7fb;
-  --fama-border: #d8dee9;
-  --fama-ok: #198754;
-  --fama-error: #b42318;
+    --fama-azul: #003366;
+    --fama-azul-claro: #0055a4;
+    --fama-dorado: #c8a900;
+    --fama-gris: #f8f9fa;
 }
 
+/* ── Body ────────────────────────────────────────────────── */
 body {
-  min-height: 100vh;
-  color: var(--fama-ink);
-  background:
-    linear-gradient(180deg, rgba(21, 50, 74, 0.08), rgba(245, 247, 251, 0.9)),
-    var(--fama-surface);
+    min-height: 100vh;
 }
 
-.navbar-brand {
-  color: var(--fama-navy);
+/* ── Navbar ──────────────────────────────────────────────── */
+.fama-navbar {
+    background: linear-gradient(135deg, var(--fama-azul) 0%, var(--fama-azul-claro) 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.fama-panel {
-  border: 1px solid var(--fama-border);
-  border-radius: 8px;
-  padding: clamp(1.5rem, 4vw, 3rem);
-  background: #ffffff;
-  box-shadow: 0 18px 45px rgba(24, 33, 47, 0.08);
+.fama-navbar .navbar-brand {
+    font-size: 1.4rem;
+    letter-spacing: 2px;
 }
 
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-height: 44px;
-  padding: 0.65rem 0.9rem;
-  border: 1px solid var(--fama-border);
-  border-radius: 8px;
-  font-weight: 600;
-  background: #ffffff;
+/* Badge de rol en el menu de usuario */
+.fama-badge-rol {
+    font-size: 0.65rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border-radius: 4px;
+    padding: 2px 6px;
 }
 
-.status-dot {
-  width: 0.75rem;
-  height: 0.75rem;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--fama-muted);
+/* ── Hero de la pagina principal ─────────────────────────── */
+.fama-hero {
+    background: linear-gradient(135deg, var(--fama-azul) 0%, #0077b6 100%);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.status-ok {
-  color: var(--fama-ok);
+/* ── Tarjetas de modulos (index) ─────────────────────────── */
+.fama-modulo-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
 }
 
-.status-ok .status-dot {
-  background: var(--fama-ok);
+.fama-modulo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
 }
 
-.status-error {
-  color: var(--fama-error);
+.fama-icono-modulo {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.status-error .status-dot {
-  background: var(--fama-error);
+/* ── Hero seccion Armada (compraventa) ───────────────────── */
+.fama-armada-hero {
+    background: linear-gradient(135deg, var(--fama-azul) 0%, #1a1a2e 100%);
 }
 
-.checklist {
-  border-left: 4px solid var(--fama-sea);
-  padding: 1.25rem;
-  background: #f8fbfc;
+/* ── Footer ──────────────────────────────────────────────── */
+.fama-footer {
+    background-color: var(--fama-gris);
+    border-top: 1px solid #dee2e6;
+    margin-top: auto;
 }
 
-.checklist li {
-  padding: 0.45rem 0;
-  color: var(--fama-muted);
+/* ── Tarjetas genericas ──────────────────────────────────── */
+.card {
+    border-radius: 10px;
+}
+
+/* ── Breadcrumb ──────────────────────────────────────────── */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+/* ── Tablas admin ────────────────────────────────────────── */
+.table > tbody > tr:hover {
+    background-color: rgba(0, 51, 102, 0.04);
+}
+
+/* ── Botones con icono ───────────────────────────────────── */
+.btn i {
+    vertical-align: -0.1em;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 576px) {
+    .fama-hero h1 { font-size: 1.8rem; }
+    .fama-modulo-card .card-body { padding: 1rem; }
 }

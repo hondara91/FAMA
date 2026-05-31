@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Tienda Armada{% endblock %}
+
+{% block content %}
+<div class="fama-armada-hero rounded-3 mb-4 p-4 text-white text-center">
+    <h2><i class="bi bi-star-fill me-2"></i>Tienda Armada</h2>
+    <p class="mb-2">Merchandising oficial de las unidades de la Armada Espanola</p>
+    <a href="{{ url_for('compraventa.listar') }}" class="btn btn-outline-light btn-sm me-2">Volver a Compra-Venta</a>
+    {% if session.user_id %}
+    <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-light btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Publicar merchandising
+    </a>
+    {% endif %}
+</div>
+
+{% if articulos %}
+<div class="row g-3">
+    {% for a in articulos %}
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-2 border-primary shadow-sm">
+            <div class="card-header bg-primary text-white text-center py-1">
+                <small><i class="bi bi-anchor me-1"></i>{{ a.unidad_armada or 'Armada' }}</small>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">{{ a.nombre_articulo }}</h6>
+                <h5 class="text-primary">{{ a.precio }}€</h5>
+                <p class="text-muted small">{{ a.descripcion|truncate(70) }}</p>
+            </div>
+            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                <small class="text-muted"><i class="bi bi-person me-1"></i>{{ a.nombre_usuario }}</small>
+                <div class="d-flex gap-1">
+                    <a href="{{ url_for('compraventa.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+                    {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
+                    <a href="{{ url_for('compraventa.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                    <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=a._id) }}"
+                          onsubmit="return confirmarEliminacion()">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-star fs-1 d-block mb-3"></i>
+    <p>Aun no hay merchandising disponible.</p>
+    {% if session.user_id %}
+    <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-primary">Publicar el primero</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
