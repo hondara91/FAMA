@@ -8,10 +8,8 @@
    si el usuario no esta autenticado, los botones de acceso.
 #}
 <div class="fama-hero rounded-3 mb-5 p-5 text-center">
-    <h1 class="display-5 fw-bold text-white">
-        <i class="bi bi-anchor me-2"></i>FAMA
-    </h1>
-    <p class="lead text-white-50">Foro de Apoyo Multiprop&oacute;sito de la Armada</p>
+    <img class="fama-logo-hero mx-auto mb-3" src="{{ url_for('static', filename='img/logofama-transparente.png') }}" alt="Logo FAMA">
+    <p class="lead text-white-50 fama-hero-subtitle mb-0">Foro de Apoyo Multiprop&oacute;sito de la Armada</p>
 
     {# Alerta visible solo si MongoDB no esta disponible (mongo_ok=False) #}
     {% if not mongo_ok %}
@@ -44,9 +42,9 @@
         <a href="{{ url_for('viviendas.listar') }}" class="text-decoration-none">
             <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
                 <div class="card-body py-5 px-4">
-                    <div class="fama-icono-modulo bg-primary bg-opacity-10 rounded-circle mx-auto mb-4">
-                        <i class="bi bi-house-door text-primary fama-icono-grande"></i>
-                    </div>
+                    <img class="fama-modulo-img mx-auto mb-4"
+                         src="{{ url_for('static', filename='img/viviendas-ilustracion.png') }}"
+                         alt="Viviendas">
                     <h3 class="card-title">Viviendas</h3>
                     <p class="card-text text-muted">Alquiler, intercambio y pisos compartidos</p>
                 </div>
@@ -58,9 +56,9 @@
         <a href="{{ url_for('servicios.listar') }}" class="text-decoration-none">
             <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
                 <div class="card-body py-5 px-4">
-                    <div class="fama-icono-modulo bg-success bg-opacity-10 rounded-circle mx-auto mb-4">
-                        <i class="bi bi-gear text-success fama-icono-grande"></i>
-                    </div>
+                    <img class="fama-modulo-img mx-auto mb-4"
+                         src="{{ url_for('static', filename='img/viaje.png') }}"
+                         alt="Servicios">
                     <h3 class="card-title">Servicios</h3>
                     <p class="card-text text-muted">Ofrece o busca servicios entre compa&ntilde;eros</p>
                 </div>
@@ -72,9 +70,9 @@
         <a href="{{ url_for('compraventa.listar') }}" class="text-decoration-none">
             <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
                 <div class="card-body py-5 px-4">
-                    <div class="fama-icono-modulo bg-warning bg-opacity-10 rounded-circle mx-auto mb-4">
-                        <i class="bi bi-shop text-warning fama-icono-grande"></i>
-                    </div>
+                    <img class="fama-modulo-img mx-auto mb-4"
+                         src="{{ url_for('static', filename='img/mercadillo.png') }}"
+                         alt="Compra-Venta">
                     <h3 class="card-title">Compra-Venta</h3>
                     <p class="card-text text-muted">Cambalache y tienda de la Armada</p>
                 </div>
@@ -86,9 +84,9 @@
         <a href="{{ url_for('ocio.listar') }}" class="text-decoration-none">
             <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
                 <div class="card-body py-5 px-4">
-                    <div class="fama-icono-modulo bg-info bg-opacity-10 rounded-circle mx-auto mb-4">
-                        <i class="bi bi-calendar-event text-info fama-icono-grande"></i>
-                    </div>
+                    <img class="fama-modulo-img mx-auto mb-4"
+                         src="{{ url_for('static', filename='img/futball.png') }}"
+                         alt="Ocio">
                     <h3 class="card-title">Ocio</h3>
                     <p class="card-text text-muted">Eventos, actividades y calendario</p>
                 </div>

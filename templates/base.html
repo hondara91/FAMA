@@ -27,8 +27,8 @@
     <div class="container-fluid">
 
         {# Logotipo / enlace a inicio #}
-        <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}">
-            <i class="bi bi-anchor me-2"></i>FAMA
+        <a class="navbar-brand fw-bold d-inline-flex align-items-center" href="{{ url_for('main.index') }}">
+            <img class="fama-logo-navbar" src="{{ url_for('static', filename='img/logofama-transparente.png') }}" alt="Logo FAMA">
         </a>
 
         {# Boton hamburguesa para pantallas pequeñas (Bootstrap collapse) #}
@@ -121,11 +121,20 @@
                     {# Dropdown con el nombre del usuario y su badge de rol #}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle me-1"></i>{{ session.nombre }}
+                            {% if session.foto_perfil %}
+                            <img class="fama-avatar fama-avatar-nav me-1"
+                                 src="{{ url_for('static', filename='uploads/perfiles/' + session.foto_perfil) }}"
+                                 alt="">
+                            {% else %}
+                            <i class="bi bi-person-circle me-1"></i>
+                            {% endif %}
+                            {{ session.nombre }}
                             {# Badge que muestra el rol actual: usuario | gestor | admin #}
                             <span class="badge fama-badge-rol ms-1">{{ session.rol }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.perfil') }}">
+                                <i class="bi bi-person-square me-1"></i>Mi perfil</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.cambiar_password') }}">
                                 <i class="bi bi-key me-1"></i>Cambiar contrasenia</a></li>
                             <li><hr class="dropdown-divider"></li>

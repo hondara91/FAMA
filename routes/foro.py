@@ -72,6 +72,24 @@ def _eliminar_imagen(nombre):
         os.remove(ruta)
 
 
+def _anotar_fotos_autor(db, documentos):
+    """Anade foto_autor a posts/respuestas resolviendo el usuario actual."""
+    ids = []
+    for doc in documentos:
+        try:
+            ids.append(ObjectId(doc.get("usuario_id")))
+        except Exception:
+            pass
+
+    usuarios = {
+        str(u["_id"]): u.get("foto_perfil")
+        for u in db.usuarios.find({"_id": {"$in": ids}}, {"foto_perfil": 1})
+    } if ids else {}
+
+    for doc in documentos:
+        doc["foto_autor"] = usuarios.get(doc.get("usuario_id"))
+
+
 # ── Listado ───────────────────────────────────────────────────────────────────
 
 @foro_bp.route("/")
@@ -87,6 +105,7 @@ def listar():
     # Anotar el numero de respuestas en cada post para mostrarlo en la tarjeta
     for p in posts:
         p["num_respuestas"] = resp.contar_por_post(str(p["_id"]))
+    _anotar_fotos_autor(db, posts)
 
     return render_template("foro/listar.html", posts=posts, filtros=request.args)
 
@@ -131,6 +150,8 @@ def detalle(post_id):
         return redirect(url_for("foro.detalle", post_id=post_id) + "#respuestas")
 
     respuestas = modelo_resp.obtener_por_post(post_id)
+    _anotar_fotos_autor(db, [post])
+    _anotar_fotos_autor(db, respuestas)
     return render_template("foro/detalle.html", post=post, respuestas=respuestas)
 
 

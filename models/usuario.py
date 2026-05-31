@@ -39,6 +39,7 @@ class Usuario:
             # Nunca almacenar la contrasena en texto plano; werkzeug usa PBKDF2+SHA256
             "password": generate_password_hash(password),
             "rol": rol,
+            "foto_perfil": None,
             "pregunta_seguridad": pregunta_seguridad,
             # La respuesta se normaliza a minusculas antes de hashear para que la
             # comparacion no sea sensible a mayusculas en la recuperacion de cuenta

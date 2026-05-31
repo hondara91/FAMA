@@ -8,7 +8,11 @@ Gestiona todo el ciclo de identidad del usuario:
   /auth/cambiar-password-> Cambiar contrasenia (usuario autenticado)
   /auth/recuperar       -> Recuperar cuenta via pregunta de seguridad
 """
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+import os
+from datetime import datetime
+
+from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
+from werkzeug.utils import secure_filename
 
 from models.usuario import Usuario
 from utils.db import get_db
@@ -16,6 +20,34 @@ from utils.helpers import actualizar_contadores, login_required, registrar_log
 
 # Prefijo /auth para todas las rutas de este blueprint
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+_EXTENSIONES_IMAGEN = {"png", "jpg", "jpeg", "gif", "webp"}
+
+
+def _guardar_foto_perfil(archivo):
+    """Guarda una foto de perfil en static/uploads/perfiles/."""
+    if not archivo or archivo.filename == "":
+        return None
+
+    ext = archivo.filename.rsplit(".", 1)[-1].lower() if "." in archivo.filename else ""
+    if ext not in _EXTENSIONES_IMAGEN:
+        return None
+
+    nombre = f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}_{secure_filename(archivo.filename)}"
+    carpeta = os.path.join(current_app.static_folder, "uploads", "perfiles")
+    os.makedirs(carpeta, exist_ok=True)
+
+    archivo.save(os.path.join(carpeta, nombre))
+    return nombre
+
+
+def _eliminar_foto_perfil(nombre):
+    """Borra del disco una foto de perfil anterior si existe."""
+    if not nombre:
+        return
+    ruta = os.path.join(current_app.static_folder, "uploads", "perfiles", nombre)
+    if os.path.exists(ruta):
+        os.remove(ruta)
 
 
 # ── Registro ──────────────────────────────────────────────────────────────────
@@ -98,6 +130,7 @@ def login():
         session["nombre"]  = usuario["nombre"]
         session["email"]   = usuario["email"]
         session["rol"]     = usuario["rol"]        # Usado por los decoradores de acceso
+        session["foto_perfil"] = usuario.get("foto_perfil")
 
         # Si el admin reseteo la contrasenia, obligar al usuario a cambiarla ahora
         if usuario.get("debe_cambiar_password"):
@@ -156,6 +189,46 @@ def cambiar_password():
         return redirect(url_for("main.index"))
 
     return render_template("auth/cambiar_password.html")
+
+
+# ── Perfil de usuario ────────────────────────────────────────────────────────
+
+@auth_bp.route("/perfil", methods=["GET", "POST"])
+@login_required
+def perfil():
+    """Permite al usuario cambiar su foto de perfil."""
+    db = get_db()
+    modelo = Usuario(db)
+    usuario = modelo.obtener_por_id(session["user_id"])
+
+    if not usuario:
+        session.clear()
+        flash("No se ha encontrado tu usuario. Vuelve a iniciar sesion.", "warning")
+        return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+        if request.form.get("borrar_foto"):
+            _eliminar_foto_perfil(usuario.get("foto_perfil"))
+            modelo.actualizar(session["user_id"], {"foto_perfil": None})
+            session["foto_perfil"] = None
+            registrar_log(db, "registro", "borrar_foto_perfil", session["nombre"])
+            flash("Foto de perfil eliminada.", "info")
+            return redirect(url_for("auth.perfil"))
+
+        foto = _guardar_foto_perfil(request.files.get("foto_perfil"))
+        if not foto:
+            flash("Selecciona una imagen valida: PNG, JPG, JPEG, GIF o WEBP.", "danger")
+            return render_template("auth/perfil.html", usuario=usuario)
+
+        _eliminar_foto_perfil(usuario.get("foto_perfil"))
+        modelo.actualizar(session["user_id"], {"foto_perfil": foto})
+        session["foto_perfil"] = foto
+        registrar_log(db, "registro", "cambiar_foto_perfil", session["nombre"])
+
+        flash("Foto de perfil actualizada.", "success")
+        return redirect(url_for("auth.perfil"))
+
+    return render_template("auth/perfil.html", usuario=usuario)
 
 
 # ── Recuperacion de cuenta ────────────────────────────────────────────────────

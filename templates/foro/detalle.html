@@ -15,9 +15,23 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-4">
 
-        {# Cabecera: titulo y acciones del propietario #}
+        {# Cabecera: avatar, titulo y acciones del propietario #}
         <div class="d-flex justify-content-between align-items-start mb-3">
-            <h3 class="mb-0">{{ post.titulo }}</h3>
+            <div class="d-flex align-items-start gap-3">
+                {% if post.foto_autor %}
+                <img class="fama-avatar fama-avatar-lg"
+                     src="{{ url_for('static', filename='uploads/perfiles/' + post.foto_autor) }}"
+                     alt="Foto de {{ post.nombre_usuario }}">
+                {% else %}
+                <div class="fama-avatar fama-avatar-lg fama-avatar-placeholder">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <h3 class="mb-1">{{ post.titulo }}</h3>
+                    <div class="small text-muted">{{ post.nombre_usuario }}</div>
+                </div>
+            </div>
             {# Botones de edicion/borrado: solo propietario o privilegiado #}
             <div class="d-flex gap-1 ms-3 flex-shrink-0">
                 {# Editar: admin siempre, autor solo si no hay ninguna respuesta todavia #}
@@ -41,7 +55,6 @@
 
         {# Metadatos: autor y fecha #}
         <div class="d-flex gap-3 small text-muted mb-3">
-            <span><i class="bi bi-person-circle me-1"></i>{{ post.nombre_usuario }}</span>
             <span><i class="bi bi-clock me-1"></i>
                 {{ post.fecha_creacion.strftime('%d/%m/%Y %H:%M') if post.fecha_creacion else '' }}
             </span>
@@ -80,12 +93,24 @@
         <div class="card-body px-4 py-3">
 
             {# Cabecera de la respuesta: autor, fecha y acciones #}
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="d-flex gap-3 small text-muted">
-                    <span><i class="bi bi-person-circle me-1"></i><strong>{{ r.nombre_usuario }}</strong></span>
-                    <span><i class="bi bi-clock me-1"></i>
-                        {{ r.fecha_creacion.strftime('%d/%m/%Y %H:%M') if r.fecha_creacion else '' }}
-                    </span>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    {% if r.foto_autor %}
+                    <img class="fama-avatar fama-avatar-sm"
+                         src="{{ url_for('static', filename='uploads/perfiles/' + r.foto_autor) }}"
+                         alt="Foto de {{ r.nombre_usuario }}">
+                    {% else %}
+                    <div class="fama-avatar fama-avatar-sm fama-avatar-placeholder">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <strong class="small">{{ r.nombre_usuario }}</strong>
+                        <div class="small text-muted">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ r.fecha_creacion.strftime('%d/%m/%Y %H:%M') if r.fecha_creacion else '' }}
+                        </div>
+                    </div>
                 </div>
                 {# Borrar respuesta: autor, gestor o admin #}
                 {% if session.user_id and (session.user_id == r.usuario_id or session.rol in ('admin','gestor')) %}

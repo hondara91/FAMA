@@ -581,3 +581,168 @@ de publicacion al rol gestor.
 - Formulario: grid de 6 campos opcionales + select de tipo obligatorio.
 - Vista de cada novedad: franja de color segun tipo (azul/verde/gris),
   badge de tipo, campos visibles solo si tienen valor, pie con autor y fecha.
+
+## 2026-05-31 22:12:21 CEST
+
+### Actualizacion visual de identidad FAMA
+
+- Se incorpora el logo de FAMA en la barra de navegacion superior.
+- Se elimina el texto `FAMA` del navbar para dejar solo el logo.
+- Se ajusta el tamano, posicion vertical y separacion del logo respecto a los enlaces del menu.
+- Se incorpora el logo en el bloque principal de inicio.
+- Se elimina el titulo textual `FAMA` del hero y se mantiene el subtitulo `Foro de Apoyo Multiproposito de la Armada`.
+- Se ajusta el tamano del logo central, su desplazamiento horizontal y la altura del bloque azul principal.
+- Se genera y usa una version del logo con fondo transparente: `static/img/logofama-transparente.png`.
+- Se realizan pruebas de mejora sobre los bordes del logo y se conserva una variante experimental con contorno azul: `static/img/logofama-contorno-azul.png`.
+
+### Fotos de perfil de usuario
+
+- Se anade el campo `foto_perfil` al modelo de usuario para nuevas cuentas.
+- Se crea la ruta `/auth/perfil` para que cada usuario pueda subir, cambiar o eliminar su foto de perfil.
+- Se crea la plantilla `templates/auth/perfil.html`.
+- Las fotos de perfil se guardan en `static/uploads/perfiles/`.
+- Se actualiza la sesion de usuario para incluir `foto_perfil` tras iniciar sesion o cambiar la foto.
+- Se anade acceso a `Mi perfil` en el desplegable del usuario del navbar.
+- Se muestra la foto de perfil del usuario en el navbar cuando existe.
+
+### Integracion de avatares en el foro
+
+- Se actualiza `routes/foro.py` para resolver la foto de perfil actual de cada autor mediante `usuario_id`.
+- Se muestran avatares en el listado de publicaciones del foro.
+- Se muestran avatares en el detalle de cada publicacion.
+- Se muestran avatares en las respuestas del foro.
+- Se incorpora un avatar por defecto para usuarios sin foto de perfil.
+- Se anaden estilos CSS reutilizables para avatares en varios tamanos.
+
+### Validaciones realizadas
+
+- Se valida la sintaxis Python con:
+
+```bash
+python3 -m py_compile routes/auth.py routes/foro.py models/usuario.py
+```
+
+- La validacion termina sin errores.
+
+## 2026-05-31 22:40:40 CEST
+
+### Ampliacion del registro del ultimo bloque de cambios
+
+Se completa el registro anterior dejando constancia detallada de todos los
+archivos modificados o anadidos desde el ultimo cambio documentado,
+independientemente de si los cambios fueron realizados por Codex, por el
+usuario o por otra herramienta durante la sesion de desarrollo.
+
+#### Archivos modificados
+
+- `models/usuario.py`
+  - Se incorpora `foto_perfil` al documento de usuario creado durante el registro.
+
+- `routes/auth.py`
+  - Se anaden utilidades internas para guardar y eliminar fotos de perfil.
+  - Se validan extensiones permitidas: PNG, JPG, JPEG, GIF y WEBP.
+  - Se guarda la imagen subida en `static/uploads/perfiles/`.
+  - Se anade `session["foto_perfil"]` al iniciar sesion.
+  - Se crea la ruta `/auth/perfil` para subir, cambiar y borrar la foto del usuario.
+
+- `routes/foro.py`
+  - Se anade `_anotar_fotos_autor()` para resolver la foto actual del autor.
+  - El listado del foro anota `foto_autor` en cada publicacion.
+  - El detalle del foro anota `foto_autor` en la publicacion principal y en cada respuesta.
+
+- `templates/base.html`
+  - El navbar pasa a mostrar el logo grafico de FAMA en lugar del texto con icono.
+  - El desplegable de usuario muestra foto de perfil si existe.
+  - Se anade enlace a `Mi perfil`.
+
+- `templates/index.html`
+  - El hero principal usa el logo grafico de FAMA.
+  - Se mantiene el texto `Foro de Apoyo Multiproposito de la Armada`.
+  - Se elimina el encabezado textual `FAMA`.
+
+- `templates/foro/listar.html`
+  - Se muestra avatar del autor en cada tarjeta de publicacion.
+  - Se mantiene miniatura independiente para imagen adjunta del post.
+
+- `templates/foro/detalle.html`
+  - Se muestra avatar del autor en la cabecera de la publicacion.
+  - Se muestra avatar del autor en cada respuesta.
+
+- `static/css/estilos.css`
+  - Se anaden estilos para el logo del navbar.
+  - Se anaden estilos para el logo del hero central.
+  - Se ajusta el hero central en altura y padding vertical.
+  - Se anaden estilos reutilizables de avatar en tamanos nav, sm, md, lg y xl.
+  - Se anade estilo de avatar por defecto para usuarios sin foto.
+
+#### Archivos anadidos
+
+- `templates/auth/perfil.html`
+  - Nueva pantalla de perfil con previsualizacion de avatar.
+  - Formulario de subida de foto.
+  - Accion para eliminar la foto existente.
+
+- `static/img/logofama.png`
+  - Logo original incorporado al proyecto.
+
+- `static/img/logofama-transparente.png`
+  - Version del logo con fondo transparente, usada por la interfaz.
+
+- `static/img/logofama-contorno-azul.png`
+  - Variante experimental con contorno azul conservada para comparacion.
+
+#### Estado de validacion
+
+- Se mantiene como validacion realizada:
+
+```bash
+python3 -m py_compile routes/auth.py routes/foro.py models/usuario.py
+```
+
+- La validacion de sintaxis Python termino sin errores.
+
+## 2026-05-31 22:46:31 CEST
+
+### Prueba de ilustracion en el modulo Viviendas
+
+- Se genera una ilustracion tipo acuarela para representar el modulo Viviendas.
+- Se guarda el asset en `static/img/viviendas-ilustracion.png`.
+- Se sustituye temporalmente el icono Bootstrap de la tarjeta `Viviendas` en la portada por la nueva ilustracion.
+- Se anade la clase CSS `fama-modulo-img` para controlar tamano, recorte circular y encaje visual dentro de la tarjeta.
+- El cambio afecta a `templates/index.html` y `static/css/estilos.css`.
+
+## 2026-05-31 22:50:22 CEST
+
+### Prueba de ilustracion en el modulo Servicios
+
+- Se genera una ilustracion tipo acuarela para representar el modulo Servicios.
+- Se guarda el asset en `static/img/servicios-ilustracion.png`.
+- Se sustituye temporalmente el icono Bootstrap de la tarjeta `Servicios` en la portada por la nueva ilustracion.
+- Se reutiliza la clase CSS `fama-modulo-img` para mantener coherencia visual con la tarjeta de Viviendas.
+- El cambio afecta a `templates/index.html`.
+
+## 2026-05-31 22:55:48 CEST
+
+### Prueba de ilustracion de coches en Compra-Venta
+
+- Se genera una ilustracion tipo acuarela centrada en coches para representar la tarjeta de Compra-Venta.
+- Se guarda el asset en `static/img/compraventa-coches-ilustracion.png`.
+- Se sustituye temporalmente el icono Bootstrap de la tarjeta `Compra-Venta` en la portada por la nueva ilustracion.
+- Se reutiliza la clase CSS `fama-modulo-img` para mantener coherencia visual con Viviendas y Servicios.
+- El cambio afecta a `templates/index.html`.
+
+## 2026-05-31 23:04:55 CEST
+
+### Correccion de ubicacion de la ilustracion de coches
+
+- Se mueve la ilustracion `static/img/compraventa-coches-ilustracion.png` desde la tarjeta `Compra-Venta` a la tarjeta `Servicios`.
+- Se restaura en `Compra-Venta` el icono Bootstrap original de tienda (`bi-shop`).
+- El cambio afecta a `templates/index.html`.
+
+## 2026-05-31 23:16:41 CEST
+
+### Imagen de futbol en el modulo Ocio
+
+- Se usa `static/img/futball.png` como imagen de la tarjeta `Ocio` en la portada.
+- La tarjeta reutiliza la clase `fama-modulo-img` para mantener el mismo tamano y recorte circular que el resto de modulos ilustrados.
+- El cambio queda reflejado en `templates/index.html`.

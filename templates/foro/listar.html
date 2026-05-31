@@ -49,6 +49,19 @@
         <div class="card-body">
             <div class="row g-3 align-items-center">
 
+                {# Avatar del autor #}
+                <div class="col-auto">
+                    {% if p.foto_autor %}
+                    <img class="fama-avatar fama-avatar-md"
+                         src="{{ url_for('static', filename='uploads/perfiles/' + p.foto_autor) }}"
+                         alt="Foto de {{ p.nombre_usuario }}">
+                    {% else %}
+                    <div class="fama-avatar fama-avatar-md fama-avatar-placeholder">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
                 {# Miniatura de imagen si el post tiene foto adjunta #}
                 {% if p.imagen %}
                 <div class="col-auto">
@@ -69,7 +82,7 @@
                     {# Vista previa del contenido truncada para no ocupar demasiado #}
                     <p class="text-muted small mb-2">{{ p.contenido|truncate(160) }}</p>
                     <div class="d-flex gap-3 small text-muted">
-                        <span><i class="bi bi-person me-1"></i>{{ p.nombre_usuario }}</span>
+                        <span>{{ p.nombre_usuario }}</span>
                         <span><i class="bi bi-clock me-1"></i>
                             {{ p.fecha_creacion.strftime('%d/%m/%Y %H:%M') if p.fecha_creacion else '' }}
                         </span>
