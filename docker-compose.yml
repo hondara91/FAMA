@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    container_name: fama_web
+    container_name: fama_web1
     ports:
       - "8000:5000"
     environment:
@@ -20,10 +20,10 @@ services:
 
   mongo:
     image: mongo:7.0
-    container_name: fama_mongo
+    container_name: fama_mongo1
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
