@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Foro{% endblock %}
+
+{% block content %}
+
+{# ── Cabecera ─────────────────────────────────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-chat-dots text-primary me-2"></i>Foro</h2>
+    {# Boton de nueva publicacion: solo para usuarios autenticados #}
+    {% if session.user_id %}
+    <a href="{{ url_for('foro.nuevo') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Nueva publicacion
+    </a>
+    {% endif %}
+</div>
+
+{# ── Buscador ─────────────────────────────────────────────────────────────── #}
+{# Busca en titulo, contenido y nombre de autor #}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-2">
+            <div class="col-md-6">
+                <input type="text" name="q" class="form-control form-control-sm"
+                       placeholder="Buscar en titulo o contenido..."
+                       value="{{ filtros.get('q', '') }}">
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="autor" class="form-control form-control-sm"
+                       placeholder="Filtrar por autor"
+                       value="{{ filtros.get('autor', '') }}">
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a href="{{ url_for('foro.listar') }}" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-x"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ── Listado de publicaciones ─────────────────────────────────────────────── #}
+{% if posts %}
+<div class="d-flex flex-column gap-3">
+    {% for p in posts %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+
+                {# Miniatura de imagen si el post tiene foto adjunta #}
+                {% if p.imagen %}
+                <div class="col-auto">
+                    <img src="{{ url_for('static', filename='uploads/foro/' + p.imagen) }}"
+                         class="rounded" style="width:80px; height:80px; object-fit:cover;"
+                         alt="imagen">
+                </div>
+                {% endif %}
+
+                {# Contenido principal de la tarjeta #}
+                <div class="col">
+                    <h5 class="mb-1">
+                        <a href="{{ url_for('foro.detalle', post_id=p._id) }}"
+                           class="text-decoration-none text-dark stretched-link">
+                            {{ p.titulo }}
+                        </a>
+                    </h5>
+                    {# Vista previa del contenido truncada para no ocupar demasiado #}
+                    <p class="text-muted small mb-2">{{ p.contenido|truncate(160) }}</p>
+                    <div class="d-flex gap-3 small text-muted">
+                        <span><i class="bi bi-person me-1"></i>{{ p.nombre_usuario }}</span>
+                        <span><i class="bi bi-clock me-1"></i>
+                            {{ p.fecha_creacion.strftime('%d/%m/%Y %H:%M') if p.fecha_creacion else '' }}
+                        </span>
+                        {# num_respuestas se calcula en la ruta antes de pasar a la plantilla #}
+                        <span><i class="bi bi-chat me-1"></i>{{ p.num_respuestas }} respuesta{{ 's' if p.num_respuestas != 1 else '' }}</span>
+                    </div>
+                </div>
+
+                <div class="col-auto d-flex gap-1" style="position:relative; z-index:1;">
+                    {# Editar: solo admin o el autor cuando aun no hay respuestas #}
+                    {% if session.user_id and (session.rol == 'admin' or (session.user_id == p.usuario_id and p.num_respuestas == 0)) %}
+                    <a href="{{ url_for('foro.editar', post_id=p._id) }}"
+                       class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    {% endif %}
+                    {# Borrar: autor, gestor o admin #}
+                    {% if session.user_id and (session.user_id == p.usuario_id or session.rol in ('admin','gestor')) %}
+                    <form method="POST" action="{{ url_for('foro.eliminar', post_id=p._id) }}"
+                          onsubmit="return confirmarEliminacion()">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+{# Estado vacio: se invita al usuario autenticado a abrir el primer hilo #}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-chat-dots fs-1 d-block mb-3"></i>
+    <p>Todavia no hay publicaciones en el foro.</p>
+    {% if session.user_id %}
+    <a href="{{ url_for('foro.nuevo') }}" class="btn btn-primary">Ser el primero en publicar</a>
+    {% else %}
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">Inicia sesion para publicar</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

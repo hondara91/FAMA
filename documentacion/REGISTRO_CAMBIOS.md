@@ -423,3 +423,161 @@ decisiones y como se relacionan los componentes entre si.
   solido) e "Iniciar sesion" en `btn-outline-light` (transparente con borde).
 - En movil los botones se apilan en columna (`flex-column`) y en pantallas
   `sm+` se muestran en fila (`flex-sm-row`).
+
+## 2026-05-31 HH:MM:SS CEST
+
+### Nuevo modulo: Foro de publicaciones
+
+Se implementa el modulo Foro siguiendo la organizacion, estilo visual y
+politica de calidad del resto de modulos del proyecto FAMA.
+
+#### Nuevos archivos
+
+- `models/foro.py`: dos clases de modelo sobre colecciones MongoDB separadas:
+  - `ForoPost`: publicaciones principales (titulo, contenido, imagen opcional,
+    autor, fechas de creacion y modificacion).
+  - `ForoRespuesta`: respuestas anidadas a un post (post_id de referencia,
+    contenido, imagen opcional, autor, fecha).
+  - Metodos: CRUD completo, buscador con `$or` y `$regex`, conteo de
+    respuestas por post, borrado masivo de respuestas al eliminar un post.
+
+- `routes/foro.py`: blueprint con prefijo `/foro` y las siguientes rutas:
+  - `GET  /foro/`                         listado con buscador por texto y autor.
+  - `GET  /foro/detalle/<id>`             post completo con hilo de respuestas.
+  - `POST /foro/detalle/<id>`             anadir respuesta al hilo.
+  - `GET/POST /foro/nuevo`                crear publicacion nueva.
+  - `GET/POST /foro/editar/<id>`          editar publicacion propia.
+  - `POST /foro/eliminar/<id>`            eliminar post y todas sus respuestas.
+  - `POST /foro/respuesta/eliminar/<id>`  eliminar una respuesta concreta.
+  - Subida de imagenes: PNG/JPG/JPEG/GIF/WEBP, max 5 MB, guardadas en
+    `static/uploads/foro/` con nombre unico basado en timestamp.
+  - `_guardar_imagen()` y `_eliminar_imagen()`: utilidades internas de
+    gestion de archivos en disco.
+  - Control de permisos: propietario o rol `gestor`/`admin` en todas las
+    operaciones de modificacion y borrado.
+
+- `templates/foro/listar.html`: tarjetas con miniatura de imagen, titulo,
+  vista previa del contenido, autor, fecha y contador de respuestas.
+- `templates/foro/detalle.html`: post completo con imagen, hilo de respuestas
+  con sus propias imagenes y formulario de respuesta al final.
+- `templates/foro/formulario.html`: formulario de creacion/edicion con campo
+  de titulo, textarea de contenido, subida de imagen y opcion de borrar
+  la imagen existente en modo edicion.
+
+#### Archivos modificados
+
+- `utils/config.py`: se añade `MAX_CONTENT_LENGTH = 5 MB` para que Flask
+  rechace automaticamente archivos que superen el limite permitido.
+- `app.py`: se importa y registra `foro_bp`.
+- `templates/base.html`: se añade entrada "Foro" al navbar con icono
+  `bi-chat-dots` y clase `active` dinamica.
+- `templates/index.html`: el boton FORO del hero pasa a apuntar a
+  `foro.listar` en lugar de `auth.login`.
+- `static/uploads/foro/`: directorio creado para almacenar las imagenes
+  subidas por los usuarios del foro.
+
+#### Validaciones realizadas
+
+- Sintaxis Python verificada con `python3 -m py_compile` en todos los
+  archivos nuevos y modificados.
+
+## 2026-05-31 HH:MM:SS CEST
+
+### Ajuste de permisos del modulo Foro
+
+Se redefinieron las reglas de acceso a las acciones de edicion y borrado
+en el foro para reflejar la politica operativa correcta:
+
+| Accion         | Autor                  | Gestor | Admin |
+|----------------|------------------------|--------|-------|
+| Editar post    | Si, solo sin respuestas| No     | Si    |
+| Borrar post    | Si                     | Si     | Si    |
+| Borrar respuesta| Si                    | Si     | Si    |
+
+#### Cambios en `routes/foro.py`
+
+- `editar()`: el permiso de edicion se restringe a admin siempre y al
+  autor solo si `ForoRespuesta.contar_por_post()` devuelve 0. El gestor
+  pierde el permiso de edicion.
+- `eliminar()`: se recupera el gestor en la lista de roles que pueden
+  borrar posts (`admin` o `gestor` o autor).
+- `eliminar_respuesta()`: idem, gestor puede borrar respuestas.
+
+#### Cambios en plantillas
+
+- `templates/foro/listar.html`: boton editar condicionado a
+  `session.rol == 'admin'` o `(autor y num_respuestas == 0)`;
+  boton borrar condicionado a autor, gestor o admin.
+- `templates/foro/detalle.html`: misma logica para el post principal;
+  boton borrar de cada respuesta condicionado a autor, gestor o admin.
+
+## 2026-05-31 HH:MM:SS CEST
+
+### Botones hero siempre visibles + nuevo modulo Novedades
+
+#### Botones NOVEDADES y FORO en el hero
+
+- Se elimina la condicion `{% if not session.user_id %}` para que ambos
+  botones sean siempre visibles independientemente del estado de sesion.
+- El boton NOVEDADES es dinamico:
+  - Sin novedades nuevas: mismo estilo que FORO (`btn-outline-light`).
+  - Con novedades sin ver: amarillo (`btn-warning`) con icono `bell-fill`.
+- El enlace Novedades del navbar sigue la misma logica: texto amarillo
+  y negrita + icono relleno si `hay_novedades` es True.
+
+#### Nuevo modulo Novedades (`routes/novedades.py`)
+
+- `GET  /novedades/`          listado de novedades; al visitar actualiza
+  `session["novedades_vistas_hasta"]` para desactivar el indicador.
+- `POST /novedades/nueva`     publicar novedad (solo admin).
+- `POST /novedades/eliminar/<id>` eliminar novedad (solo admin).
+
+#### Tracking de novedades no vistas
+
+- `app.py` context_processor ampliado con `hay_novedades` (bool):
+  - Si el usuario tiene `novedades_vistas_hasta` en sesion, compara la
+    fecha de la ultima novedad de MongoDB con ese timestamp.
+  - Si no tiene timestamp (primera visita), hay_novedades=True si existe
+    alguna novedad en la coleccion.
+  - Errores de conexion quedan silenciados para no romper la aplicacion.
+
+#### Novedades en el navbar
+
+- `templates/base.html`: se anade el enlace "Novedades" antes de
+  "Viviendas" con clase `active` dinamica y color amarillo condicional.
+
+## 2026-05-31 HH:MM:SS CEST
+
+### Rediseno del modulo Novedades: nuevos campos y permisos de gestor
+
+Se amplian los campos del modelo de novedad y se extienden los permisos
+de publicacion al rol gestor.
+
+#### Permisos
+
+- Publicar y eliminar novedades: **admin y gestor** (antes solo admin).
+- El decorador `@admin_required` se sustituye por `@gestor_required`
+  en las rutas `nueva` y `eliminar` de `routes/novedades.py`.
+
+#### Nuevos campos del documento novedad
+
+| Campo          | Tipo    | Obligatorio |
+|----------------|---------|-------------|
+| tipo           | select  | Si          |
+| destino        | texto   | No          |
+| empleo         | texto   | No          |
+| localidad      | texto   | No          |
+| fecha_inicio   | fecha   | No          |
+| fecha_fin      | fecha   | No          |
+| observaciones  | textarea| No          |
+
+- Los campos opcionales se guardan como `None` si estan vacios, y
+  la plantilla los omite completamente en la vista (`{% if n.campo %}`).
+- `TIPOS_NOVEDAD = ["Curso", "Comision de servicio", "Otros"]` definido
+  en la ruta y pasado a la plantilla para el select del formulario.
+
+#### Cambios en la plantilla
+
+- Formulario: grid de 6 campos opcionales + select de tipo obligatorio.
+- Vista de cada novedad: franja de color segun tipo (azul/verde/gris),
+  badge de tipo, campos visibles solo si tienen valor, pie con autor y fecha.

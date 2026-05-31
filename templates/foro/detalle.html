@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}FAMA - {{ post.titulo }}{% endblock %}
+
+{% block content %}
+
+{# ── Breadcrumb ───────────────────────────────────────────────────────────── #}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('foro.listar') }}">Foro</a></li>
+        <li class="breadcrumb-item active">{{ post.titulo }}</li>
+    </ol>
+</nav>
+
+{# ── Publicacion principal ────────────────────────────────────────────────── #}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+
+        {# Cabecera: titulo y acciones del propietario #}
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h3 class="mb-0">{{ post.titulo }}</h3>
+            {# Botones de edicion/borrado: solo propietario o privilegiado #}
+            <div class="d-flex gap-1 ms-3 flex-shrink-0">
+                {# Editar: admin siempre, autor solo si no hay ninguna respuesta todavia #}
+                {% if session.user_id and (session.rol == 'admin' or (session.user_id == post.usuario_id and respuestas|length == 0)) %}
+                <a href="{{ url_for('foro.editar', post_id=post._id) }}"
+                   class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                </a>
+                {% endif %}
+                {# Borrar: autor, gestor o admin #}
+                {% if session.user_id and (session.user_id == post.usuario_id or session.rol in ('admin','gestor')) %}
+                <form method="POST" action="{{ url_for('foro.eliminar', post_id=post._id) }}"
+                      onsubmit="return confirmarEliminacion()">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Metadatos: autor y fecha #}
+        <div class="d-flex gap-3 small text-muted mb-3">
+            <span><i class="bi bi-person-circle me-1"></i>{{ post.nombre_usuario }}</span>
+            <span><i class="bi bi-clock me-1"></i>
+                {{ post.fecha_creacion.strftime('%d/%m/%Y %H:%M') if post.fecha_creacion else '' }}
+            </span>
+            {# Indicador de edicion si la fecha de modificacion es posterior a la de creacion #}
+            {% if post.fecha_modificacion and post.fecha_modificacion != post.fecha_creacion %}
+            <span class="text-secondary"><i class="bi bi-pencil-square me-1"></i>
+                Editado {{ post.fecha_modificacion.strftime('%d/%m/%Y %H:%M') }}
+            </span>
+            {% endif %}
+        </div>
+
+        {# Imagen adjunta al post (si existe) #}
+        {% if post.imagen %}
+        <div class="mb-3">
+            <img src="{{ url_for('static', filename='uploads/foro/' + post.imagen) }}"
+                 class="img-fluid rounded shadow-sm" style="max-height:400px;"
+                 alt="imagen adjunta">
+        </div>
+        {% endif %}
+
+        {# Contenido del post: se preservan saltos de linea con la clase white-space #}
+        <p class="mb-0" style="white-space: pre-wrap;">{{ post.contenido }}</p>
+    </div>
+</div>
+
+{# ── Hilo de respuestas ───────────────────────────────────────────────────── #}
+<h5 id="respuestas" class="mb-3">
+    <i class="bi bi-chat-left-text me-2"></i>
+    {{ respuestas|length }} respuesta{{ 's' if respuestas|length != 1 else '' }}
+</h5>
+
+{% if respuestas %}
+<div class="d-flex flex-column gap-3 mb-4">
+    {% for r in respuestas %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body px-4 py-3">
+
+            {# Cabecera de la respuesta: autor, fecha y acciones #}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex gap-3 small text-muted">
+                    <span><i class="bi bi-person-circle me-1"></i><strong>{{ r.nombre_usuario }}</strong></span>
+                    <span><i class="bi bi-clock me-1"></i>
+                        {{ r.fecha_creacion.strftime('%d/%m/%Y %H:%M') if r.fecha_creacion else '' }}
+                    </span>
+                </div>
+                {# Borrar respuesta: autor, gestor o admin #}
+                {% if session.user_id and (session.user_id == r.usuario_id or session.rol in ('admin','gestor')) %}
+                <form method="POST"
+                      action="{{ url_for('foro.eliminar_respuesta', respuesta_id=r._id) }}"
+                      onsubmit="return confirmarEliminacion()">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            {# Imagen adjunta a la respuesta #}
+            {% if r.imagen %}
+            <div class="mb-2">
+                <img src="{{ url_for('static', filename='uploads/foro/' + r.imagen) }}"
+                     class="img-fluid rounded" style="max-height:300px;"
+                     alt="imagen adjunta">
+            </div>
+            {% endif %}
+
+            {# Contenido de la respuesta #}
+            <p class="mb-0" style="white-space: pre-wrap;">{{ r.contenido }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted small mb-4">Todavia no hay respuestas. Se el primero en responder.</p>
+{% endif %}
+
+{# ── Formulario de respuesta ──────────────────────────────────────────────── #}
+{% if session.user_id %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h6 class="mb-3"><i class="bi bi-reply me-2"></i>Escribir una respuesta</h6>
+
+        {# enctype multipart/form-data obligatorio para poder subir imagen #}
+        <form method="POST"
+              action="{{ url_for('foro.detalle', post_id=post._id) }}"
+              enctype="multipart/form-data">
+            <div class="mb-3">
+                <textarea class="form-control" name="contenido" rows="4"
+                          placeholder="Escribe tu respuesta..." required></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small text-muted">
+                    <i class="bi bi-image me-1"></i>Imagen adjunta (opcional, max 5 MB)
+                </label>
+                <input type="file" class="form-control form-control-sm"
+                       name="imagen" accept="image/*">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-send me-1"></i>Publicar respuesta
+            </button>
+        </form>
+    </div>
+</div>
+{% else %}
+{# Si no hay sesion, invitar al login para poder responder #}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    <a href="{{ url_for('auth.login') }}" class="alert-link">Inicia sesion</a>
+    para poder responder en el foro.
+</div>
+{% endif %}
+
+{% endblock %}

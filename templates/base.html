@@ -43,6 +43,22 @@
             {# ── Menu de modulos (izquierda) ─────────────────────────────── #}
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
+                {# Novedades: se resalta en amarillo si hay novedades sin ver #}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('novedades') %}active{% endif %} {{ 'text-warning fw-semibold' if hay_novedades else '' }}"
+                       href="{{ url_for('novedades.listar') }}">
+                        <i class="bi bi-{{ 'bell-fill' if hay_novedades else 'bell' }} me-1"></i>Novedades
+                    </a>
+                </li>
+
+                {# Foro: enlace directo al listado de publicaciones #}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('foro') %}active{% endif %}"
+                       href="{{ url_for('foro.listar') }}">
+                        <i class="bi bi-chat-dots me-1"></i>Foro
+                    </a>
+                </li>
+
                 {# Viviendas: enlace directo al listado #}
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('viviendas') %}active{% endif %}"

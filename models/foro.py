@@ -1,0 +1,121 @@
+"""
+models/foro.py - Modelos de datos para el modulo de Foro.
+
+Gestiona dos colecciones MongoDB relacionadas:
+  - ForoPost: publicaciones principales del foro (hilo).
+  - ForoRespuesta: respuestas anidadas bajo un post concreto.
+
+Ambas admiten imagen adjunta opcional (nombre de archivo almacenado;
+el archivo fisico se guarda en static/uploads/foro/).
+"""
+from datetime import datetime
+
+from bson import ObjectId
+
+
+class ForoPost:
+    """Representa una publicacion principal del foro."""
+
+    def __init__(self, db):
+        self.coleccion = db.foro_posts
+
+    # ── Creacion ──────────────────────────────────────────────────────────────
+
+    def crear(self, titulo, contenido, imagen, user_id, nombre_usuario):
+        """Inserta un nuevo post y devuelve su ObjectId."""
+        post = {
+            "titulo":          titulo,
+            "contenido":       contenido,
+            "imagen":          imagen,       # Nombre de archivo o None
+            "usuario_id":      user_id,
+            "nombre_usuario":  nombre_usuario,
+            "fecha_creacion":  datetime.now(),
+            "fecha_modificacion": datetime.now(),
+        }
+        return self.coleccion.insert_one(post).inserted_id
+
+    # ── Consultas ─────────────────────────────────────────────────────────────
+
+    def obtener_todos(self, filtros=None):
+        """Devuelve todos los posts ordenados por fecha descendente (mas recientes primero)."""
+        return list(self.coleccion.find(filtros or {}).sort("fecha_creacion", -1))
+
+    def obtener_por_id(self, post_id):
+        """Busca un post por su ObjectId."""
+        return self.coleccion.find_one({"_id": ObjectId(post_id)})
+
+    def obtener_por_usuario(self, user_id):
+        """Devuelve los posts publicados por un usuario concreto."""
+        return list(self.coleccion.find({"usuario_id": user_id}).sort("fecha_creacion", -1))
+
+    # ── Actualizacion y borrado ───────────────────────────────────────────────
+
+    def actualizar(self, post_id, datos):
+        """Actualiza los campos indicados y renueva la fecha de modificacion."""
+        datos["fecha_modificacion"] = datetime.now()
+        self.coleccion.update_one({"_id": ObjectId(post_id)}, {"$set": datos})
+
+    def eliminar(self, post_id):
+        """Borra fisicamente el post. Las respuestas asociadas deben borrarse aparte."""
+        self.coleccion.delete_one({"_id": ObjectId(post_id)})
+
+    # ── Buscador ──────────────────────────────────────────────────────────────
+
+    def construir_filtros(self, form_data):
+        """Traduce los parametros GET del buscador a una query MongoDB."""
+        query = {}
+        # Busqueda parcial insensible a mayusculas en titulo y contenido
+        if form_data.get("q"):
+            query["$or"] = [
+                {"titulo":    {"$regex": form_data["q"], "$options": "i"}},
+                {"contenido": {"$regex": form_data["q"], "$options": "i"}},
+            ]
+        # Filtro por autor (nombre de usuario exacto)
+        if form_data.get("autor"):
+            query["nombre_usuario"] = {"$regex": form_data["autor"], "$options": "i"}
+        return query
+
+
+class ForoRespuesta:
+    """Representa una respuesta a un post del foro."""
+
+    def __init__(self, db):
+        self.coleccion = db.foro_respuestas
+
+    # ── Creacion ──────────────────────────────────────────────────────────────
+
+    def crear(self, post_id, contenido, imagen, user_id, nombre_usuario):
+        """Inserta una nueva respuesta asociada al post indicado."""
+        respuesta = {
+            "post_id":        post_id,        # String del ObjectId del post padre
+            "contenido":      contenido,
+            "imagen":         imagen,          # Nombre de archivo o None
+            "usuario_id":     user_id,
+            "nombre_usuario": nombre_usuario,
+            "fecha_creacion": datetime.now(),
+        }
+        return self.coleccion.insert_one(respuesta).inserted_id
+
+    # ── Consultas ─────────────────────────────────────────────────────────────
+
+    def obtener_por_post(self, post_id):
+        """Devuelve todas las respuestas de un post ordenadas cronologicamente."""
+        return list(self.coleccion.find({"post_id": post_id}).sort("fecha_creacion", 1))
+
+    def obtener_por_id(self, respuesta_id):
+        """Busca una respuesta por su ObjectId."""
+        return self.coleccion.find_one({"_id": ObjectId(respuesta_id)})
+
+    def contar_por_post(self, post_id):
+        """Devuelve el numero de respuestas de un post."""
+        return self.coleccion.count_documents({"post_id": post_id})
+
+    # ── Borrado ───────────────────────────────────────────────────────────────
+
+    def eliminar(self, respuesta_id):
+        """Borra fisicamente una respuesta."""
+        self.coleccion.delete_one({"_id": ObjectId(respuesta_id)})
+
+    def eliminar_por_post(self, post_id):
+        """Borra todas las respuestas de un post (usado al eliminar el post padre)."""
+        self.coleccion.delete_many({"post_id": post_id})

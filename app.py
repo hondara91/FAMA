@@ -20,6 +20,8 @@ from routes.servicios import servicios_bp # Servicios entre personal militar
 from routes.compraventa import compraventa_bp  # Segunda mano y tienda Armada
 from routes.ocio import ocio_bp           # Eventos de ocio y calendario
 from routes.admin import admin_bp         # Panel de gestion y logs
+from routes.foro import foro_bp               # Foro de publicaciones y respuestas
+from routes.novedades import novedades_bp     # Novedades y anuncios del admin
 
 
 def create_app():
@@ -45,13 +47,34 @@ def create_app():
     app.register_blueprint(compraventa_bp)
     app.register_blueprint(ocio_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(foro_bp)
+    app.register_blueprint(novedades_bp)
 
     # ── Variables globales de plantillas ─────────────────────────────────────
-    # Inyecta 'now' en TODAS las plantillas Jinja2 sin pasarla manualmente.
-    # Se usa principalmente en el footer para mostrar el ano actual.
+    # Inyecta 'now' y 'hay_novedades' en TODAS las plantillas Jinja2.
+    # 'hay_novedades' controla si el boton NOVEDADES se ilumina en amarillo.
     @app.context_processor
     def inyectar_contexto():
-        return {"now": datetime.now()}
+        from utils.db import get_db
+        from flask import session as current_session
+
+        hay_novedades = False
+        try:
+            db = get_db()
+            ultima_visita = current_session.get("novedades_vistas_hasta")
+            if ultima_visita:
+                # Comparar fecha de la novedad mas reciente con la ultima visita del usuario
+                desde = datetime.fromisoformat(ultima_visita)
+                hay_novedades = db.novedades.count_documents(
+                    {"fecha_creacion": {"$gt": desde}}
+                ) > 0
+            else:
+                # Primera visita o sesion nueva: amarillo si existe al menos una novedad
+                hay_novedades = db.novedades.count_documents({}) > 0
+        except Exception:
+            pass  # Si MongoDB no esta disponible, el boton permanece sin color especial
+
+        return {"now": datetime.now(), "hay_novedades": hay_novedades}
 
     return app
 

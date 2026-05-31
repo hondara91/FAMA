@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}FAMA - {{ accion }} publicacion{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="mb-4">
+                    <i class="bi bi-chat-dots text-primary me-2"></i>{{ accion }} publicacion
+                </h3>
+
+                {# enctype multipart obligatorio para la subida de imagen #}
+                <form method="POST" enctype="multipart/form-data">
+
+                    {# ── Titulo ────────────────────────────────────────────── #}
+                    <div class="mb-3">
+                        <label class="form-label">Titulo *</label>
+                        <input type="text" class="form-control" name="titulo" required
+                               placeholder="Titulo de la publicacion"
+                               value="{{ post.titulo if post else '' }}">
+                    </div>
+
+                    {# ── Contenido ─────────────────────────────────────────── #}
+                    <div class="mb-3">
+                        <label class="form-label">Contenido *</label>
+                        <textarea class="form-control" name="contenido" rows="8"
+                                  placeholder="Escribe aqui tu publicacion..." required
+                                  >{{ post.contenido if post else '' }}</textarea>
+                    </div>
+
+                    {# ── Imagen adjunta ────────────────────────────────────── #}
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-image me-1"></i>Imagen adjunta (opcional, max 5 MB)
+                        </label>
+
+                        {# En modo edicion: mostrar la imagen actual si existe #}
+                        {% if post and post.imagen %}
+                        <div class="mb-2">
+                            <img src="{{ url_for('static', filename='uploads/foro/' + post.imagen) }}"
+                                 class="img-thumbnail" style="max-height:150px;"
+                                 alt="imagen actual">
+                            {# Checkbox para borrar la imagen actual sin subir otra #}
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox"
+                                       name="borrar_imagen" id="borrarImg">
+                                <label class="form-check-label small text-danger" for="borrarImg">
+                                    Eliminar imagen actual
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <input type="file" class="form-control" name="imagen" accept="image/*">
+                        <div class="form-text">Formatos: JPG, PNG, GIF, WEBP.</div>
+                    </div>
+
+                    {# ── Botones de accion ─────────────────────────────────── #}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>{{ accion }}
+                        </button>
+                        {# Cancelar: vuelve al detalle si editamos, al listado si creamos #}
+                        {% if post %}
+                        <a href="{{ url_for('foro.detalle', post_id=post._id) }}"
+                           class="btn btn-outline-secondary">Cancelar</a>
+                        {% else %}
+                        <a href="{{ url_for('foro.listar') }}"
+                           class="btn btn-outline-secondary">Cancelar</a>
+                        {% endif %}
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
