@@ -1,0 +1,37 @@
+services:
+  web:
+    build: .
+    container_name: fama_web
+    ports:
+      - "8000:5000"
+    environment:
+      FLASK_ENV: development
+      FLASK_DEBUG: "1"
+      FLASK_HOST: "0.0.0.0"
+      FLASK_PORT: "5000"
+      SECRET_KEY: cambia-esta-clave-en-produccion
+      MONGO_URI: mongodb://mongo:27017/
+      MONGO_DB_NAME: fama_db
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+  mongo:
+    image: mongo:7.0
+    container_name: fama_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  mongo_data:
