@@ -54,6 +54,8 @@ def crear_admin():
         # No forzar cambio de contrasenia en el primer login del admin
         "debe_cambiar_password": False,
         "activo": True,
+        "validado": True,
+        "email_verificado": True,
         "fecha_registro": datetime.now(),
     }
 

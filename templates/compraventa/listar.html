@@ -40,6 +40,17 @@
     {% for a in anuncios %}
     <div class="col-md-6 col-lg-3">
         <div class="card h-100 border-0 shadow-sm">
+            {% if a.fotos %}
+            <div class="position-relative">
+                <img src="{{ url_for('static', filename='uploads/compraventa/' + a.fotos[0]) }}"
+                     class="card-img-top" style="height:160px;object-fit:cover" alt="foto">
+                {% if a.fotos|length > 1 %}
+                <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark bg-opacity-75">
+                    <i class="bi bi-images me-1"></i>{{ a.fotos|length }}
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
             <div class="card-body">
                 <h6 class="card-title">{{ a.nombre_articulo }}</h6>
                 {% if a.uco %}<p class="text-muted small mb-1"><i class="bi bi-building me-1"></i>{{ a.uco }}</p>{% endif %}

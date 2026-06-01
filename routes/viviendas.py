@@ -10,7 +10,9 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 
 from models.vivienda import Vivienda
 from utils.db import get_db
-from utils.helpers import actualizar_contadores, login_required, registrar_log
+from utils.decorators import login_required
+from utils.logs import actualizar_contadores, registrar_log
+from utils.uploads import eliminar_imagenes, guardar_imagenes
 
 viviendas_bp = Blueprint("viviendas", __name__, url_prefix="/viviendas")
 
@@ -55,7 +57,7 @@ def nuevo():
             "descripcion":   request.form.get("descripcion", "").strip(),
         }
 
-        # Crear el anuncio asociado al usuario de la sesion actual
+        datos["fotos"] = guardar_imagenes(request.files.getlist("fotos"), "viviendas")
         modelo.crear(datos, session["user_id"], session["nombre"])
         registrar_log(db, "registro", "crear_vivienda", session["nombre"],
                       f"Ciudad: {datos['ciudad']}, Tipo: {datos['tipo_oferta']}")
@@ -104,6 +106,13 @@ def editar(anuncio_id):
             "telefono":      request.form.get("telefono", "").strip(),
             "descripcion":   request.form.get("descripcion", "").strip(),
         }
+        fotos = list(anuncio.get("fotos") or [])
+        a_borrar = request.form.getlist("borrar_fotos")
+        if a_borrar:
+            eliminar_imagenes(a_borrar, "viviendas")
+            fotos = [f for f in fotos if f not in a_borrar]
+        fotos.extend(guardar_imagenes(request.files.getlist("fotos"), "viviendas"))
+        datos["fotos"] = fotos
         modelo.actualizar(anuncio_id, datos)
         registrar_log(db, "registro", "editar_vivienda", session["nombre"], f"ID: {anuncio_id}")
 
@@ -135,6 +144,7 @@ def eliminar(anuncio_id):
         flash("No tienes permisos para eliminar este anuncio.", "danger")
         return redirect(url_for("viviendas.listar"))
 
+    eliminar_imagenes(anuncio.get("fotos") or [], "viviendas")
     modelo.eliminar(anuncio_id)
     registrar_log(db, "registro", "eliminar_vivienda", session["nombre"], f"ID: {anuncio_id}")
     actualizar_contadores(db)

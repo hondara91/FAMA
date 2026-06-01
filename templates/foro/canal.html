@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}FAMA - {{ canal.nombre }}{% endblock %}
+
+{% block content %}
+
+{# ── Cabecera del canal ───────────────────────────────────────────────────── #}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle d-flex align-items-center justify-content-center
+                    bg-{{ canal.color }} bg-opacity-10 flex-shrink-0"
+             style="width:52px;height:52px">
+            <i class="bi bi-{{ canal.icono }} text-{{ canal.color }} fs-3"></i>
+        </div>
+        <div>
+            <h2 class="mb-0">{{ canal.nombre }}</h2>
+            {% if canal.descripcion %}
+            <p class="text-muted small mb-0">{{ canal.descripcion }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% if session.user_id %}
+    <a href="{{ url_for('foro.nuevo', canal_id=canal._id) }}" class="btn btn-{{ canal.color }}">
+        <i class="bi bi-plus-lg me-1"></i>Nueva publicacion
+    </a>
+    {% endif %}
+</div>
+
+{# ── Buscador ─────────────────────────────────────────────────────────────── #}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-2">
+            <div class="col-md-6">
+                <input type="text" name="q" class="form-control form-control-sm"
+                       placeholder="Buscar en titulo o contenido..."
+                       value="{{ filtros.get('q', '') }}">
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="autor" class="form-control form-control-sm"
+                       placeholder="Filtrar por autor"
+                       value="{{ filtros.get('autor', '') }}">
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-{{ canal.color }} btn-sm w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a href="{{ url_for('foro.ver_canal', canal_id=canal._id) }}"
+                   class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-x"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ── Listado de publicaciones ─────────────────────────────────────────────── #}
+{% if posts %}
+<div class="d-flex flex-column gap-3">
+    {% for p in posts %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+
+                <div class="col-auto">
+                    {% if p.foto_autor %}
+                    <img class="fama-avatar fama-avatar-md"
+                         src="{{ url_for('static', filename='uploads/perfiles/' + p.foto_autor) }}"
+                         alt="{{ p.nombre_usuario }}">
+                    {% else %}
+                    <div class="fama-avatar fama-avatar-md fama-avatar-placeholder">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% set primera = (p.fotos or [p.imagen] if p.imagen else []) | first %}
+                {% if primera %}
+                <div class="col-auto position-relative">
+                    <img src="{{ url_for('static', filename='uploads/foro/' + primera) }}"
+                         class="rounded" style="width:80px;height:80px;object-fit:cover" alt="imagen">
+                    {% set total = (p.fotos or []) | length %}
+                    {% if total > 1 %}
+                    <span class="position-absolute bottom-0 end-0 badge bg-dark bg-opacity-75 m-1">
+                        <i class="bi bi-images"></i> {{ total }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="col">
+                    <h5 class="mb-1">
+                        <a href="{{ url_for('foro.detalle', post_id=p._id) }}"
+                           class="text-decoration-none text-dark stretched-link">
+                            {{ p.titulo }}
+                        </a>
+                    </h5>
+                    <p class="text-muted small mb-2">{{ p.contenido|truncate(160) }}</p>
+                    <div class="d-flex gap-3 small text-muted">
+                        <span>{{ p.nombre_usuario }}</span>
+                        <span><i class="bi bi-clock me-1"></i>
+                            {{ p.fecha_creacion.strftime('%d/%m/%Y %H:%M') if p.fecha_creacion else '' }}
+                        </span>
+                        <span><i class="bi bi-chat me-1"></i>{{ p.num_respuestas }} respuesta{{ 's' if p.num_respuestas != 1 else '' }}</span>
+                    </div>
+                </div>
+
+                <div class="col-auto d-flex gap-1" style="position:relative;z-index:1">
+                    {# Editar: admin edita todos; usuario solo el suyo #}
+                    {% if session.user_id and (session.rol == 'admin' or session.user_id == p.usuario_id) %}
+                    <a href="{{ url_for('foro.editar', post_id=p._id) }}"
+                       class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    {% endif %}
+                    {# Borrar: admin y gestor borran todos; usuario solo el suyo #}
+                    {% if session.user_id and (session.user_id == p.usuario_id or session.rol in ('admin','gestor')) %}
+                    <form method="POST" action="{{ url_for('foro.eliminar', post_id=p._id) }}"
+                          onsubmit="return confirmarEliminacion()">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-chat-dots fs-1 d-block mb-3"></i>
+    <p>Todavia no hay publicaciones en este canal.</p>
+    {% if session.user_id %}
+    <a href="{{ url_for('foro.nuevo', canal_id=canal._id) }}" class="btn btn-{{ canal.color }}">
+        Ser el primero en publicar
+    </a>
+    {% else %}
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">Inicia sesion para publicar</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

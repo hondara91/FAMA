@@ -12,13 +12,9 @@ from flask import Blueprint, flash, redirect, render_template, request, send_fil
 
 from models.usuario import Usuario
 from utils.db import get_db
-from utils.helpers import (
-    admin_required,
-    exportar_logs_pdf,
-    gestor_required,
-    login_required,
-    registrar_log,
-)
+from utils.decorators import admin_required, gestor_required, login_required
+from utils.email import enviar_aprobacion_cuenta
+from utils.logs import exportar_logs_pdf, registrar_log
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -34,7 +30,9 @@ def panel():
 
     # Contar documentos en cada coleccion para las tarjetas de estadisticas
     stats = {
-        "usuarios":    db.usuarios.count_documents({"activo": True}),  # Solo cuentas activas
+        "usuarios":    db.usuarios.count_documents({"activo": True, "validado": True, "email_verificado": True}),
+        # Pendientes = email verificado pero aun sin aprobar por admin
+        "pendientes":  db.usuarios.count_documents({"activo": True, "email_verificado": True, "validado": False}),
         "viviendas":   db.viviendas.count_documents({}),
         "servicios":   db.servicios.count_documents({}),
         "compraventa": db.compraventa.count_documents({}),
@@ -53,11 +51,51 @@ def panel():
 @login_required
 @gestor_required
 def listar_usuarios():
-    """Lista todos los usuarios registrados (activos e inactivos)."""
-    db = get_db()
-    # obtener_todos() devuelve todos los usuarios, incluyendo los desactivados
-    usuarios = Usuario(db).obtener_todos()
-    return render_template("admin/usuarios.html", usuarios=usuarios)
+    """Lista usuarios con buscador y paginacion de 10 en 10."""
+    db        = get_db()
+    q         = request.args.get("q", "").strip()
+    pagina    = max(1, int(request.args.get("pagina", 1)))
+    por_pagina = 10
+
+    filtro = {}
+    if q:
+        filtro["$or"] = [
+            {"nombre": {"$regex": q, "$options": "i"}},
+            {"email":  {"$regex": q, "$options": "i"}},
+        ]
+
+    total        = db.usuarios.count_documents(filtro)
+    total_paginas = max(1, (total + por_pagina - 1) // por_pagina)
+    pagina        = min(pagina, total_paginas)
+
+    usuarios = list(
+        db.usuarios.find(filtro)
+        .sort("fecha_registro", -1)
+        .skip((pagina - 1) * por_pagina)
+        .limit(por_pagina)
+    )
+
+    return render_template(
+        "admin/usuarios.html",
+        usuarios=usuarios,
+        q=q,
+        pagina=pagina,
+        total_paginas=total_paginas,
+        total=total,
+    )
+
+
+@admin_bp.route("/usuarios/ver/<user_id>")
+@login_required
+@gestor_required
+def ver_usuario(user_id):
+    """Muestra la ficha completa de un usuario."""
+    db      = get_db()
+    usuario = Usuario(db).obtener_por_id(user_id)
+    if not usuario:
+        flash("Usuario no encontrado.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+    return render_template("admin/ver_usuario.html", usuario=usuario)
 
 
 @admin_bp.route("/usuarios/editar/<user_id>", methods=["GET", "POST"])
@@ -114,6 +152,34 @@ def cambiar_rol(user_id):
     registrar_log(db, "registro", "cambiar_rol", session["nombre"],
                   f"Usuario: {usuario['nombre']} -> Nuevo rol: {nuevo_rol}")
     flash(f"Rol actualizado a '{nuevo_rol}' para {usuario['nombre']}.", "success")
+    return redirect(url_for("admin.listar_usuarios"))
+
+
+@admin_bp.route("/usuarios/validar/<user_id>", methods=["POST"])
+@login_required
+@gestor_required
+def validar_usuario(user_id):
+    """Aprueba la cuenta de un usuario pendiente de validacion."""
+    db = get_db()
+    modelo  = Usuario(db)
+    usuario = modelo.obtener_por_id(user_id)
+
+    if not usuario:
+        flash("Usuario no encontrado.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+
+    password_temp = Usuario.generar_password_temporal()
+    modelo.validar_usuario(user_id)
+    modelo.establecer_password_temporal(user_id, password_temp)
+    enviado = enviar_aprobacion_cuenta(usuario["email"], usuario["nombre"], password_temp)
+
+    registrar_log(db, "registro", "validar_usuario", session["nombre"],
+                  f"Cuenta validada: {usuario['nombre']}")
+
+    if enviado:
+        flash(f"Cuenta de {usuario['nombre']} aprobada. Se le ha enviado la contrasena temporal por email.", "success")
+    else:
+        flash(f"Cuenta de {usuario['nombre']} aprobada pero el email no pudo enviarse. Contrasena temporal: {password_temp}", "warning")
     return redirect(url_for("admin.listar_usuarios"))
 
 

@@ -53,6 +53,17 @@
     {% for a in anuncios %}
     <div class="col-md-6 col-lg-4">
         <div class="card h-100 border-0 shadow-sm">
+            {% if a.fotos %}
+            <div class="position-relative">
+                <img src="{{ url_for('static', filename='uploads/servicios/' + a.fotos[0]) }}"
+                     class="card-img-top" style="height:160px;object-fit:cover" alt="foto">
+                {% if a.fotos|length > 1 %}
+                <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark bg-opacity-75">
+                    <i class="bi bi-images me-1"></i>{{ a.fotos|length }}
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="badge bg-{{ 'success' if a.tipo == 'ofrecer' else 'info' }} text-{{ '' if a.tipo == 'ofrecer' else 'dark' }}">{{ a.tipo|capitalize }}</span>

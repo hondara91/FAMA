@@ -3,19 +3,38 @@
 
 {% block content %}
 
-{# ── Cabecera de pagina ───────────────────────────────────────────────────── #}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-people text-primary me-2"></i>Gestion de Usuarios</h2>
+    <h2><i class="bi bi-people text-primary me-2"></i>Gestion de Usuarios
+        <small class="text-muted fs-6 ms-2">{{ total }} en total</small>
+    </h2>
     <a href="{{ url_for('admin.panel') }}" class="btn btn-outline-secondary btn-sm">Panel</a>
 </div>
 
-{# ── Tabla de usuarios ────────────────────────────────────────────────────── #}
-{# table-responsive: scroll horizontal en pantallas pequenas #}
+{# ── Buscador ──────────────────────────────────────────────────────────────── #}
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="GET" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control form-control-sm"
+                   placeholder="Buscar por nombre o email..." value="{{ q }}">
+            <button type="submit" class="btn btn-primary btn-sm px-3">
+                <i class="bi bi-search"></i>
+            </button>
+            {% if q %}
+            <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x"></i>
+            </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+{# ── Tabla de usuarios ─────────────────────────────────────────────────────── #}
 <div class="card border-0 shadow-sm">
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
+    <div class="table-responsive" style="overflow:visible">
+        <table class="table table-hover mb-0 align-middle">
             <thead class="table-dark">
                 <tr>
+                    <th style="width:44px"></th>
                     <th>Nombre</th>
                     <th>Email</th>
                     <th>Rol</th>
@@ -27,38 +46,68 @@
             <tbody>
                 {% for u in usuarios %}
                 <tr>
+                    {# Avatar miniatura #}
+                    <td>
+                        {% if u.foto_perfil %}
+                        <img src="{{ url_for('static', filename='uploads/perfiles/' + u.foto_perfil) }}"
+                             style="width:36px;height:36px;object-fit:cover;border-radius:50%"
+                             alt="{{ u.nombre }}">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center bg-secondary bg-opacity-25 rounded-circle"
+                             style="width:36px;height:36px">
+                            <i class="bi bi-person text-secondary"></i>
+                        </div>
+                        {% endif %}
+                    </td>
+
                     <td><strong>{{ u.nombre }}</strong></td>
                     <td class="text-muted small">{{ u.email }}</td>
 
-                    {# Badge de rol con color diferente segun jerarquia: admin=rojo, gestor=amarillo, usuario=gris #}
                     <td>
                         <span class="badge bg-{{ 'danger' if u.rol=='admin' else 'warning text-dark' if u.rol=='gestor' else 'secondary' }}">
                             {{ u.rol }}
                         </span>
                     </td>
 
-                    {# Fecha de registro formateada; '-' si no existe el campo #}
                     <td class="small text-muted">{{ u.fecha_registro.strftime('%d/%m/%Y') if u.fecha_registro else '-' }}</td>
 
-                    {# Estado activo/inactivo: verde si activo, rojo si ha sido desactivado por admin #}
                     <td>
-                        <span class="badge bg-{{ 'success' if u.activo else 'danger' }}">
-                            {{ 'Activo' if u.activo else 'Inactivo' }}
-                        </span>
+                        {% if not u.activo %}
+                        <span class="badge bg-danger">Inactivo</span>
+                        {% elif not u.get('email_verificado', False) %}
+                        <span class="badge bg-secondary">Sin verificar</span>
+                        {% elif not u.get('validado', False) %}
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                        {% else %}
+                        <span class="badge bg-success">Activo</span>
+                        {% endif %}
                     </td>
 
-                    {# ── Columna de acciones ──────────────────────────────── #}
                     <td class="text-end">
-                        <div class="d-flex gap-1 justify-content-end flex-wrap">
+                        <div class="d-flex gap-1 justify-content-end">
 
-                            {# Editar: disponible para gestor y admin #}
+                            {# Ver ficha completa #}
+                            <a href="{{ url_for('admin.ver_usuario', user_id=u._id) }}"
+                               class="btn btn-sm btn-outline-secondary" title="Ver ficha">
+                                <i class="bi bi-person-badge"></i>
+                            </a>
+
+                            {# Validar cuenta pendiente #}
+                            {% if u.activo and u.get('email_verificado', False) and not u.get('validado', False) %}
+                            <form method="POST" action="{{ url_for('admin.validar_usuario', user_id=u._id) }}">
+                                <button type="submit" class="btn btn-sm btn-success" title="Aprobar cuenta">
+                                    <i class="bi bi-person-check"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            {# Editar #}
                             <a href="{{ url_for('admin.editar_usuario', user_id=u._id) }}"
-                               class="btn btn-sm btn-outline-primary">
+                               class="btn btn-sm btn-outline-primary" title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
 
-                            {# Resetear contrasenia: disponible para gestor y admin #}
-                            {# La contrasenia se pone a 'Password' y se activa el flag de cambio obligatorio #}
+                            {# Resetear contraseña #}
                             <form method="POST" action="{{ url_for('admin.resetear_password', user_id=u._id) }}"
                                   onsubmit="return confirm('Resetear contrasenia de {{ u.nombre }}?')">
                                 <button type="submit" class="btn btn-sm btn-outline-warning" title="Resetear contrasenia">
@@ -66,21 +115,23 @@
                                 </button>
                             </form>
 
-                            {# Cambio de rol y desactivacion: SOLO para admin #}
                             {% if session.rol == 'admin' %}
-
-                            {# Dropdown para cambiar el rol directamente desde la tabla #}
-                            {# Cada opcion del menu envia un POST separado con el nuevo rol #}
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">Rol</button>
-                                <ul class="dropdown-menu">
+                                <button class="btn btn-sm btn-outline-info dropdown-toggle"
+                                        data-bs-toggle="dropdown"
+                                        data-bs-boundary="viewport">Rol</button>
+                                <ul class="dropdown-menu dropdown-menu-end">
                                     {% for rol in ['usuario', 'gestor', 'admin'] %}
                                     <li>
                                         <form method="POST" action="{{ url_for('admin.cambiar_rol', user_id=u._id) }}">
                                             <input type="hidden" name="rol" value="{{ rol }}">
-                                            {# 'v' marca el rol actual del usuario en el menu #}
-                                            <button type="submit" class="dropdown-item">
-                                                {{ 'v ' if u.rol == rol else '' }}{{ rol|capitalize }}
+                                            <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
+                                                {% if u.rol == rol %}
+                                                <i class="bi bi-check2 text-success"></i>
+                                                {% else %}
+                                                <i class="bi bi-circle" style="opacity:0"></i>
+                                                {% endif %}
+                                                {{ rol|capitalize }}
                                             </button>
                                         </form>
                                     </li>
@@ -88,16 +139,20 @@
                                 </ul>
                             </div>
 
-                            {# Desactivar usuario (soft-delete): pone activo=False en MongoDB #}
                             <form method="POST" action="{{ url_for('admin.eliminar_usuario', user_id=u._id) }}"
                                   onsubmit="return confirm('Desactivar a {{ u.nombre }}?')">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Desactivar">
                                     <i class="bi bi-person-x"></i>
                                 </button>
                             </form>
-
-                            {% endif %}{# fin bloque solo-admin #}
+                            {% endif %}
                         </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        No se encontraron usuarios{% if q %} para "<strong>{{ q }}</strong>"{% endif %}.
                     </td>
                 </tr>
                 {% endfor %}
@@ -105,5 +160,34 @@
         </table>
     </div>
 </div>
+
+{# ── Paginacion ────────────────────────────────────────────────────────────── #}
+{% if total_paginas > 1 %}
+<nav class="mt-3 d-flex justify-content-center">
+    <ul class="pagination pagination-sm mb-0">
+        <li class="page-item {% if pagina == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('admin.listar_usuarios', q=q, pagina=pagina-1) }}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+
+        {% for p in range(1, total_paginas + 1) %}
+        {% if p == 1 or p == total_paginas or (p >= pagina - 2 and p <= pagina + 2) %}
+        <li class="page-item {% if p == pagina %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('admin.listar_usuarios', q=q, pagina=p) }}">{{ p }}</a>
+        </li>
+        {% elif p == pagina - 3 or p == pagina + 3 %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+        {% endfor %}
+
+        <li class="page-item {% if pagina == total_paginas %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('admin.listar_usuarios', q=q, pagina=pagina+1) }}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
 
 {% endblock %}

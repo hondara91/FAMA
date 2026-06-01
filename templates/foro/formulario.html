@@ -2,12 +2,19 @@
 {% block title %}FAMA - {{ accion }} publicacion{% endblock %}
 
 {% block content %}
+
+
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <h3 class="mb-4">
-                    <i class="bi bi-chat-dots text-primary me-2"></i>{{ accion }} publicacion
+                    {% if canal %}
+                    <i class="bi bi-{{ canal.icono }} text-{{ canal.color }} me-2"></i>
+                    {% else %}
+                    <i class="bi bi-chat-dots text-primary me-2"></i>
+                    {% endif %}
+                    {{ accion }} publicacion{% if canal %} en {{ canal.nombre }}{% endif %}
                 </h3>
 
                 {# enctype multipart obligatorio para la subida de imagen #}
@@ -29,31 +36,33 @@
                                   >{{ post.contenido if post else '' }}</textarea>
                     </div>
 
-                    {# ── Imagen adjunta ────────────────────────────────────── #}
+                    {# ── Fotos adjuntas ────────────────────────────────────── #}
                     <div class="mb-3">
                         <label class="form-label">
-                            <i class="bi bi-image me-1"></i>Imagen adjunta (opcional, max 5 MB)
+                            <i class="bi bi-images me-1"></i>Fotos adjuntas (opcional, max 5 MB por foto)
                         </label>
-
-                        {# En modo edicion: mostrar la imagen actual si existe #}
-                        {% if post and post.imagen %}
-                        <div class="mb-2">
-                            <img src="{{ url_for('static', filename='uploads/foro/' + post.imagen) }}"
-                                 class="img-thumbnail" style="max-height:150px;"
-                                 alt="imagen actual">
-                            {# Checkbox para borrar la imagen actual sin subir otra #}
-                            <div class="form-check mt-1">
-                                <input class="form-check-input" type="checkbox"
-                                       name="borrar_imagen" id="borrarImg">
-                                <label class="form-check-label small text-danger" for="borrarImg">
-                                    Eliminar imagen actual
-                                </label>
+                        {% if post %}
+                        {% set fotos_actuales = (post.fotos or []) %}
+                        {% if post.imagen and post.imagen not in fotos_actuales %}
+                            {% set fotos_actuales = [post.imagen] + fotos_actuales %}
+                        {% endif %}
+                        {% if fotos_actuales %}
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            {% for foto in fotos_actuales %}
+                            <div>
+                                <img src="{{ url_for('static', filename='uploads/foro/' + foto) }}"
+                                     style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6" alt="">
+                                <div class="form-check mt-1 text-center">
+                                    <input class="form-check-input" type="checkbox" name="borrar_fotos" value="{{ foto }}" id="del_{{ loop.index }}">
+                                    <label class="form-check-label small text-danger" for="del_{{ loop.index }}">Borrar</label>
+                                </div>
                             </div>
+                            {% endfor %}
                         </div>
                         {% endif %}
-
-                        <input type="file" class="form-control" name="imagen" accept="image/*">
-                        <div class="form-text">Formatos: JPG, PNG, GIF, WEBP.</div>
+                        {% endif %}
+                        <input type="file" class="form-control" name="fotos" multiple accept="image/*">
+                        <div class="form-text">JPG, PNG, GIF, WEBP. Puedes seleccionar varias fotos a la vez.</div>
                     </div>
 
                     {# ── Botones de accion ─────────────────────────────────── #}
@@ -61,9 +70,11 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-1"></i>{{ accion }}
                         </button>
-                        {# Cancelar: vuelve al detalle si editamos, al listado si creamos #}
                         {% if post %}
                         <a href="{{ url_for('foro.detalle', post_id=post._id) }}"
+                           class="btn btn-outline-secondary">Cancelar</a>
+                        {% elif canal %}
+                        <a href="{{ url_for('foro.ver_canal', canal_id=canal._id) }}"
                            class="btn btn-outline-secondary">Cancelar</a>
                         {% else %}
                         <a href="{{ url_for('foro.listar') }}"

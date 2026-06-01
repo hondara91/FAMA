@@ -10,20 +10,21 @@
 {# 'stats' viene calculado en la ruta admin.panel con count_documents de MongoDB #}
 <div class="row g-3 mb-4">
     {% set tarjetas = [
-        ('Usuarios',      stats.usuarios,       'people',         'primary'),
-        ('Viviendas',     stats.viviendas,      'house-door',     'info'),
-        ('Servicios',     stats.servicios,      'gear',           'success'),
-        ('Compra-Venta',  stats.compraventa,    'shop',           'warning'),
-        ('Eventos Ocio',  stats.ocio,           'calendar-event', 'secondary'),
-        ('Total anuncios',stats.total_anuncios, 'collection',     'dark')
+        ('Usuarios',         stats.usuarios,       'people',            'primary'),
+        ('Pendientes',       stats.pendientes,     'person-exclamation', 'danger' if stats.pendientes > 0 else 'secondary'),
+        ('Viviendas',        stats.viviendas,      'house-door',        'info'),
+        ('Servicios',        stats.servicios,      'gear',              'success'),
+        ('Compra-Venta',     stats.compraventa,    'shop',              'warning'),
+        ('Eventos Ocio',     stats.ocio,           'calendar-event',    'secondary'),
+        ('Total anuncios',   stats.total_anuncios, 'collection',        'dark')
     ] %}
     {% for nombre, valor, icono, color in tarjetas %}
-    <div class="col-6 col-md-4 col-lg-2">
-        <div class="card border-0 shadow-sm text-center">
-            <div class="card-body py-3">
+    <div class="col">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body py-3 px-2">
                 <i class="bi bi-{{ icono }} text-{{ color }} fs-3"></i>
                 <h3 class="my-1">{{ valor }}</h3>
-                <small class="text-muted">{{ nombre }}</small>
+                <small class="text-muted text-nowrap">{{ nombre }}</small>
             </div>
         </div>
     </div>

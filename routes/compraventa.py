@@ -7,7 +7,9 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 
 from models.compraventa import Compraventa
 from utils.db import get_db
-from utils.helpers import actualizar_contadores, login_required, registrar_log
+from utils.decorators import login_required
+from utils.logs import actualizar_contadores, registrar_log
+from utils.uploads import eliminar_imagenes, guardar_imagenes
 
 compraventa_bp = Blueprint("compraventa", __name__, url_prefix="/compraventa")
 
@@ -49,6 +51,7 @@ def nuevo():
             "unidad_armada": request.form.get("unidad_armada", "").strip() if es_merch else "",
         }
 
+        datos["fotos"] = guardar_imagenes(request.files.getlist("fotos"), "compraventa")
         modelo.crear(datos, session["user_id"], session["nombre"])
         registrar_log(db, "registro", "crear_compraventa", session["nombre"],
                       f"Articulo: {datos['nombre_articulo']}")
@@ -88,6 +91,13 @@ def editar(anuncio_id):
             "es_merchandising": es_merch,
             "unidad_armada": request.form.get("unidad_armada", "").strip() if es_merch else "",
         }
+        fotos = list(anuncio.get("fotos") or [])
+        a_borrar = request.form.getlist("borrar_fotos")
+        if a_borrar:
+            eliminar_imagenes(a_borrar, "compraventa")
+            fotos = [f for f in fotos if f not in a_borrar]
+        fotos.extend(guardar_imagenes(request.files.getlist("fotos"), "compraventa"))
+        datos["fotos"] = fotos
         modelo.actualizar(anuncio_id, datos)
         registrar_log(db, "registro", "editar_compraventa", session["nombre"], f"ID: {anuncio_id}")
 
@@ -115,6 +125,7 @@ def eliminar(anuncio_id):
         flash("No tienes permisos para eliminar este articulo.", "danger")
         return redirect(url_for("compraventa.listar"))
 
+    eliminar_imagenes(anuncio.get("fotos") or [], "compraventa")
     modelo.eliminar(anuncio_id)
     registrar_log(db, "registro", "eliminar_compraventa", session["nombre"], f"ID: {anuncio_id}")
     actualizar_contadores(db)

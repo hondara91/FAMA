@@ -32,6 +32,7 @@ class Vivienda:
             "extras":        datos.get("extras", []),     # Lista: ['garaje', 'ascensor', 'mascotas']
             "telefono":      datos.get("telefono"),
             "descripcion":   datos.get("descripcion"),
+            "fotos":         datos.get("fotos", []),
             "usuario_id":       user_id,         # Usado para comprobar permisos de edicion
             "nombre_usuario":   nombre_usuario,  # Mostrado en la tarjeta sin consulta extra
             "fecha_creacion":   datetime.now(),

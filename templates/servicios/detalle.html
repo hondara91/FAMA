@@ -2,14 +2,29 @@
 {% block title %}FAMA - {{ anuncio.titulo }}{% endblock %}
 
 {% block content %}
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ url_for('servicios.listar') }}">Servicios</a></li>
-        <li class="breadcrumb-item active">{{ anuncio.titulo }}</li>
-    </ol>
-</nav>
 <div class="row">
     <div class="col-lg-8">
+        {% if anuncio.fotos %}
+        <div class="mb-3">
+            {% if anuncio.fotos | length == 1 %}
+            <img src="{{ url_for('static', filename='uploads/servicios/' + anuncio.fotos[0]) }}"
+                 class="img-fluid rounded shadow-sm w-100" style="max-height:340px;object-fit:cover" alt="foto">
+            {% else %}
+            <div id="carouselFotos" class="carousel slide shadow-sm rounded" data-bs-ride="carousel">
+                <div class="carousel-inner rounded">
+                    {% for foto in anuncio.fotos %}
+                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        <img src="{{ url_for('static', filename='uploads/servicios/' + foto) }}"
+                             class="d-block w-100" style="max-height:340px;object-fit:cover" alt="foto {{ loop.index }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselFotos" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselFotos" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">
                 <div class="d-flex gap-2 mb-3">

@@ -30,6 +30,7 @@ class Compraventa:
             "es_merchandising": datos.get("es_merchandising", False),
             # Solo relevante si es_merchandising=True; nombre de la unidad Armada
             "unidad_armada":    datos.get("unidad_armada", ""),
+            "fotos":            datos.get("fotos", []),
             "usuario_id":       user_id,
             "nombre_usuario":   nombre_usuario,
             "fecha_creacion":   datetime.now(),

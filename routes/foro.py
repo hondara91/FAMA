@@ -1,75 +1,36 @@
 """
-routes/foro.py - Rutas del modulo de Foro (publicaciones + respuestas + imagenes).
+routes/foro.py - Rutas del modulo de Foro (canales + posts + respuestas).
 
-Rutas disponibles:
-  GET  /foro/              -> listado de posts con buscador
-  GET  /foro/detalle/<id>  -> post completo con hilo de respuestas
-  POST /foro/detalle/<id>  -> anadir una respuesta al post
-  GET/POST /foro/nuevo     -> crear post nuevo
-  GET/POST /foro/editar/<id>          -> editar post propio
-  POST /foro/eliminar/<id>            -> eliminar post propio
-  POST /foro/respuesta/eliminar/<id>  -> eliminar respuesta propia
-
-Subida de imagenes: PNG/JPG/JPEG/GIF/WEBP, max 5 MB.
-Los archivos se guardan en static/uploads/foro/.
+  GET  /foro/                          -> lista de canales
+  GET/POST /foro/canal/nuevo           -> crear canal (gestor/admin)
+  POST /foro/canal/eliminar/<id>       -> eliminar canal (admin)
+  GET  /foro/canal/<canal_id>          -> posts dentro de un canal
+  GET/POST /foro/canal/<canal_id>/nuevo-> crear post en el canal
+  GET  /foro/detalle/<post_id>         -> post + hilo de respuestas
+  POST /foro/detalle/<post_id>         -> nueva respuesta
+  GET/POST /foro/editar/<post_id>      -> editar post
+  POST /foro/eliminar/<post_id>        -> eliminar post
+  POST /foro/respuesta/eliminar/<id>   -> eliminar respuesta
 """
-import os
-from datetime import datetime
-
 from bson import ObjectId
-from flask import (Blueprint, current_app, flash, redirect,
+from flask import (Blueprint, flash, redirect,
                    render_template, request, session, url_for)
-from werkzeug.utils import secure_filename
 
-from models.foro import ForoPost, ForoRespuesta
+from models.foro import ForoCanal, ForoPost, ForoRespuesta
 from utils.db import get_db
-from utils.helpers import login_required, registrar_log
+from utils.decorators import gestor_required, login_required
+from utils.logs import registrar_log
+from utils.uploads import eliminar_imagenes, guardar_imagenes
 
 foro_bp = Blueprint("foro", __name__, url_prefix="/foro")
 
-# Extensiones de imagen permitidas para las subidas
-_EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "gif", "webp"}
 
-
-# ── Utilidad de subida de imagen ──────────────────────────────────────────────
-
-def _guardar_imagen(archivo):
-    """
-    Valida y guarda el archivo de imagen recibido del formulario.
-
-    Comprueba que la extension sea permitida, genera un nombre unico
-    basado en timestamp para evitar colisiones, y guarda el archivo
-    en static/uploads/foro/.
-
-    Devuelve el nombre del archivo guardado, o None si no hay archivo
-    o la extension no es valida.
-    """
-    if not archivo or archivo.filename == "":
-        return None
-
-    # Extraer extension y validarla
-    ext = archivo.filename.rsplit(".", 1)[-1].lower() if "." in archivo.filename else ""
-    if ext not in _EXTENSIONES_PERMITIDAS:
-        return None
-
-    # Nombre unico: timestamp_microsegundos + nombre seguro original
-    nombre = f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}_{secure_filename(archivo.filename)}"
-
-    # Crear el directorio si no existe (primera ejecucion o volumen nuevo)
-    carpeta = os.path.join(current_app.static_folder, "uploads", "foro")
-    os.makedirs(carpeta, exist_ok=True)
-
-    archivo.save(os.path.join(carpeta, nombre))
-    return nombre
-
-
-def _eliminar_imagen(nombre):
-    """Borra el archivo de imagen del disco si existe."""
-    if not nombre:
-        return
-    ruta = os.path.join(current_app.static_folder, "uploads", "foro", nombre)
-    if os.path.exists(ruta):
-        os.remove(ruta)
+def _fotos_doc(doc):
+    """Devuelve la lista de fotos de un post/respuesta unificando campo nuevo y legado."""
+    fotos = list(doc.get("fotos") or [])
+    if doc.get("imagen"):
+        fotos.insert(0, doc["imagen"])
+    return fotos
 
 
 def _anotar_fotos_autor(db, documentos):
@@ -90,24 +51,107 @@ def _anotar_fotos_autor(db, documentos):
         doc["foto_autor"] = usuarios.get(doc.get("usuario_id"))
 
 
-# ── Listado ───────────────────────────────────────────────────────────────────
+# ── Lista de canales ──────────────────────────────────────────────────────────
 
 @foro_bp.route("/")
 def listar():
-    """Muestra todos los posts con buscador. Accesible sin autenticacion."""
+    """Pagina principal del foro: muestra todos los canales disponibles."""
     db     = get_db()
-    modelo = ForoPost(db)
-    resp   = ForoRespuesta(db)
+    modelo = ForoCanal(db)
+    posts  = ForoPost(db)
 
-    filtros = modelo.construir_filtros(request.args)
-    posts   = modelo.obtener_todos(filtros)
+    canales = modelo.obtener_todos()
+    for c in canales:
+        c["num_posts"] = posts.contar_por_canal(str(c["_id"]))
 
-    # Anotar el numero de respuestas en cada post para mostrarlo en la tarjeta
+    return render_template("foro/listar.html", canales=canales)
+
+
+# ── Crear canal ───────────────────────────────────────────────────────────────
+
+@foro_bp.route("/canal/nuevo", methods=["GET", "POST"])
+@login_required
+def nuevo_canal():
+    """Formulario para crear un nuevo canal (cualquier usuario autenticado)."""
+    if request.method == "POST":
+        db     = get_db()
+        modelo = ForoCanal(db)
+
+        nombre      = request.form.get("nombre", "").strip()
+        descripcion = request.form.get("descripcion", "").strip()
+        color       = request.form.get("color", "primary")
+        icono       = request.form.get("icono", "chat-dots")
+
+        if not nombre:
+            flash("El nombre del canal es obligatorio.", "danger")
+            return render_template("foro/nuevo_canal.html", colores=ForoCanal.COLORES, iconos=ForoCanal.ICONOS)
+
+        modelo.crear(nombre, descripcion, color, icono, session["user_id"], session["nombre"])
+        registrar_log(db, "registro", "crear_canal_foro", session["nombre"], f"Canal: {nombre}")
+        flash(f"Canal '{nombre}' creado correctamente.", "success")
+        return redirect(url_for("foro.listar"))
+
+    return render_template("foro/nuevo_canal.html", colores=ForoCanal.COLORES, iconos=ForoCanal.ICONOS)
+
+
+# ── Eliminar canal ────────────────────────────────────────────────────────────
+
+@foro_bp.route("/canal/eliminar/<canal_id>", methods=["POST"])
+@login_required
+def eliminar_canal(canal_id):
+    """Elimina el canal y todos sus posts (admin y gestor)."""
+    if session.get("rol") not in ("admin", "gestor"):
+        flash("Solo administradores y gestores pueden eliminar canales.", "danger")
+        return redirect(url_for("foro.listar"))
+
+    db         = get_db()
+    canal_mdl  = ForoCanal(db)
+    posts_mdl  = ForoPost(db)
+    resp_mdl   = ForoRespuesta(db)
+
+    canal = canal_mdl.obtener_por_id(canal_id)
+    if not canal:
+        flash("Canal no encontrado.", "danger")
+        return redirect(url_for("foro.listar"))
+
+    # Borrar todos los posts y respuestas del canal
+    posts = posts_mdl.obtener_por_canal(canal_id)
     for p in posts:
-        p["num_respuestas"] = resp.contar_por_post(str(p["_id"]))
+        eliminar_imagenes(_fotos_doc(p), "foro")
+        for r in resp_mdl.obtener_por_post(str(p["_id"])):
+            eliminar_imagenes(_fotos_doc(r), "foro")
+        resp_mdl.eliminar_por_post(str(p["_id"]))
+        posts_mdl.eliminar(str(p["_id"]))
+
+    canal_mdl.eliminar(canal_id)
+    registrar_log(db, "registro", "eliminar_canal_foro", session["nombre"], f"Canal: {canal['nombre']}")
+    flash(f"Canal '{canal['nombre']}' eliminado.", "info")
+    return redirect(url_for("foro.listar"))
+
+
+# ── Posts de un canal ─────────────────────────────────────────────────────────
+
+@foro_bp.route("/canal/<canal_id>")
+def ver_canal(canal_id):
+    """Muestra los posts de un canal con buscador."""
+    db        = get_db()
+    canal_mdl = ForoCanal(db)
+    posts_mdl = ForoPost(db)
+    resp_mdl  = ForoRespuesta(db)
+
+    canal = canal_mdl.obtener_por_id(canal_id)
+    if not canal:
+        flash("Canal no encontrado.", "danger")
+        return redirect(url_for("foro.listar"))
+
+    filtros = posts_mdl.construir_filtros(request.args)
+    posts   = posts_mdl.obtener_por_canal(canal_id, filtros)
+
+    for p in posts:
+        p["num_respuestas"] = resp_mdl.contar_por_post(str(p["_id"]))
     _anotar_fotos_autor(db, posts)
 
-    return render_template("foro/listar.html", posts=posts, filtros=request.args)
+    return render_template("foro/canal.html", canal=canal, posts=posts, filtros=request.args)
 
 
 # ── Detalle + responder ───────────────────────────────────────────────────────
@@ -138,10 +182,8 @@ def detalle(post_id):
             flash("La respuesta no puede estar vacia.", "danger")
             return redirect(url_for("foro.detalle", post_id=post_id))
 
-        # Guardar imagen adjunta si se subio alguna
-        imagen = _guardar_imagen(request.files.get("imagen"))
-
-        modelo_resp.crear(post_id, contenido, imagen,
+        fotos = guardar_imagenes(request.files.getlist("fotos"), "foro")
+        modelo_resp.crear(post_id, contenido, fotos,
                           session["user_id"], session["nombre"])
         registrar_log(db, "registro", "crear_respuesta_foro",
                       session["nombre"], f"Post ID: {post_id}")
@@ -152,36 +194,42 @@ def detalle(post_id):
     respuestas = modelo_resp.obtener_por_post(post_id)
     _anotar_fotos_autor(db, [post])
     _anotar_fotos_autor(db, respuestas)
-    return render_template("foro/detalle.html", post=post, respuestas=respuestas)
+    canal = ForoCanal(db).obtener_por_id(post.get("canal_id", "")) if post.get("canal_id") else None
+    return render_template("foro/detalle.html", post=post, respuestas=respuestas, canal=canal)
 
 
-# ── Creacion ──────────────────────────────────────────────────────────────────
+# ── Crear post en canal ───────────────────────────────────────────────────────
 
-@foro_bp.route("/nuevo", methods=["GET", "POST"])
+@foro_bp.route("/canal/<canal_id>/nuevo", methods=["GET", "POST"])
 @login_required
-def nuevo():
-    """Formulario para crear un nuevo post (GET) y persistirlo (POST)."""
-    if request.method == "POST":
-        db     = get_db()
-        modelo = ForoPost(db)
+def nuevo(canal_id):
+    """Formulario para crear un nuevo post dentro de un canal."""
+    db        = get_db()
+    canal_mdl = ForoCanal(db)
+    canal     = canal_mdl.obtener_por_id(canal_id)
 
+    if not canal:
+        flash("Canal no encontrado.", "danger")
+        return redirect(url_for("foro.listar"))
+
+    if request.method == "POST":
+        modelo    = ForoPost(db)
         titulo    = request.form.get("titulo", "").strip()
         contenido = request.form.get("contenido", "").strip()
 
         if not titulo or not contenido:
             flash("El titulo y el contenido son obligatorios.", "danger")
-            return render_template("foro/formulario.html", post=None, accion="Publicar")
+            return render_template("foro/formulario.html", post=None, canal=canal, accion="Publicar")
 
-        imagen = _guardar_imagen(request.files.get("imagen"))
-
-        modelo.crear(titulo, contenido, imagen, session["user_id"], session["nombre"])
+        fotos = guardar_imagenes(request.files.getlist("fotos"), "foro")
+        modelo.crear(titulo, contenido, fotos, canal_id, session["user_id"], session["nombre"])
         registrar_log(db, "registro", "crear_post_foro",
-                      session["nombre"], f"Titulo: {titulo}")
+                      session["nombre"], f"Canal: {canal['nombre']} | Titulo: {titulo}")
 
         flash("Publicacion creada correctamente.", "success")
-        return redirect(url_for("foro.listar"))
+        return redirect(url_for("foro.ver_canal", canal_id=canal_id))
 
-    return render_template("foro/formulario.html", post=None, accion="Publicar")
+    return render_template("foro/formulario.html", post=None, canal=canal, accion="Publicar")
 
 
 # ── Edicion ───────────────────────────────────────────────────────────────────
@@ -206,16 +254,10 @@ def editar(post_id):
     es_propietario = post["usuario_id"] == session["user_id"]
     es_admin       = session.get("rol") == "admin"
 
-    if not es_admin:
-        if not es_propietario:
-            # Gestor u otro usuario: sin permiso de edicion en el foro
-            flash("No tienes permisos para editar esta publicacion.", "danger")
-            return redirect(url_for("foro.detalle", post_id=post_id))
-        # Autor: bloquear edicion si ya existe alguna respuesta
-        num_respuestas = ForoRespuesta(db).contar_por_post(post_id)
-        if num_respuestas > 0:
-            flash("No puedes editar una publicacion que ya tiene respuestas.", "warning")
-            return redirect(url_for("foro.detalle", post_id=post_id))
+    # Solo el autor de su propio post o el admin pueden editar
+    if not es_admin and not es_propietario:
+        flash("No tienes permisos para editar esta publicacion.", "danger")
+        return redirect(url_for("foro.detalle", post_id=post_id))
 
     if request.method == "POST":
         titulo    = request.form.get("titulo", "").strip()
@@ -227,15 +269,20 @@ def editar(post_id):
 
         datos = {"titulo": titulo, "contenido": contenido}
 
-        # Si se sube una imagen nueva, borrar la anterior y guardar la nueva
-        nueva_imagen = _guardar_imagen(request.files.get("imagen"))
-        if nueva_imagen:
-            _eliminar_imagen(post.get("imagen"))
-            datos["imagen"] = nueva_imagen
-        elif request.form.get("borrar_imagen"):
-            # El usuario marcó el checkbox para eliminar la imagen sin subir otra
-            _eliminar_imagen(post.get("imagen"))
-            datos["imagen"] = None
+        fotos = list(post.get("fotos") or [])
+        # Si habia imagen legado la tratamos como foto 0
+        if post.get("imagen") and post["imagen"] not in fotos:
+            fotos.insert(0, post["imagen"])
+
+        a_borrar = request.form.getlist("borrar_fotos")
+        if a_borrar:
+            eliminar_imagenes(a_borrar, "foro")
+            fotos = [f for f in fotos if f not in a_borrar]
+            if post.get("imagen") in a_borrar:
+                datos["imagen"] = None
+
+        fotos.extend(guardar_imagenes(request.files.getlist("fotos"), "foro"))
+        datos["fotos"] = fotos
 
         modelo.actualizar(post_id, datos)
         registrar_log(db, "registro", "editar_post_foro",
@@ -244,7 +291,8 @@ def editar(post_id):
         flash("Publicacion actualizada.", "success")
         return redirect(url_for("foro.detalle", post_id=post_id))
 
-    return render_template("foro/formulario.html", post=post, accion="Guardar")
+    canal = ForoCanal(db).obtener_por_id(post.get("canal_id", "")) if post.get("canal_id") else None
+    return render_template("foro/formulario.html", post=post, canal=canal, accion="Guardar")
 
 
 # ── Eliminacion de post ───────────────────────────────────────────────────────
@@ -268,13 +316,11 @@ def eliminar(post_id):
         flash("No tienes permisos para eliminar esta publicacion.", "danger")
         return redirect(url_for("foro.detalle", post_id=post_id))
 
-    # Borrar imagen del post del disco
-    _eliminar_imagen(post.get("imagen"))
+    eliminar_imagenes(_fotos_doc(post), "foro")
 
-    # Borrar tambien las imagenes de todas las respuestas del post
     resp_modelo = ForoRespuesta(db)
     for r in resp_modelo.obtener_por_post(post_id):
-        _eliminar_imagen(r.get("imagen"))
+        eliminar_imagenes(_fotos_doc(r), "foro")
 
     # Borrar respuestas y luego el post de MongoDB
     resp_modelo.eliminar_por_post(post_id)
@@ -284,6 +330,9 @@ def eliminar(post_id):
                   session["nombre"], f"ID: {post_id}")
 
     flash("Publicacion eliminada.", "info")
+    canal_id = post.get("canal_id")
+    if canal_id:
+        return redirect(url_for("foro.ver_canal", canal_id=canal_id))
     return redirect(url_for("foro.listar"))
 
 
@@ -308,7 +357,7 @@ def eliminar_respuesta(respuesta_id):
         flash("No tienes permisos para eliminar esta respuesta.", "danger")
         return redirect(url_for("foro.detalle", post_id=respuesta["post_id"]))
 
-    _eliminar_imagen(respuesta.get("imagen"))
+    eliminar_imagenes(_fotos_doc(respuesta), "foro")
     modelo_resp.eliminar(respuesta_id)
     registrar_log(db, "registro", "eliminar_respuesta_foro",
                   session["nombre"], f"ID: {respuesta_id}")

@@ -7,7 +7,7 @@
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <h3 class="mb-4"><i class="bi bi-gear text-success me-2"></i>{{ accion }} servicio</h3>
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Que necesitas? *</label>
@@ -57,6 +57,25 @@
                         <div class="col-12">
                             <label class="form-label">Descripcion</label>
                             <textarea class="form-control" name="descripcion" rows="4">{{ anuncio.descripcion if anuncio else '' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label"><i class="bi bi-images me-1"></i>Fotos (opcional)</label>
+                            {% if anuncio and anuncio.fotos %}
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                {% for foto in anuncio.fotos %}
+                                <div class="position-relative">
+                                    <img src="{{ url_for('static', filename='uploads/servicios/' + foto) }}"
+                                         style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6" alt="">
+                                    <div class="form-check mt-1 text-center">
+                                        <input class="form-check-input" type="checkbox" name="borrar_fotos" value="{{ foto }}" id="del_{{ loop.index }}">
+                                        <label class="form-check-label small text-danger" for="del_{{ loop.index }}">Borrar</label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" name="fotos" multiple accept="image/*">
+                            <div class="form-text">JPG, PNG, GIF, WEBP. Puedes seleccionar varias fotos a la vez.</div>
                         </div>
                     </div>
                     <div class="mt-4 d-flex gap-2">

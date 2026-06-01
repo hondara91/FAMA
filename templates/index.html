@@ -110,12 +110,16 @@
         {{ cabecera_seccion('Últimas Viviendas', 'house-door', 'primary') }}
         {% for v in viviendas %}
         <div class="card mb-2 border-0 shadow-sm">
-            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
-                <div class="text-start">
-                    <span class="badge bg-primary me-2">{{ v.tipo_oferta }}</span>
+            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center gap-2">
+                {% if v.fotos %}
+                <img src="{{ url_for('static', filename='uploads/viviendas/' + v.fotos[0]) }}"
+                     style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0" alt="">
+                {% endif %}
+                <div class="text-start flex-grow-1">
+                    <span class="badge bg-primary me-1">{{ v.tipo_oferta }}</span>
                     <strong>{{ v.tipo_inmueble }}</strong> en {{ v.ciudad }}
                 </div>
-                <div class="text-end">
+                <div class="text-end text-nowrap">
                     <small class="text-muted">{{ v.precio }}€/mes</small>
                     <a href="{{ url_for('viviendas.detalle', anuncio_id=v._id) }}"
                        class="btn btn-sm btn-outline-primary ms-2">Ver</a>
@@ -133,12 +137,16 @@
         {{ cabecera_seccion('Últimos Servicios', 'gear', 'success') }}
         {% for s in servicios %}
         <div class="card mb-2 border-0 shadow-sm">
-            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
-                <div class="text-start">
-                    <span class="badge bg-success me-2">{{ s.tipo }}</span>
+            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center gap-2">
+                {% if s.fotos %}
+                <img src="{{ url_for('static', filename='uploads/servicios/' + s.fotos[0]) }}"
+                     style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0" alt="">
+                {% endif %}
+                <div class="text-start flex-grow-1">
+                    <span class="badge bg-success me-1">{{ s.tipo }}</span>
                     <strong>{{ s.titulo }}</strong>
                 </div>
-                <div class="text-end">
+                <div class="text-end text-nowrap">
                     <small class="text-muted">{{ s.ciudad }}</small>
                     <a href="{{ url_for('servicios.detalle', anuncio_id=s._id) }}"
                        class="btn btn-sm btn-outline-success ms-2">Ver</a>
@@ -156,13 +164,16 @@
         {{ cabecera_seccion('Últimos Artículos', 'shop', 'warning') }}
         {% for c in compraventa %}
         <div class="card mb-2 border-0 shadow-sm">
-            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
-                <div>
+            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center gap-2">
+                {% if c.fotos %}
+                <img src="{{ url_for('static', filename='uploads/compraventa/' + c.fotos[0]) }}"
+                     style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0" alt="">
+                {% endif %}
+                <div class="flex-grow-1 text-start">
                     <strong>{{ c.nombre_articulo }}</strong>
-                    {# UCO = Unidad, Centro u Organismo del vendedor #}
                     <small class="text-muted ms-2">{{ c.uco }}</small>
                 </div>
-                <div class="text-end">
+                <div class="text-end text-nowrap">
                     <span class="text-warning fw-bold">{{ c.precio }}€</span>
                     <a href="{{ url_for('compraventa.detalle', anuncio_id=c._id) }}"
                        class="btn btn-sm btn-outline-warning ms-2">Ver</a>

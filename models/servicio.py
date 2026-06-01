@@ -28,6 +28,7 @@ class Servicio:
             "telefono":  datos.get("telefono"),
             "ciudad":    datos.get("ciudad"),
             "descripcion": datos.get("descripcion"),
+            "fotos":       datos.get("fotos", []),
             "usuario_id":     user_id,
             "nombre_usuario": nombre_usuario,
             "fecha_creacion":   datetime.now(),

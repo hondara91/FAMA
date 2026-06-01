@@ -5,6 +5,8 @@ Encapsula toda la logica de creacion, autenticacion, gestion de roles
 y recuperacion de contrasena. Nunca almacena contrasenias en texto plano:
 usa el hash de werkzeug (PBKDF2 + salt aleatorio).
 """
+import secrets
+import string
 from datetime import datetime
 
 from bson import ObjectId
@@ -24,30 +26,34 @@ class Usuario:
 
     # ── Creacion ──────────────────────────────────────────────────────────────
 
-    def crear(self, nombre, email, password, pregunta_seguridad, respuesta_seguridad, rol="usuario"):
+    @staticmethod
+    def generar_password_temporal():
+        """Genera una contrasena temporal legible de 10 caracteres (letras + digitos)."""
+        caracteres = string.ascii_letters + string.digits
+        return "".join(secrets.choice(caracteres) for _ in range(10))
+
+    def crear(self, nombre, email, rol="usuario", validado=False):
         """
-        Crea un nuevo usuario con contrasena cifrada.
+        Crea un nuevo usuario con contrasena interna aleatoria (el usuario la recibira
+        por email cuando el admin apruebe su cuenta).
         Devuelve el ObjectId insertado o None si el email ya existe.
         """
-        # Verificar unicidad del email antes de insertar
         if self.coleccion.find_one({"email": email}):
-            return None  # Email duplicado: la ruta mostrara un flash de error
+            return None
 
         usuario = {
             "nombre": nombre,
             "email": email,
-            # Nunca almacenar la contrasena en texto plano; werkzeug usa PBKDF2+SHA256
-            "password": generate_password_hash(password),
+            # Contrasena aleatoria de marcador de posicion; se reemplaza al aprobar la cuenta
+            "password": generate_password_hash(secrets.token_hex(16)),
             "rol": rol,
             "foto_perfil": None,
-            "pregunta_seguridad": pregunta_seguridad,
-            # La respuesta se normaliza a minusculas antes de hashear para que la
-            # comparacion no sea sensible a mayusculas en la recuperacion de cuenta
-            "respuesta_seguridad": generate_password_hash(respuesta_seguridad.lower()),
-            # Flag que fuerza al usuario a cambiar la contrasena tras un reset por admin
+            "pregunta_seguridad": None,
+            "respuesta_seguridad": None,
             "debe_cambiar_password": False,
-            # Soft-delete: 'activo=False' desactiva sin borrar el historial
             "activo": True,
+            "validado": validado,
+            "email_verificado": False,
             "fecha_registro": datetime.now(),
         }
         resultado = self.coleccion.insert_one(usuario)
@@ -59,14 +65,21 @@ class Usuario:
         """
         Verifica email y contrasena.
         Devuelve el documento completo del usuario o None si falla.
+        Solo permite el acceso a cuentas activas Y validadas por el admin.
         """
-        # El filtro 'activo: True' impide el acceso a cuentas desactivadas por admin
-        usuario = self.coleccion.find_one({"email": email, "activo": True})
+        usuario = self.coleccion.find_one({
+            "email": email,
+            "activo": True,
+            "email_verificado": True,
+            "validado": True,
+        })
         if usuario and check_password_hash(usuario["password"], password):
             return usuario
-        # Devolver None en ambos casos (email incorrecto o contrasena incorrecta)
-        # evita revelar si el email existe o no (enumeracion de usuarios)
         return None
+
+    def obtener_por_email(self, email):
+        """Busca un usuario por email sin restricciones de estado."""
+        return self.coleccion.find_one({"email": email})
 
     # ── Consultas ─────────────────────────────────────────────────────────────
 
@@ -122,16 +135,30 @@ class Usuario:
             }},
         )
 
+    def establecer_password_temporal(self, user_id, password_temporal):
+        """Asigna una contrasena temporal y activa el flag de cambio obligatorio en el proximo login."""
+        self.coleccion.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {
+                "password": generate_password_hash(password_temporal),
+                "debe_cambiar_password": True,
+            }},
+        )
+
     def verificar_respuesta_seguridad(self, email, respuesta):
-        """
-        Comprueba la respuesta de seguridad para recuperar la cuenta.
-        La comparacion es insensible a mayusculas (se normaliza con .lower()).
-        """
+        """Comprueba la respuesta de seguridad. Devuelve False si el usuario no tiene pregunta configurada."""
         usuario = self.coleccion.find_one({"email": email})
-        if usuario:
-            # lower() para igualar la normalizacion aplicada al crear el usuario
+        if usuario and usuario.get("respuesta_seguridad"):
             return check_password_hash(usuario["respuesta_seguridad"], respuesta.lower())
         return False
+
+    def verificar_email_usuario(self, email):
+        """Marca el email como verificado tras el click en el enlace de confirmacion."""
+        self.coleccion.update_one({"email": email}, {"$set": {"email_verificado": True}})
+
+    def validar_usuario(self, user_id):
+        """Aprueba la cuenta de un usuario pendiente de validacion."""
+        self.coleccion.update_one({"_id": ObjectId(user_id)}, {"$set": {"validado": True}})
 
     def eliminar(self, user_id):
         """

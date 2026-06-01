@@ -2,17 +2,29 @@
 {% block title %}FAMA - {{ anuncio.nombre_articulo }}{% endblock %}
 
 {% block content %}
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ url_for('compraventa.listar') }}">Compra-Venta</a></li>
-        {% if anuncio.es_merchandising %}
-        <li class="breadcrumb-item"><a href="{{ url_for('compraventa.armada') }}">Tienda Armada</a></li>
-        {% endif %}
-        <li class="breadcrumb-item active">{{ anuncio.nombre_articulo }}</li>
-    </ol>
-</nav>
 <div class="row">
     <div class="col-lg-8">
+        {% if anuncio.fotos %}
+        <div class="mb-3">
+            {% if anuncio.fotos | length == 1 %}
+            <img src="{{ url_for('static', filename='uploads/compraventa/' + anuncio.fotos[0]) }}"
+                 class="img-fluid rounded shadow-sm w-100" style="max-height:340px;object-fit:cover" alt="foto">
+            {% else %}
+            <div id="carouselFotos" class="carousel slide shadow-sm rounded" data-bs-ride="carousel">
+                <div class="carousel-inner rounded">
+                    {% for foto in anuncio.fotos %}
+                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        <img src="{{ url_for('static', filename='uploads/compraventa/' + foto) }}"
+                             class="d-block w-100" style="max-height:340px;object-fit:cover" alt="foto {{ loop.index }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselFotos" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselFotos" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">
                 {% if anuncio.es_merchandising %}

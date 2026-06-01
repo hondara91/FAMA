@@ -7,7 +7,9 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 
 from models.servicio import Servicio
 from utils.db import get_db
-from utils.helpers import actualizar_contadores, login_required, registrar_log
+from utils.decorators import login_required
+from utils.logs import actualizar_contadores, registrar_log
+from utils.uploads import eliminar_imagenes, guardar_imagenes
 
 servicios_bp = Blueprint("servicios", __name__, url_prefix="/servicios")
 
@@ -41,6 +43,7 @@ def nuevo():
             "descripcion": request.form.get("descripcion", "").strip(),
         }
 
+        datos["fotos"] = guardar_imagenes(request.files.getlist("fotos"), "servicios")
         modelo.crear(datos, session["user_id"], session["nombre"])
         registrar_log(db, "registro", "crear_servicio", session["nombre"],
                       f"Titulo: {datos['titulo']}, Categoria: {datos['categoria']}")
@@ -81,6 +84,13 @@ def editar(anuncio_id):
             "ciudad": request.form.get("ciudad", "").strip(),
             "descripcion": request.form.get("descripcion", "").strip(),
         }
+        fotos = list(anuncio.get("fotos") or [])
+        a_borrar = request.form.getlist("borrar_fotos")
+        if a_borrar:
+            eliminar_imagenes(a_borrar, "servicios")
+            fotos = [f for f in fotos if f not in a_borrar]
+        fotos.extend(guardar_imagenes(request.files.getlist("fotos"), "servicios"))
+        datos["fotos"] = fotos
         modelo.actualizar(anuncio_id, datos)
         registrar_log(db, "registro", "editar_servicio", session["nombre"], f"ID: {anuncio_id}")
 
@@ -108,6 +118,7 @@ def eliminar(anuncio_id):
         flash("No tienes permisos para eliminar este anuncio.", "danger")
         return redirect(url_for("servicios.listar"))
 
+    eliminar_imagenes(anuncio.get("fotos") or [], "servicios")
     modelo.eliminar(anuncio_id)
     registrar_log(db, "registro", "eliminar_servicio", session["nombre"], f"ID: {anuncio_id}")
     actualizar_contadores(db)

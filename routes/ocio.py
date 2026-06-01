@@ -9,7 +9,8 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 
 from models.ocio import Ocio
 from utils.db import get_db
-from utils.helpers import actualizar_contadores, login_required, registrar_log
+from utils.decorators import login_required
+from utils.logs import actualizar_contadores, registrar_log
 
 ocio_bp = Blueprint("ocio", __name__, url_prefix="/ocio")
 

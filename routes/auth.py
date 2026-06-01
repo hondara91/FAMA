@@ -16,7 +16,9 @@ from werkzeug.utils import secure_filename
 
 from models.usuario import Usuario
 from utils.db import get_db
-from utils.helpers import actualizar_contadores, login_required, registrar_log
+from utils.email import confirmar_token_verificacion, enviar_verificacion_email
+from utils.decorators import login_required
+from utils.logs import actualizar_contadores, registrar_log
 
 # Prefijo /auth para todas las rutas de este blueprint
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -59,33 +61,15 @@ def registro():
         db = get_db()
         modelo = Usuario(db)
 
-        # Limpiar y normalizar los datos del formulario antes de validar
-        nombre   = request.form.get("nombre", "").strip()
-        email    = request.form.get("email", "").strip().lower()  # Email siempre en minusculas
-        password = request.form.get("password", "")
-        confirmar = request.form.get("confirmar_password", "")
-        pregunta  = request.form.get("pregunta_seguridad", "").strip()
-        respuesta = request.form.get("respuesta_seguridad", "").strip()
+        nombre = request.form.get("nombre", "").strip()
+        email  = request.form.get("email", "").strip().lower()
 
-        # ── Validaciones de entrada ───────────────────────────────────────────
-        # Todos los campos son obligatorios; se verifica antes de tocar la BD
-        if not all([nombre, email, password, pregunta, respuesta]):
-            flash("Todos los campos son obligatorios.", "danger")
+        if not all([nombre, email]):
+            flash("El nombre y el email son obligatorios.", "danger")
             return render_template("auth/registro.html")
 
-        # Las contrasenias deben coincidir antes de hashearlas
-        if password != confirmar:
-            flash("Las contrasenias no coinciden.", "danger")
-            return render_template("auth/registro.html")
-
-        # Longitud minima para evitar contrasenias triviales
-        if len(password) < 6:
-            flash("La contrasenia debe tener al menos 6 caracteres.", "danger")
-            return render_template("auth/registro.html")
-
-        # ── Persistencia ──────────────────────────────────────────────────────
         # crear() devuelve None si el email ya esta registrado en MongoDB
-        user_id = modelo.crear(nombre, email, password, pregunta, respuesta)
+        user_id = modelo.crear(nombre, email)
         if user_id is None:
             flash("El email ya esta registrado.", "danger")
             return render_template("auth/registro.html")
@@ -94,11 +78,56 @@ def registro():
         registrar_log(db, "registro", "crear_usuario", nombre, f"Email: {email}")
         actualizar_contadores(db)
 
-        flash(f"Usuario {nombre} creado correctamente. Ya puedes iniciar sesion.", "success")
+        # Enviar email de verificacion; si falla se avisa pero la cuenta queda creada
+        enviado = enviar_verificacion_email(email, nombre)
+        if enviado:
+            flash(
+                f"Cuenta creada. Hemos enviado un enlace de verificacion a {email}. "
+                "Verifica tu correo y luego espera la aprobacion del administrador.",
+                "info",
+            )
+        else:
+            flash(
+                "Cuenta creada pero no pudimos enviar el email de verificacion. "
+                "Contacta con el administrador para activar tu cuenta.",
+                "warning",
+            )
         return redirect(url_for("auth.login"))
 
     # GET: mostrar el formulario vacio
     return render_template("auth/registro.html")
+
+
+# ── Verificacion de email ─────────────────────────────────────────────────────
+
+@auth_bp.route("/verificar-email/<token>")
+def verificar_email(token):
+    """Confirma la direccion de email del usuario tras hacer clic en el enlace."""
+    email = confirmar_token_verificacion(token)
+    if not email:
+        flash("El enlace de verificacion es invalido o ha expirado.", "danger")
+        return redirect(url_for("auth.login"))
+
+    db = get_db()
+    modelo = Usuario(db)
+    usuario = modelo.obtener_por_email(email)
+
+    if not usuario:
+        flash("No se encontro ninguna cuenta con ese email.", "danger")
+        return redirect(url_for("auth.login"))
+
+    if usuario.get("email_verificado"):
+        flash("Tu correo ya estaba verificado. Espera la aprobacion del administrador.", "info")
+        return redirect(url_for("auth.login"))
+
+    modelo.verificar_email_usuario(email)
+    registrar_log(db, "registro", "verificar_email", usuario["nombre"], f"Email: {email}")
+    flash(
+        "Correo verificado correctamente. Tu cuenta esta pendiente de aprobacion "
+        "por el administrador. Te avisaremos cuando puedas acceder.",
+        "success",
+    )
+    return redirect(url_for("auth.login"))
 
 
 # ── Login ─────────────────────────────────────────────────────────────────────
@@ -117,11 +146,23 @@ def login():
         email    = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
 
-        # autenticar() comprueba email + hash de contrasenia + que la cuenta este activa
+        # autenticar() comprueba email + hash de contrasenia + activo + email_verificado + validado
         usuario = modelo.autenticar(email, password)
         if not usuario:
-            # Mensaje generico: no revelar si el email existe o no (anti-enumeracion)
-            flash("Email o contrasenia incorrectos.", "danger")
+            candidato = modelo.obtener_por_email(email)
+            if candidato and candidato.get("activo"):
+                if not candidato.get("email_verificado"):
+                    flash(
+                        "Debes verificar tu correo electronico antes de iniciar sesion. "
+                        "Revisa tu bandeja de entrada.",
+                        "warning",
+                    )
+                elif not candidato.get("validado"):
+                    flash("Tu cuenta esta pendiente de validacion por el administrador.", "warning")
+                else:
+                    flash("Email o contrasenia incorrectos.", "danger")
+            else:
+                flash("Email o contrasenia incorrectos.", "danger")
             return render_template("auth/login.html")
 
         # ── Construir la sesion Flask ─────────────────────────────────────────

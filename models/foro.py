@@ -1,16 +1,58 @@
 """
 models/foro.py - Modelos de datos para el modulo de Foro.
 
-Gestiona dos colecciones MongoDB relacionadas:
-  - ForoPost: publicaciones principales del foro (hilo).
-  - ForoRespuesta: respuestas anidadas bajo un post concreto.
-
-Ambas admiten imagen adjunta opcional (nombre de archivo almacenado;
-el archivo fisico se guarda en static/uploads/foro/).
+Colecciones MongoDB:
+  - foro_canales:   canales tematicos que agrupan los hilos.
+  - foro_posts:     publicaciones principales (pertenecen a un canal).
+  - foro_respuestas: respuestas anidadas bajo un post.
 """
 from datetime import datetime
 
 from bson import ObjectId
+
+
+class ForoCanal:
+    """Representa un canal tematico del foro."""
+
+    COLORES = ("primary", "success", "warning", "danger", "info", "secondary", "dark")
+    ICONOS  = [
+        ("chat-dots",    "General"),
+        ("people",       "Comunidad"),
+        ("house",        "Vivienda"),
+        ("map",          "Ciudad"),
+        ("briefcase",    "Trabajo"),
+        ("calendar",     "Eventos"),
+        ("star",         "Destacado"),
+        ("anchor",       "Armada"),
+        ("shield-check", "Seguridad"),
+        ("book",         "Formacion"),
+        ("car-front",    "Transporte"),
+        ("heart",        "Ocio"),
+    ]
+
+    def __init__(self, db):
+        self.coleccion = db.foro_canales
+
+    def crear(self, nombre, descripcion, color, icono, user_id, nombre_usuario):
+        canal = {
+            "nombre":         nombre,
+            "descripcion":    descripcion,
+            "color":          color,
+            "icono":          icono,
+            "usuario_id":     user_id,
+            "nombre_usuario": nombre_usuario,
+            "fecha_creacion": datetime.now(),
+        }
+        return self.coleccion.insert_one(canal).inserted_id
+
+    def obtener_todos(self):
+        return list(self.coleccion.find().sort("fecha_creacion", 1))
+
+    def obtener_por_id(self, canal_id):
+        return self.coleccion.find_one({"_id": ObjectId(canal_id)})
+
+    def eliminar(self, canal_id):
+        self.coleccion.delete_one({"_id": ObjectId(canal_id)})
 
 
 class ForoPost:
@@ -21,12 +63,23 @@ class ForoPost:
 
     # ── Creacion ──────────────────────────────────────────────────────────────
 
-    def crear(self, titulo, contenido, imagen, user_id, nombre_usuario):
+    def obtener_por_canal(self, canal_id, filtros=None):
+        """Devuelve posts de un canal ordenados por fecha descendente."""
+        query = dict(filtros or {})
+        query["canal_id"] = str(canal_id)
+        return list(self.coleccion.find(query).sort("fecha_creacion", -1))
+
+    def contar_por_canal(self, canal_id):
+        return self.coleccion.count_documents({"canal_id": str(canal_id)})
+
+    def crear(self, titulo, contenido, fotos, canal_id, user_id, nombre_usuario):
         """Inserta un nuevo post y devuelve su ObjectId."""
         post = {
             "titulo":          titulo,
             "contenido":       contenido,
-            "imagen":          imagen,       # Nombre de archivo o None
+            "fotos":           fotos or [],
+            "imagen":          None,
+            "canal_id":        str(canal_id),
             "usuario_id":      user_id,
             "nombre_usuario":  nombre_usuario,
             "fecha_creacion":  datetime.now(),
@@ -84,12 +137,13 @@ class ForoRespuesta:
 
     # ── Creacion ──────────────────────────────────────────────────────────────
 
-    def crear(self, post_id, contenido, imagen, user_id, nombre_usuario):
+    def crear(self, post_id, contenido, fotos, user_id, nombre_usuario):
         """Inserta una nueva respuesta asociada al post indicado."""
         respuesta = {
-            "post_id":        post_id,        # String del ObjectId del post padre
+            "post_id":        post_id,
             "contenido":      contenido,
-            "imagen":         imagen,          # Nombre de archivo o None
+            "fotos":          fotos or [],
+            "imagen":         None,   # Legado
             "usuario_id":     user_id,
             "nombre_usuario": nombre_usuario,
             "fecha_creacion": datetime.now(),

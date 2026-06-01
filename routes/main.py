@@ -25,17 +25,17 @@ def index():
     db = get_db()
 
     # Obtener los 4 anuncios mas recientes de cada modulo para el dashboard.
-    # Se usa limit(4) para no sobrecargar la pagina de inicio.
-    viviendas = list(db.viviendas.find().sort("fecha_creacion", -1).limit(4))
-    servicios  = list(db.servicios.find().sort("fecha_creacion", -1).limit(4))
+    # Se usa limit(3) para no sobrecargar la pagina de inicio.
+    viviendas = list(db.viviendas.find().sort("fecha_creacion", -1).limit(3))
+    servicios  = list(db.servicios.find().sort("fecha_creacion", -1).limit(3))
 
     # En compraventa se excluye el merchandising: el index muestra solo segunda mano general
     compraventa = list(
-        db.compraventa.find({"es_merchandising": False}).sort("fecha_creacion", -1).limit(4)
+        db.compraventa.find({"es_merchandising": False}).sort("fecha_creacion", -1).limit(3)
     )
 
     # Los eventos de ocio se ordenan por fecha ascendente (proximos primero)
-    eventos = list(db.ocio.find().sort("fecha", 1).limit(4))
+    eventos = list(db.ocio.find().sort("fecha", 1).limit(3))
 
     return render_template(
         "index.html",

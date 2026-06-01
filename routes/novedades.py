@@ -25,7 +25,7 @@ from bson import ObjectId
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from utils.db import get_db
-from utils.helpers import gestor_required, login_required
+from utils.decorators import gestor_required, login_required
 
 novedades_bp = Blueprint("novedades", __name__, url_prefix="/novedades")
 

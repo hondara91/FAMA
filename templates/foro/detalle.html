@@ -4,12 +4,6 @@
 {% block content %}
 
 {# ── Breadcrumb ───────────────────────────────────────────────────────────── #}
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ url_for('foro.listar') }}">Foro</a></li>
-        <li class="breadcrumb-item active">{{ post.titulo }}</li>
-    </ol>
-</nav>
 
 {# ── Publicacion principal ────────────────────────────────────────────────── #}
 <div class="card border-0 shadow-sm mb-4">
@@ -34,8 +28,8 @@
             </div>
             {# Botones de edicion/borrado: solo propietario o privilegiado #}
             <div class="d-flex gap-1 ms-3 flex-shrink-0">
-                {# Editar: admin siempre, autor solo si no hay ninguna respuesta todavia #}
-                {% if session.user_id and (session.rol == 'admin' or (session.user_id == post.usuario_id and respuestas|length == 0)) %}
+                {# Editar: admin edita todos; usuario solo el suyo #}
+                {% if session.user_id and (session.rol == 'admin' or session.user_id == post.usuario_id) %}
                 <a href="{{ url_for('foro.editar', post_id=post._id) }}"
                    class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-pencil me-1"></i>Editar
@@ -66,12 +60,27 @@
             {% endif %}
         </div>
 
-        {# Imagen adjunta al post (si existe) #}
-        {% if post.imagen %}
+        {# Fotos adjuntas al post #}
+        {% set fotos_post = (post.fotos or []) + ([post.imagen] if post.imagen and post.imagen not in (post.fotos or []) else []) %}
+        {% if fotos_post %}
         <div class="mb-3">
-            <img src="{{ url_for('static', filename='uploads/foro/' + post.imagen) }}"
-                 class="img-fluid rounded shadow-sm" style="max-height:400px;"
-                 alt="imagen adjunta">
+            {% if fotos_post | length == 1 %}
+            <img src="{{ url_for('static', filename='uploads/foro/' + fotos_post[0]) }}"
+                 class="img-fluid rounded shadow-sm" style="max-height:400px" alt="foto">
+            {% else %}
+            <div id="carouselPost" class="carousel slide rounded shadow-sm" data-bs-ride="carousel">
+                <div class="carousel-inner rounded">
+                    {% for f in fotos_post %}
+                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        <img src="{{ url_for('static', filename='uploads/foro/' + f) }}"
+                             class="d-block w-100" style="max-height:400px;object-fit:contain;background:#000" alt="foto {{ loop.index }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselPost" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselPost" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+            </div>
+            {% endif %}
         </div>
         {% endif %}
 
@@ -124,12 +133,13 @@
                 {% endif %}
             </div>
 
-            {# Imagen adjunta a la respuesta #}
-            {% if r.imagen %}
-            <div class="mb-2">
-                <img src="{{ url_for('static', filename='uploads/foro/' + r.imagen) }}"
-                     class="img-fluid rounded" style="max-height:300px;"
-                     alt="imagen adjunta">
+            {% set fotos_r = (r.fotos or []) + ([r.imagen] if r.imagen and r.imagen not in (r.fotos or []) else []) %}
+            {% if fotos_r %}
+            <div class="mb-2 d-flex flex-wrap gap-2">
+                {% for f in fotos_r %}
+                <img src="{{ url_for('static', filename='uploads/foro/' + f) }}"
+                     class="img-fluid rounded" style="max-height:200px;max-width:100%" alt="foto">
+                {% endfor %}
             </div>
             {% endif %}
 
@@ -159,10 +169,10 @@
             </div>
             <div class="mb-3">
                 <label class="form-label small text-muted">
-                    <i class="bi bi-image me-1"></i>Imagen adjunta (opcional, max 5 MB)
+                    <i class="bi bi-images me-1"></i>Fotos adjuntas (opcional, max 5 MB por foto)
                 </label>
                 <input type="file" class="form-control form-control-sm"
-                       name="imagen" accept="image/*">
+                       name="fotos" multiple accept="image/*">
             </div>
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-send me-1"></i>Publicar respuesta
