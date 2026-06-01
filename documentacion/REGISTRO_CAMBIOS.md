@@ -746,3 +746,159 @@ python3 -m py_compile routes/auth.py routes/foro.py models/usuario.py
 - Se usa `static/img/futball.png` como imagen de la tarjeta `Ocio` en la portada.
 - La tarjeta reutiliza la clase `fama-modulo-img` para mantener el mismo tamano y recorte circular que el resto de modulos ilustrados.
 - El cambio queda reflejado en `templates/index.html`.
+
+## 2026-06-01 CEST
+
+### Reorganizacion del codigo utilitario
+
+- Se elimina `utils/helpers.py` y su contenido se divide en dos modulos especializados:
+  - `utils/decorators.py`: decoradores de control de acceso (`login_required`, `admin_required`, `gestor_required`).
+  - `utils/logs.py`: funciones de auditoria (`registrar_log`, `actualizar_contadores`, `exportar_logs_pdf`).
+- Se actualiza cada fichero que importaba `utils/helpers` para usar los nuevos modulos.
+- Se mueve `crear_admin.py` a `scripts/crear_admin.py`.
+- Se eliminan `node_modules/`, `package.json` y `package-lock.json` (artefactos de un `npm install resend` accidental).
+- Se añade `node_modules/` a `.gitignore`.
+- Se añade `static/uploads/perfiles/.gitkeep` para que Git rastree la carpeta de perfiles vacia.
+
+### Subida de multiples fotos
+
+Se implementa soporte para adjuntar varias imagenes en los modulos Viviendas, Servicios, Compraventa y Foro.
+
+#### Nuevo fichero
+
+- `utils/uploads.py`: centraliza la logica de subida y borrado de archivos.
+  - `guardar_imagenes(archivos, subcarpeta)`: valida extension, genera nombre unico y guarda en `static/uploads/<subcarpeta>/`.
+  - `eliminar_imagenes(nombres, subcarpeta)`: borra del disco los archivos indicados.
+  - Todas las rutas que antes duplicaban esta logica pasan a usar estas funciones.
+
+#### Modelos actualizados
+
+- Se sustituye el campo `imagen` (string) por `fotos: []` (lista) en los modelos:
+  - `models/vivienda.py`
+  - `models/servicio.py`
+  - `models/compraventa.py`
+  - `models/foro.py` (`ForoPost` y `ForoRespuesta`): se conserva `imagen=None` para compatibilidad con posts antiguos.
+
+#### Rutas actualizadas
+
+- `routes/viviendas.py`, `routes/servicios.py`, `routes/compraventa.py`, `routes/foro.py`:
+  - Lectura de lista de archivos con `request.files.getlist('fotos')`.
+  - Al eliminar un anuncio se borran automaticamente sus imagenes del disco.
+
+#### Plantillas actualizadas
+
+- Formularios: `enctype="multipart/form-data"` + `<input multiple>` + miniaturas con checkbox de borrado individual en modo edicion.
+- Detalles: imagen simple si hay 1 foto; carousel Bootstrap si hay mas de una.
+- Listados: `card-img-top` con badge de conteo cuando hay mas de una foto.
+- `templates/index.html`: miniatura 44×44 px en las mini-cards del dashboard de inicio.
+
+#### Carpetas de uploads
+
+- `static/uploads/viviendas/`
+- `static/uploads/servicios/`
+- `static/uploads/compraventa/`
+- `static/uploads/foro/`
+- `static/uploads/perfiles/`
+
+### Canales en el modulo Foro
+
+Se reorganiza el Foro con un sistema de canales tematicos.
+
+#### Modelo nuevo
+
+- `ForoCanal` en `models/foro.py` sobre la coleccion `foro_canales`.
+  - Campos: `nombre`, `descripcion`, `color` (clase Bootstrap), `icono` (Bootstrap Icon), `usuario_id`, `fecha_creacion`.
+- `ForoPost` incorpora el campo obligatorio `canal_id`.
+
+#### Rutas
+
+| Metodo | URL | Descripcion |
+|--------|-----|-------------|
+| GET | `/foro/` | Lista de canales (tarjetas con color e icono) |
+| GET/POST | `/foro/canal/nuevo` | Crear canal |
+| GET | `/foro/canal/<id>` | Posts del canal |
+| GET/POST | `/foro/canal/<id>/nuevo` | Nuevo post en el canal |
+| POST | `/foro/canal/eliminar/<id>` | Borrar canal y todos sus posts |
+
+#### Permisos
+
+| Accion | Permisos |
+|--------|----------|
+| Crear canal | Cualquier usuario autenticado |
+| Eliminar canal | Admin y gestor |
+| Editar post | Autor (el suyo) + admin (todos) |
+| Borrar post | Autor (el suyo) + admin y gestor (todos) |
+| Borrar respuesta | Autor (la suya) + admin y gestor (todas) |
+
+#### Plantillas nuevas
+
+- `templates/foro/listar.html`: rejilla de tarjetas de canal con color e icono.
+- `templates/foro/canal.html`: listado de posts de un canal.
+- `templates/foro/nuevo_canal.html`: formulario con preview en tiempo real de color e icono.
+
+#### Migracion de datos
+
+Para asignar canal a posts existentes sin `canal_id`:
+
+```js
+db.foro_posts.updateMany({canal_id: {$exists: false}}, {$set: {canal_id: "<id_canal>"}})
+```
+
+### Nuevo flujo de registro y validacion de usuarios
+
+Se redisena el alta de usuarios para incluir verificacion de email y aprobacion manual por el admin.
+
+#### Flujo completo
+
+1. El usuario rellena solo **nombre + email** (sin contrasenia ni pregunta de seguridad).
+2. El sistema crea la cuenta con `email_verificado=False, validado=False` y una contrasenia interna aleatoria.
+3. **Resend** envia un email de verificacion con enlace firmado (token `itsdangerous`, expira en 24 h).
+4. El usuario hace clic → `email_verificado=True`.
+5. El admin ve el badge **"Pendiente"** en el panel y pulsa el boton de aprobacion.
+6. Al aprobar: se genera una contrasenia temporal aleatoria (10 caracteres), se envia por email y se marca `debe_cambiar_password=True`.
+7. El usuario hace login con la contrasenia temporal y queda forzado a cambiarla en el primer acceso.
+
+#### Nuevos campos en la coleccion `usuarios`
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `email_verificado` | Boolean | `False` hasta que el usuario hace clic en el enlace |
+| `validado` | Boolean | `False` hasta la aprobacion manual del admin |
+| `debe_cambiar_password` | Boolean | `True` tras la aprobacion; se desactiva al cambiar contrasenia |
+
+#### Archivos modificados o creados
+
+- `models/usuario.py`: `crear()` sin campo contrasenia, `generar_password_temporal()`, `establecer_password_temporal()`, `verificar_email_usuario()`, `validar_usuario()`.
+- `routes/auth.py`: registro simplificado a nombre + email, ruta `/auth/verificar-email/<token>`, mensajes de login diferenciados por estado de cuenta.
+- `routes/admin.py`: ruta `/admin/usuarios/validar/<user_id>` que genera la contrasenia temporal y envia el email de aprobacion.
+- `utils/email.py` (nuevo): `enviar_verificacion_email()`, `enviar_aprobacion_cuenta()`.
+- `utils/config.py`: variables `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL`.
+- `.env`: API key de Resend, dominio `noreply@appfama.es`.
+- `templates/auth/registro.html`: formulario reducido a nombre + email.
+
+#### Servicio de email
+
+- Proveedor: **Resend** (resend.com).
+- Remitente: `FAMA <noreply@appfama.es>` (dominio dado de alta en IONOS, pendiente de confirmacion DNS en Resend).
+- API key almacenada en `.env`, nunca en el codigo fuente.
+
+#### Migracion de usuarios existentes
+
+```js
+db.usuarios.updateMany(
+  {email_verificado: {$exists: false}},
+  {$set: {email_verificado: true, validado: true}}
+)
+```
+
+### Mejoras en el panel de administracion
+
+- Las estadisticas del panel pasan a ocupar una sola fila usando `col` (distribucion automatica Bootstrap) en lugar de `col-lg-2`.
+- La tarjeta "Pendientes" se resalta en rojo cuando hay usuarios esperando validacion.
+- El dropdown de cambio de rol en la tabla de usuarios se corrige con `overflow:visible` + `data-bs-boundary="viewport"` para evitar que quede cortado por el contenedor; se muestra una marca visual en el rol activo.
+
+### Mejoras visuales generales
+
+- Se eliminan los breadcrumbs de todas las paginas de detalle: viviendas, servicios, compraventa, ocio, foro/detalle, foro/canal, foro/formulario y foro/nuevo_canal.
+- El dashboard de inicio reduce el limite de anuncios mostrados por seccion de 4 a 3.
+- La tabla de usuarios del panel admin incorpora `overflow:visible` para que el dropdown de roles no quede recortado.
