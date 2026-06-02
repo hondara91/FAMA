@@ -16,7 +16,7 @@ from werkzeug.utils import secure_filename
 
 from models.usuario import Usuario
 from utils.db import get_db
-from utils.email import confirmar_token_verificacion, enviar_verificacion_email
+from utils.email import enviar_pendiente_validacion
 from utils.decorators import login_required
 from utils.logs import actualizar_contadores, registrar_log
 
@@ -78,56 +78,25 @@ def registro():
         registrar_log(db, "registro", "crear_usuario", nombre, f"Email: {email}")
         actualizar_contadores(db)
 
-        # Enviar email de verificacion; si falla se avisa pero la cuenta queda creada
-        enviado = enviar_verificacion_email(email, nombre)
+        # Notificar al usuario que su solicitud esta pendiente de validacion
+        enviado = enviar_pendiente_validacion(email, nombre)
         if enviado:
             flash(
-                f"Cuenta creada. Hemos enviado un enlace de verificacion a {email}. "
-                "Verifica tu correo y luego espera la aprobacion del administrador.",
+                f"Solicitud recibida. Hemos enviado un aviso a {email}. "
+                "Tu cuenta esta pendiente de validacion por el administrador; "
+                "este proceso puede durar unas horas.",
                 "info",
             )
         else:
             flash(
-                "Cuenta creada pero no pudimos enviar el email de verificacion. "
-                "Contacta con el administrador para activar tu cuenta.",
-                "warning",
+                "Solicitud registrada. Tu cuenta esta pendiente de validacion por el administrador. "
+                "Este proceso puede durar unas horas.",
+                "info",
             )
         return redirect(url_for("auth.login"))
 
     # GET: mostrar el formulario vacio
     return render_template("auth/registro.html")
-
-
-# ── Verificacion de email ─────────────────────────────────────────────────────
-
-@auth_bp.route("/verificar-email/<token>")
-def verificar_email(token):
-    """Confirma la direccion de email del usuario tras hacer clic en el enlace."""
-    email = confirmar_token_verificacion(token)
-    if not email:
-        flash("El enlace de verificacion es invalido o ha expirado.", "danger")
-        return redirect(url_for("auth.login"))
-
-    db = get_db()
-    modelo = Usuario(db)
-    usuario = modelo.obtener_por_email(email)
-
-    if not usuario:
-        flash("No se encontro ninguna cuenta con ese email.", "danger")
-        return redirect(url_for("auth.login"))
-
-    if usuario.get("email_verificado"):
-        flash("Tu correo ya estaba verificado. Espera la aprobacion del administrador.", "info")
-        return redirect(url_for("auth.login"))
-
-    modelo.verificar_email_usuario(email)
-    registrar_log(db, "registro", "verificar_email", usuario["nombre"], f"Email: {email}")
-    flash(
-        "Correo verificado correctamente. Tu cuenta esta pendiente de aprobacion "
-        "por el administrador. Te avisaremos cuando puedas acceder.",
-        "success",
-    )
-    return redirect(url_for("auth.login"))
 
 
 # ── Login ─────────────────────────────────────────────────────────────────────
@@ -150,17 +119,8 @@ def login():
         usuario = modelo.autenticar(email, password)
         if not usuario:
             candidato = modelo.obtener_por_email(email)
-            if candidato and candidato.get("activo"):
-                if not candidato.get("email_verificado"):
-                    flash(
-                        "Debes verificar tu correo electronico antes de iniciar sesion. "
-                        "Revisa tu bandeja de entrada.",
-                        "warning",
-                    )
-                elif not candidato.get("validado"):
-                    flash("Tu cuenta esta pendiente de validacion por el administrador.", "warning")
-                else:
-                    flash("Email o contrasenia incorrectos.", "danger")
+            if candidato and candidato.get("activo") and not candidato.get("validado"):
+                flash("Tu cuenta esta pendiente de validacion por el administrador.", "warning")
             else:
                 flash("Email o contrasenia incorrectos.", "danger")
             return render_template("auth/login.html")

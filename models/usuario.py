@@ -6,7 +6,6 @@ y recuperacion de contrasena. Nunca almacena contrasenias en texto plano:
 usa el hash de werkzeug (PBKDF2 + salt aleatorio).
 """
 import secrets
-import string
 from datetime import datetime
 
 from bson import ObjectId
@@ -26,12 +25,6 @@ class Usuario:
 
     # ── Creacion ──────────────────────────────────────────────────────────────
 
-    @staticmethod
-    def generar_password_temporal():
-        """Genera una contrasena temporal legible de 10 caracteres (letras + digitos)."""
-        caracteres = string.ascii_letters + string.digits
-        return "".join(secrets.choice(caracteres) for _ in range(10))
-
     def crear(self, nombre, email, rol="usuario", validado=False):
         """
         Crea un nuevo usuario con contrasena interna aleatoria (el usuario la recibira
@@ -44,7 +37,7 @@ class Usuario:
         usuario = {
             "nombre": nombre,
             "email": email,
-            # Contrasena aleatoria de marcador de posicion; se reemplaza al aprobar la cuenta
+            # Contrasena bloqueada hasta que el admin apruebe la cuenta y se asigne fama1234
             "password": generate_password_hash(secrets.token_hex(16)),
             "rol": rol,
             "foto_perfil": None,
@@ -53,7 +46,7 @@ class Usuario:
             "debe_cambiar_password": False,
             "activo": True,
             "validado": validado,
-            "email_verificado": False,
+            "email_verificado": True,
             "fecha_registro": datetime.now(),
         }
         resultado = self.coleccion.insert_one(usuario)
@@ -110,15 +103,14 @@ class Usuario:
 
     def resetear_password(self, user_id):
         """
-        Establece la contrasena a 'Password' (valor conocido por el admin)
-        y activa el flag 'debe_cambiar_password' para obligar al usuario a
-        escoger una nueva en su proximo inicio de sesion.
+        Establece la contrasena a 'fama1234' y activa el flag 'debe_cambiar_password'
+        para obligar al usuario a escoger una nueva en su proximo inicio de sesion.
         """
         self.coleccion.update_one(
             {"_id": ObjectId(user_id)},
             {"$set": {
-                "password": generate_password_hash("Password"),
-                "debe_cambiar_password": True,  # La ruta de login redirige al formulario de cambio
+                "password": generate_password_hash("fama1234"),
+                "debe_cambiar_password": True,
             }},
         )
 
@@ -151,10 +143,6 @@ class Usuario:
         if usuario and usuario.get("respuesta_seguridad"):
             return check_password_hash(usuario["respuesta_seguridad"], respuesta.lower())
         return False
-
-    def verificar_email_usuario(self, email):
-        """Marca el email como verificado tras el click en el enlace de confirmacion."""
-        self.coleccion.update_one({"email": email}, {"$set": {"email_verificado": True}})
 
     def validar_usuario(self, user_id):
         """Aprueba la cuenta de un usuario pendiente de validacion."""

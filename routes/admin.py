@@ -31,8 +31,7 @@ def panel():
     # Contar documentos en cada coleccion para las tarjetas de estadisticas
     stats = {
         "usuarios":    db.usuarios.count_documents({"activo": True, "validado": True, "email_verificado": True}),
-        # Pendientes = email verificado pero aun sin aprobar por admin
-        "pendientes":  db.usuarios.count_documents({"activo": True, "email_verificado": True, "validado": False}),
+        "pendientes":  db.usuarios.count_documents({"activo": True, "validado": False}),
         "viviendas":   db.viviendas.count_documents({}),
         "servicios":   db.servicios.count_documents({}),
         "compraventa": db.compraventa.count_documents({}),
@@ -168,18 +167,17 @@ def validar_usuario(user_id):
         flash("Usuario no encontrado.", "danger")
         return redirect(url_for("admin.listar_usuarios"))
 
-    password_temp = Usuario.generar_password_temporal()
     modelo.validar_usuario(user_id)
-    modelo.establecer_password_temporal(user_id, password_temp)
-    enviado = enviar_aprobacion_cuenta(usuario["email"], usuario["nombre"], password_temp)
+    modelo.establecer_password_temporal(user_id, "fama1234")
+    enviado = enviar_aprobacion_cuenta(usuario["email"], usuario["nombre"])
 
     registrar_log(db, "registro", "validar_usuario", session["nombre"],
                   f"Cuenta validada: {usuario['nombre']}")
 
     if enviado:
-        flash(f"Cuenta de {usuario['nombre']} aprobada. Se le ha enviado la contrasena temporal por email.", "success")
+        flash(f"Cuenta de {usuario['nombre']} aprobada. Se le ha notificado por email.", "success")
     else:
-        flash(f"Cuenta de {usuario['nombre']} aprobada pero el email no pudo enviarse. Contrasena temporal: {password_temp}", "warning")
+        flash(f"Cuenta de {usuario['nombre']} aprobada pero el email no pudo enviarse.", "warning")
     return redirect(url_for("admin.listar_usuarios"))
 
 

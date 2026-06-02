@@ -23,7 +23,7 @@ from utils.config import Config
 # ── Datos del administrador por defecto ──────────────────────────────────────
 # Modificar estos valores antes de ejecutar en entornos no de desarrollo
 ADMIN_NOMBRE   = "Administrador FAMA"
-ADMIN_EMAIL    = "admin@fama.es"
+ADMIN_EMAIL    = "admin@appfama.es"
 ADMIN_PASSWORD = "Admin1234"
 ADMIN_PREGUNTA = "Nombre del primer buque de la Armada?"
 ADMIN_RESPUESTA = "galera"  # Normalizado a minusculas al hashear

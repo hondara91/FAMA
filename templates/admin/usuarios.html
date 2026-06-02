@@ -74,8 +74,6 @@
                     <td>
                         {% if not u.activo %}
                         <span class="badge bg-danger">Inactivo</span>
-                        {% elif not u.get('email_verificado', False) %}
-                        <span class="badge bg-secondary">Sin verificar</span>
                         {% elif not u.get('validado', False) %}
                         <span class="badge bg-warning text-dark">Pendiente</span>
                         {% else %}
@@ -93,7 +91,7 @@
                             </a>
 
                             {# Validar cuenta pendiente #}
-                            {% if u.activo and u.get('email_verificado', False) and not u.get('validado', False) %}
+                            {% if u.activo and not u.get('validado', False) %}
                             <form method="POST" action="{{ url_for('admin.validar_usuario', user_id=u._id) }}">
                                 <button type="submit" class="btn btn-sm btn-success" title="Aprobar cuenta">
                                     <i class="bi bi-person-check"></i>
