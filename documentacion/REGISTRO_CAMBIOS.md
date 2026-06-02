@@ -1081,3 +1081,47 @@ db.usuarios.updateOne(
 ### Documentación PRIMER_ADMIN.md
 
 - Creado `documentacion/PRIMER_ADMIN.md` con instrucciones paso a paso para crear el primer administrador en un despliegue nuevo.
+
+### Simulación de rol para el administrador
+
+El admin puede actuar temporalmente como gestor o usuario para comprobar cómo se ve la aplicación desde cada perfil sin necesidad de crear cuentas adicionales.
+
+#### Funcionamiento
+
+- En el desplegable de usuario del navbar aparece la sección **Simular rol** con las opciones Admin, Gestor y Usuario.
+- Al seleccionar un rol, `session["rol_real"]` guarda el rol original y `session["rol"]` cambia al simulado.
+- Todos los checks de permisos existentes funcionan automáticamente con el rol simulado.
+- Un **banner amarillo** fijo aparece en la parte superior indicando qué rol se está simulando y ofreciendo un enlace para volver a Admin.
+- Al cerrar sesión, `session.clear()` elimina tanto el rol simulado como el real.
+
+#### Archivos modificados
+
+- `routes/auth.py` — nueva ruta `GET /auth/simular-rol/<rol>` protegida por `@login_required`; solo accesible si `rol_real == 'admin'` o `rol == 'admin'`.
+- `templates/base.html` — sección de simulación en el dropdown de usuario y banner amarillo condicional cuando la simulación está activa.
+
+### Auditoría de portabilidad y commit de todos los cambios
+
+Se verifica que la aplicación puede iniciarse en cualquier dispositivo con solo Docker instalado y los ficheros del repositorio git.
+
+#### Problemas detectados y resueltos
+
+| Problema | Solución |
+|----------|----------|
+| Más de 30 ficheros modificados sin commitear | Añadidos al staging y commiteados |
+| `static/img/famalogo.png` no estaba en git | Añadido al commit |
+| `templates/admin/reportes.html` no estaba en git | Añadido al commit |
+| `documentacion/PRIMER_ADMIN.md` no estaba en git | Añadido al commit |
+| `utils/email.py` borrado en disco pero aún en git | `git rm utils/email.py` |
+| Logos antiguos borrados en disco pero aún en git | `git rm` de `logofama.png`, `logofama-transparente.png`, `logofama-contorno-azul.png` |
+| `.env.example` con variables Resend obsoletas | Limpiado; aclarado que con Docker no es necesario `.env` |
+
+#### Procedimiento de inicio desde clon limpio
+
+```bash
+git clone <repo>
+cd FAMA
+docker compose up -d --build
+docker compose exec web python scripts/crear_admin.py
+```
+
+Acceso en `http://localhost:8000`. Solo se necesita Docker; Python, pip y cualquier otra herramienta local son innecesarios.
