@@ -1125,3 +1125,54 @@ docker compose exec web python scripts/crear_admin.py
 ```
 
 Acceso en `http://localhost:8000`. Solo se necesita Docker; Python, pip y cualquier otra herramienta local son innecesarios.
+
+## 2026-06-02 CEST (tercera sesión)
+
+### Protección global de acceso: toda la app requiere login
+
+- Se añade `@app.before_request` en `app.py` que redirige al login si no hay sesión activa.
+- Quedan libres únicamente las rutas del blueprint `auth` y los ficheros estáticos.
+- Cualquier ruta nueva añadida en el futuro queda protegida automáticamente sin necesidad de `@login_required` individual.
+
+### Credenciales del admin bootstrap actualizadas
+
+- Nombre de usuario cambiado de `Administrador FAMA` a `admin`.
+- Contraseña cambiada de `Admin1234` a `admin1234`.
+- Actualizado `scripts/crear_admin.py` y `documentacion/PRIMER_ADMIN.md`.
+- Documento MongoDB actualizado con el nuevo nombre y contraseña.
+
+### Instrucciones de contraseña por defecto en PRIMER_ADMIN.md
+
+- Añadida tabla en `documentacion/PRIMER_ADMIN.md` explicando que la contraseña por defecto `fama1234` se asigna en dos situaciones: aprobación de cuenta nueva y reseteo manual desde el panel.
+
+### Pre-relleno del login al transferir rol de administrador
+
+- Al transferir el rol `admin` a otro usuario, la redirección al login incluye el nombre del nuevo admin como parámetro URL (`?nuevo_admin=...`).
+- El formulario de login muestra ese nombre prerrellenado, con fondo amarillo, campo bloqueado (`readonly`) y un aviso indicando que se debe iniciar sesión como el nuevo administrador.
+- Archivos modificados: `routes/admin.py`, `templates/auth/login.html`.
+
+### Reactivación y eliminación definitiva de usuarios inactivos
+
+- Los usuarios desactivados muestran ahora dos botones en la tabla de usuarios del panel admin:
+  - **Reactivar** (verde): restaura `activo=True`.
+  - **Eliminar definitivamente** (rojo): borra el documento de MongoDB de forma permanente, con confirmación previa.
+- Nueva ruta `POST /admin/usuarios/reactivar/<id>` — solo admin.
+- Nueva ruta `POST /admin/usuarios/eliminar-definitivo/<id>` — solo admin.
+- Nuevos métodos `reactivar()` y `eliminar_definitivo()` en `models/usuario.py`.
+- Archivos modificados: `routes/admin.py`, `models/usuario.py`, `templates/admin/usuarios.html`.
+
+### Corrección del script crear_admin.py
+
+- Añadido `sys.path.insert` para que el script encuentre el módulo `utils` al ejecutarse desde dentro del contenedor Docker.
+
+### Auditoría de coherencia del código
+
+Se revisa todo el código en busca de inconsistencias y se aplican las siguientes correcciones:
+
+| # | Fichero | Problema | Solución |
+|---|---------|----------|----------|
+| 1 | `routes/admin.py` | Docstring de `resetear_password` mencionaba `'Password'` | Actualizado a `fama1234` |
+| 2 | `routes/admin.py` | Estadística de usuarios filtraba por `email_verificado: True` (siempre verdadero) | Filtro eliminado |
+| 3 | `routes/auth.py` | `session["email"]` se guardaba en sesión pero ninguna ruta ni template lo usaba | Eliminado |
+| 4 | `templates/admin/ver_usuario.html` | Badge "Sin verificar" y condición de validación usaban `email_verificado` (rama muerta) | Eliminadas ambas referencias |
+| 5 | `scripts/crear_admin.py` | Docstring listaba credenciales antiguas (`admin@fama.es` / `Admin1234`) | Actualizado a `admin@appfama.es` / `admin1234` |

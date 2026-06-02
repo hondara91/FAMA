@@ -120,10 +120,9 @@ def login():
 
         # ── Construir la sesion Flask ─────────────────────────────────────────
         # Solo se guardan los datos necesarios en la cookie de sesion (firmada con SECRET_KEY)
-        session["user_id"] = str(usuario["_id"])  # ObjectId convertido a string
-        session["nombre"]  = usuario["nombre"]
-        session["email"]   = usuario["email"]
-        session["rol"]     = usuario["rol"]        # Usado por los decoradores de acceso
+        session["user_id"]    = str(usuario["_id"])
+        session["nombre"]     = usuario["nombre"]
+        session["rol"]        = usuario["rol"]
         session["foto_perfil"] = usuario.get("foto_perfil")
 
         # Si el admin reseteo la contrasenia, obligar al usuario a cambiarla ahora

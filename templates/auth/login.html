@@ -10,9 +10,19 @@
                     <i class="bi bi-box-arrow-in-right me-2 text-primary"></i>Iniciar Sesión
                 </h3>
                 <form method="POST" action="{{ url_for('auth.login') }}">
+                    {% set nuevo_admin = request.args.get('nuevo_admin', '') %}
                     <div class="mb-3">
                         <label for="nombre" class="form-label">Nombre de usuario</label>
+                        {% if nuevo_admin %}
+                        <input type="text" class="form-control bg-warning-subtle fw-bold"
+                               id="nombre" name="nombre"
+                               value="{{ nuevo_admin }}" readonly>
+                        <div class="form-text text-warning fw-semibold">
+                            <i class="bi bi-shield-lock me-1"></i>Debes iniciar sesión como el nuevo administrador.
+                        </div>
+                        {% else %}
                         <input type="text" class="form-control" id="nombre" name="nombre" required autofocus>
+                        {% endif %}
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Contraseña</label>

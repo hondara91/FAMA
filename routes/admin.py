@@ -31,7 +31,7 @@ def panel():
 
     # Contar documentos en cada coleccion para las tarjetas de estadisticas
     stats = {
-        "usuarios":    db.usuarios.count_documents({"activo": True, "validado": True, "email_verificado": True}),
+        "usuarios":    db.usuarios.count_documents({"activo": True, "validado": True}),
         "pendientes":  db.usuarios.count_documents({"activo": True, "validado": False}),
         "viviendas":   db.viviendas.count_documents({}),
         "servicios":   db.servicios.count_documents({}),
@@ -156,8 +156,8 @@ def cambiar_rol(user_id):
     if nuevo_rol == "admin":
         db.usuarios.delete_one({"_id": ObjectId(session["user_id"])})
         session.clear()
-        flash("Tu cuenta ha sido eliminada al transferir el rol de administrador.", "info")
-        return redirect(url_for("auth.login"))
+        flash("Rol de administrador transferido. Inicia sesión con la nueva cuenta de administrador.", "info")
+        return redirect(url_for("auth.login", nuevo_admin=usuario["nombre"]))
 
     return redirect(url_for("admin.listar_usuarios"))
 
@@ -187,10 +187,7 @@ def validar_usuario(user_id):
 @login_required
 @gestor_required  # Gestores pueden resetear contrasenias de usuarios normales
 def resetear_password(user_id):
-    """
-    Pone la contrasenia del usuario a 'Password' y activa el flag
-    'debe_cambiar_password' para que cambie en su proximo login.
-    """
+    """Resetea la contraseña del usuario a 'fama1234' y obliga a cambiarla en el próximo login."""
     db = get_db()
     modelo  = Usuario(db)
     usuario = modelo.obtener_por_id(user_id)
@@ -202,7 +199,47 @@ def resetear_password(user_id):
     modelo.resetear_password(user_id)
     registrar_log(db, "registro", "resetear_password", session["nombre"],
                   f"Contrasenia reseteada para: {usuario['nombre']}")
-    flash(f"Contrasenia de {usuario['nombre']} reseteada a 'Password'.", "success")
+    flash(f"Contraseña de {usuario['nombre']} reseteada a 'fama1234'.", "success")
+    return redirect(url_for("admin.listar_usuarios"))
+
+
+@admin_bp.route("/usuarios/reactivar/<user_id>", methods=["POST"])
+@login_required
+@admin_required
+def reactivar_usuario(user_id):
+    """Reactiva una cuenta previamente desactivada."""
+    db = get_db()
+    modelo  = Usuario(db)
+    usuario = modelo.obtener_por_id(user_id)
+
+    if not usuario:
+        flash("Usuario no encontrado.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+
+    modelo.reactivar(user_id)
+    registrar_log(db, "registro", "reactivar_usuario", session["nombre"],
+                  f"Usuario reactivado: {usuario['nombre']}")
+    flash(f"Usuario {usuario['nombre']} reactivado.", "success")
+    return redirect(url_for("admin.listar_usuarios"))
+
+
+@admin_bp.route("/usuarios/eliminar-definitivo/<user_id>", methods=["POST"])
+@login_required
+@admin_required
+def eliminar_definitivo_usuario(user_id):
+    """Elimina un usuario de forma permanente e irreversible."""
+    db = get_db()
+    modelo  = Usuario(db)
+    usuario = modelo.obtener_por_id(user_id)
+
+    if not usuario:
+        flash("Usuario no encontrado.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+
+    modelo.eliminar_definitivo(user_id)
+    registrar_log(db, "registro", "eliminar_definitivo_usuario", session["nombre"],
+                  f"Usuario eliminado permanentemente: {usuario['nombre']}")
+    flash(f"Usuario {usuario['nombre']} eliminado permanentemente.", "info")
     return redirect(url_for("admin.listar_usuarios"))
 
 

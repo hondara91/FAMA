@@ -27,8 +27,8 @@ class Usuario:
 
     def crear(self, nombre, email, rol="usuario", validado=False):
         """
-        Crea un nuevo usuario. Devuelve el ObjectId insertado o None si el email
-        o el nombre ya existen (nombre actua como nombre de usuario unico).
+        Crea un nuevo usuario. Devuelve el ObjectId insertado, None si el email
+        ya existe, o 'nombre_duplicado' si el nombre ya está en uso.
         """
         if self.coleccion.find_one({"email": email}):
             return None
@@ -149,8 +149,13 @@ class Usuario:
         self.coleccion.update_one({"_id": ObjectId(user_id)}, {"$set": {"validado": True}})
 
     def eliminar(self, user_id):
-        """
-        Desactiva un usuario (soft-delete) poniendo 'activo' a False.
-        No borra el documento para conservar el historial de actividad.
-        """
+        """Desactiva un usuario (soft-delete) poniendo 'activo' a False."""
         self.coleccion.update_one({"_id": ObjectId(user_id)}, {"$set": {"activo": False}})
+
+    def reactivar(self, user_id):
+        """Vuelve a activar un usuario previamente desactivado."""
+        self.coleccion.update_one({"_id": ObjectId(user_id)}, {"$set": {"activo": True}})
+
+    def eliminar_definitivo(self, user_id):
+        """Borra el documento del usuario de forma permanente e irreversible."""
+        self.coleccion.delete_one({"_id": ObjectId(user_id)})

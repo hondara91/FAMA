@@ -9,22 +9,27 @@ El script es IDEMPOTENTE: si el email ya existe, no hace ningun cambio
 y termina con un mensaje informativo. Es seguro ejecutarlo varias veces.
 
 Credenciales por defecto (cambiar tras el primer login):
-    Email:      admin@fama.es
-    Contrasenia: Admin1234
+    Nombre:     admin
+    Email:      admin@appfama.es
+    Contrasenia: admin1234
 """
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from datetime import datetime
 
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash
 
-# Importar la configuracion centralizada para leer MONGO_URI y MONGO_DB_NAME
 from utils.config import Config
 
 # ── Datos del administrador por defecto ──────────────────────────────────────
 # Modificar estos valores antes de ejecutar en entornos no de desarrollo
-ADMIN_NOMBRE   = "Administrador FAMA"
+ADMIN_NOMBRE   = "admin"
 ADMIN_EMAIL    = "admin@appfama.es"
-ADMIN_PASSWORD = "Admin1234"
+ADMIN_PASSWORD = "admin1234"
 ADMIN_PREGUNTA = "Nombre del primer buque de la Armada?"
 ADMIN_RESPUESTA = "galera"  # Normalizado a minusculas al hashear
 

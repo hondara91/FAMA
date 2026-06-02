@@ -43,8 +43,6 @@
                     <small class="text-muted">Estado</small>
                     {% if not usuario.activo %}
                     <span class="badge bg-danger">Inactivo</span>
-                    {% elif not usuario.get('email_verificado', False) %}
-                    <span class="badge bg-secondary">Sin verificar</span>
                     {% elif not usuario.get('validado', False) %}
                     <span class="badge bg-warning text-dark">Pendiente</span>
                     {% else %}
@@ -75,7 +73,7 @@
     <div class="col-lg-8 d-flex flex-column gap-3">
 
         {# Validar si está pendiente #}
-        {% if usuario.activo and usuario.get('email_verificado') and not usuario.get('validado') %}
+        {% if usuario.activo and not usuario.get('validado') %}
         <div class="alert alert-warning d-flex justify-content-between align-items-center mb-0">
             <span><i class="bi bi-exclamation-circle me-2"></i>Esta cuenta esta pendiente de validacion.</span>
             <form method="POST" action="{{ url_for('admin.validar_usuario', user_id=usuario._id) }}">

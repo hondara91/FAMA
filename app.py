@@ -7,7 +7,7 @@ contexto global de plantillas.
 """
 from datetime import datetime
 
-from flask import Flask
+from flask import Flask, redirect, session, url_for
 
 # Clase de configuracion que lee variables de entorno
 from utils.config import Config
@@ -49,6 +49,20 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(foro_bp)
     app.register_blueprint(novedades_bp)
+
+    # ── Protección global: toda la app requiere login ────────────────────────
+    # Las rutas del blueprint 'auth' (login, registro, etc.) quedan libres.
+    # Los ficheros estáticos tampoco requieren sesión.
+    @app.before_request
+    def requiere_login():
+        from flask import request
+        if request.endpoint and (
+            request.endpoint.startswith("auth.")
+            or request.endpoint == "static"
+        ):
+            return None
+        if not session.get("user_id"):
+            return redirect(url_for("auth.login"))
 
     # ── Variables globales de plantillas ─────────────────────────────────────
     # Inyecta 'now' y 'hay_novedades' en TODAS las plantillas Jinja2.

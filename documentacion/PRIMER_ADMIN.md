@@ -39,9 +39,9 @@ Credenciales creadas:
 
 | Campo       | Valor                |
 |-------------|----------------------|
-| Nombre      | Administrador FAMA   |
+| Nombre      | admin                |
 | Email       | admin@appfama.es     |
-| Contraseña  | Admin1234            |
+| Contraseña  | admin1234            |
 
 > **Importante:** cambia la contraseña en el primer inicio de sesión.
 
@@ -49,8 +49,8 @@ Credenciales creadas:
 
 Accede a la aplicación en `http://<ip-del-servidor>:8000` e inicia sesión con:
 
-- **Nombre de usuario:** `Administrador FAMA`
-- **Contraseña:** `Admin1234`
+- **Nombre de usuario:** `admin`
+- **Contraseña:** `admin1234`
 
 ### 4. Crear el administrador real
 
@@ -60,8 +60,21 @@ Al hacerlo, **la cuenta `Administrador FAMA` se elimina automáticamente** y que
 
 ---
 
+## Contraseña por defecto
+
+Todos los usuarios reciben la contraseña **`fama1234`** en los siguientes casos:
+
+| Situación | Quién la asigna |
+|-----------|----------------|
+| El admin aprueba una nueva cuenta | Sistema automático al validar |
+| El admin o gestor resetea la contraseña de un usuario | Botón "Resetear contraseña" en el panel |
+
+El usuario queda obligado a cambiarla en su primer inicio de sesión.
+
+---
+
 ## Notas
 
-- La cuenta bootstrap (`Administrador FAMA`) desaparece en cuanto se asigna el rol `admin` a otro usuario. Es un mecanismo de seguridad para que no queden cuentas de bootstrap activas en producción.
+- La cuenta bootstrap (`admin`) desaparece en cuanto se asigna el rol `admin` a otro usuario. Es un mecanismo de seguridad para que no queden cuentas de bootstrap activas en producción.
 - Si necesitas volver a crear el admin bootstrap (por ejemplo, tras un reset de la base de datos), ejecuta de nuevo el script del paso 2.
 - Los datos de la aplicación se almacenan en el volumen Docker `mongo_data`. Para migrar datos entre servidores usa `mongodump` / `mongorestore`.
