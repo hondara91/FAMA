@@ -7,13 +7,14 @@ Rutas protegidas por rol:
 
 Jerarquia de roles: admin > gestor > usuario
 """
+from datetime import datetime
+
 from bson import ObjectId
 from flask import Blueprint, flash, redirect, render_template, request, send_file, session, url_for
 
 from models.usuario import Usuario
 from utils.db import get_db
 from utils.decorators import admin_required, gestor_required, login_required
-from utils.email import enviar_aprobacion_cuenta
 from utils.logs import exportar_logs_pdf, registrar_log
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -146,11 +147,18 @@ def cambiar_rol(user_id):
         flash("Usuario no encontrado.", "danger")
         return redirect(url_for("admin.listar_usuarios"))
 
-    # cambiar_rol() valida que nuevo_rol este en ROLES_VALIDOS antes de persistir
     modelo.cambiar_rol(user_id, nuevo_rol)
     registrar_log(db, "registro", "cambiar_rol", session["nombre"],
                   f"Usuario: {usuario['nombre']} -> Nuevo rol: {nuevo_rol}")
     flash(f"Rol actualizado a '{nuevo_rol}' para {usuario['nombre']}.", "success")
+
+    # Al promover a admin, la cuenta del admin que lo promueve se elimina (transferencia de poder)
+    if nuevo_rol == "admin":
+        db.usuarios.delete_one({"_id": ObjectId(session["user_id"])})
+        session.clear()
+        flash("Tu cuenta ha sido eliminada al transferir el rol de administrador.", "info")
+        return redirect(url_for("auth.login"))
+
     return redirect(url_for("admin.listar_usuarios"))
 
 
@@ -169,15 +177,9 @@ def validar_usuario(user_id):
 
     modelo.validar_usuario(user_id)
     modelo.establecer_password_temporal(user_id, "fama1234")
-    enviado = enviar_aprobacion_cuenta(usuario["email"], usuario["nombre"])
-
     registrar_log(db, "registro", "validar_usuario", session["nombre"],
                   f"Cuenta validada: {usuario['nombre']}")
-
-    if enviado:
-        flash(f"Cuenta de {usuario['nombre']} aprobada. Se le ha notificado por email.", "success")
-    else:
-        flash(f"Cuenta de {usuario['nombre']} aprobada pero el email no pudo enviarse.", "warning")
+    flash(f"Cuenta de {usuario['nombre']} aprobada. Contraseña inicial: fama1234.", "success")
     return redirect(url_for("admin.listar_usuarios"))
 
 
@@ -220,11 +222,15 @@ def eliminar_usuario(user_id):
         flash("Usuario no encontrado.", "danger")
         return redirect(url_for("admin.listar_usuarios"))
 
-    # Proteccion: no se puede desactivar al admin que esta realizando la accion
-    # ni a ninguna cuenta con rol 'admin' cuyo ID coincida con el user_id recibido
-    if str(usuario["_id"]) == user_id and usuario.get("rol") == "admin":
-        flash("No puedes eliminar al administrador principal.", "danger")
+    if str(usuario["_id"]) == session["user_id"]:
+        flash("No puedes eliminarte a ti mismo.", "danger")
         return redirect(url_for("admin.listar_usuarios"))
+
+    if usuario.get("rol") == "admin":
+        num_admins = db.usuarios.count_documents({"rol": "admin", "activo": True})
+        if num_admins <= 1:
+            flash("No puedes eliminar al único administrador activo.", "danger")
+            return redirect(url_for("admin.listar_usuarios"))
 
     # Soft-delete: pone activo=False, no borra el documento ni el historial
     modelo.eliminar(user_id)
@@ -295,5 +301,82 @@ def exportar_logs():
         buffer,
         mimetype="application/pdf",
         download_name=f"logs_fama_{tipo or 'todos'}.pdf",
-        as_attachment=True,  # Fuerza la descarga en lugar de mostrar en el navegador
+        as_attachment=True,
     )
+
+
+# ── Reportes de anuncios ──────────────────────────────────────────────────────
+
+@admin_bp.route("/reportes")
+@login_required
+@gestor_required
+def ver_reportes():
+    """Lista todos los reportes pendientes, más recientes primero."""
+    db = get_db()
+    reportes = list(db.reportes.find().sort("fecha", -1))
+    return render_template("admin/reportes.html", reportes=reportes)
+
+
+@admin_bp.route("/reportes/nuevo", methods=["POST"])
+@login_required
+@gestor_required
+def crear_reporte():
+    """Crea un reporte sobre un anuncio y lo almacena para revisión de los admins."""
+    db      = get_db()
+    anuncio_id  = request.form.get("anuncio_id")
+    tipo_modulo = request.form.get("tipo_modulo")
+    motivo      = request.form.get("motivo", "").strip()
+
+    if not motivo:
+        flash("Debes indicar el motivo del reporte.", "danger")
+        return redirect(request.referrer or url_for("main.index"))
+
+    db.reportes.insert_one({
+        "anuncio_id":  anuncio_id,
+        "tipo_modulo": tipo_modulo,
+        "motivo":      motivo,
+        "gestor_id":   session["user_id"],
+        "gestor_nombre": session["nombre"],
+        "fecha":       datetime.now(),
+        "resuelto":    False,
+    })
+    flash("Reporte enviado a los administradores.", "success")
+    return redirect(request.referrer or url_for("main.index"))
+
+
+@admin_bp.route("/reportes/resolver/<reporte_id>", methods=["POST"])
+@login_required
+@admin_required
+def resolver_reporte(reporte_id):
+    """Marca un reporte como resuelto."""
+    db = get_db()
+    db.reportes.update_one({"_id": ObjectId(reporte_id)}, {"$set": {"resuelto": True}})
+    flash("Reporte marcado como resuelto.", "success")
+    return redirect(url_for("admin.ver_reportes"))
+
+
+@admin_bp.route("/reportes/eliminar/<reporte_id>", methods=["POST"])
+@login_required
+@admin_required
+def eliminar_reporte(reporte_id):
+    """Elimina un reporte definitivamente."""
+    db = get_db()
+    db.reportes.delete_one({"_id": ObjectId(reporte_id)})
+    flash("Reporte eliminado.", "info")
+    return redirect(url_for("admin.ver_reportes"))
+
+
+# ── Test de conexión a base de datos ─────────────────────────────────────────
+
+@admin_bp.route("/test-bd")
+@login_required
+@admin_required
+def test_bd():
+    """Comprueba la conexión a MongoDB y redirige al panel con el resultado."""
+    db = get_db()
+    try:
+        db.command("ping")
+        flash("Conexión a la base de datos: OK.", "success")
+    except Exception as exc:
+        flash(f"Error de conexión a la base de datos: {exc}", "danger")
+    return redirect(url_for("admin.panel"))

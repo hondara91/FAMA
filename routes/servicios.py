@@ -91,6 +91,10 @@ def editar(anuncio_id):
             fotos = [f for f in fotos if f not in a_borrar]
         fotos.extend(guardar_imagenes(request.files.getlist("fotos"), "servicios"))
         datos["fotos"] = fotos
+        if session.get("rol") in ("admin", "gestor") and anuncio["usuario_id"] != session["user_id"]:
+            from datetime import datetime
+            datos["editado_por"] = session["nombre"]
+            datos["fecha_edicion"] = datetime.now()
         modelo.actualizar(anuncio_id, datos)
         registrar_log(db, "registro", "editar_servicio", session["nombre"], f"ID: {anuncio_id}")
 

@@ -90,6 +90,10 @@ def editar(evento_id):
             "aforo_maximo": int(request.form.get("aforo_maximo", 0)),
             "descripcion": request.form.get("descripcion", "").strip(),
         }
+        if session.get("rol") in ("admin", "gestor") and evento["usuario_id"] != session["user_id"]:
+            from datetime import datetime
+            datos["editado_por"] = session["nombre"]
+            datos["fecha_edicion"] = datetime.now()
         modelo.actualizar(evento_id, datos)
         registrar_log(db, "registro", "editar_evento", session["nombre"], f"ID: {evento_id}")
 

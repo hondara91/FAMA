@@ -47,6 +47,13 @@
                 <p class="mb-1"><strong>{{ anuncio.nombre_usuario }}</strong></p>
                 {% if anuncio.telefono %}<p><i class="bi bi-telephone me-1"></i>{{ anuncio.telefono }}</p>{% endif %}
                 <small class="text-muted">{{ anuncio.fecha_creacion.strftime('%d/%m/%Y') if anuncio.fecha_creacion else '' }}</small>
+                {% if anuncio.get('editado_por') %}
+                <div class="alert alert-warning py-1 px-2 mt-2 mb-0 small">
+                    <i class="bi bi-pencil-square me-1"></i>
+                    Editado por <strong>{{ anuncio.editado_por }}</strong>
+                    el {{ anuncio.fecha_edicion.strftime('%d/%m/%Y a las %H:%M') }}
+                </div>
+                {% endif %}
             </div>
         </div>
         {% if session.user_id and (session.user_id == anuncio.usuario_id or session.rol in ('admin','gestor')) %}
@@ -59,6 +66,25 @@
                       onsubmit="return confirmarEliminacion()">
                     <button type="submit" class="btn btn-outline-danger w-100">
                         <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if session.rol == 'gestor' %}
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <h6 class="text-danger"><i class="bi bi-flag me-1"></i>Reportar anuncio</h6>
+                <form method="POST" action="{{ url_for('admin.crear_reporte') }}">
+                    <input type="hidden" name="anuncio_id" value="{{ anuncio._id }}">
+                    <input type="hidden" name="tipo_modulo" value="servicio">
+                    <div class="mb-2">
+                        <textarea class="form-control form-control-sm" name="motivo"
+                                  rows="2" placeholder="Motivo del reporte..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                        <i class="bi bi-flag me-1"></i>Enviar reporte
                     </button>
                 </form>
             </div>

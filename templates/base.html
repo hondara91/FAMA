@@ -28,7 +28,7 @@
 
         {# Logotipo / enlace a inicio #}
         <a class="navbar-brand fw-bold d-inline-flex align-items-center" href="{{ url_for('main.index') }}">
-            <img class="fama-logo-navbar" src="{{ url_for('static', filename='img/logofama-transparente.png') }}" alt="Logo FAMA">
+            <img class="fama-logo-navbar" src="{{ url_for('static', filename='img/famalogo.png') }}" alt="Logo FAMA">
         </a>
 
         {# Boton hamburguesa para pantallas pequeñas (Bootstrap collapse) #}
@@ -136,10 +136,33 @@
                             <li><a class="dropdown-item" href="{{ url_for('auth.perfil') }}">
                                 <i class="bi bi-person-square me-1"></i>Mi perfil</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.cambiar_password') }}">
-                                <i class="bi bi-key me-1"></i>Cambiar contrasenia</a></li>
+                                <i class="bi bi-key me-1"></i>Cambiar contraseña</a></li>
+
+                            {# Simulación de rol: solo visible para el admin real #}
+                            {% if session.get('rol_real') == 'admin' or session.rol == 'admin' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">
+                                <i class="bi bi-mask me-1"></i>Simular rol
+                            </h6></li>
+                            {% for rol_sim in ['admin', 'gestor', 'usuario'] %}
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2
+                                          {{ 'fw-bold' if session.rol == rol_sim else '' }}"
+                                   href="{{ url_for('auth.simular_rol', rol=rol_sim) }}">
+                                    {% if session.rol == rol_sim %}
+                                    <i class="bi bi-check2 text-success"></i>
+                                    {% else %}
+                                    <i class="bi bi-circle" style="opacity:0"></i>
+                                    {% endif %}
+                                    {{ rol_sim|capitalize }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                            {% endif %}
+
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
-                                <i class="bi bi-box-arrow-right me-1"></i>Cerrar sesion</a></li>
+                                <i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a></li>
                         </ul>
                     </li>
                 {% else %}
@@ -159,6 +182,19 @@
         </div>
     </div>
 </nav>
+
+{# ── Banner de simulación de rol ─────────────────────────────────────────────
+   Visible solo cuando el admin está simulando un rol diferente al suyo.
+#}
+{% if session.get('rol_real') and session.rol != session.rol_real %}
+<div class="bg-warning text-dark text-center py-1 px-3 small fw-semibold">
+    <i class="bi bi-mask me-1"></i>
+    Simulando rol <strong>{{ session.rol|capitalize }}</strong> —
+    <a href="{{ url_for('auth.simular_rol', rol='admin') }}" class="text-dark">
+        Volver a admin
+    </a>
+</div>
+{% endif %}
 
 {# ── Mensajes Flash ──────────────────────────────────────────────────────────
    Flask envia mensajes de una sola vez con flash(); aqui se renderizan.

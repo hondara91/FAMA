@@ -27,12 +27,13 @@ class Usuario:
 
     def crear(self, nombre, email, rol="usuario", validado=False):
         """
-        Crea un nuevo usuario con contrasena interna aleatoria (el usuario la recibira
-        por email cuando el admin apruebe su cuenta).
-        Devuelve el ObjectId insertado o None si el email ya existe.
+        Crea un nuevo usuario. Devuelve el ObjectId insertado o None si el email
+        o el nombre ya existen (nombre actua como nombre de usuario unico).
         """
         if self.coleccion.find_one({"email": email}):
             return None
+        if self.coleccion.find_one({"nombre": {"$regex": f"^{nombre}$", "$options": "i"}}):
+            return "nombre_duplicado"
 
         usuario = {
             "nombre": nombre,
@@ -54,16 +55,15 @@ class Usuario:
 
     # ── Autenticacion ─────────────────────────────────────────────────────────
 
-    def autenticar(self, email, password):
+    def autenticar(self, nombre, password):
         """
-        Verifica email y contrasena.
+        Verifica nombre de usuario y contrasena.
         Devuelve el documento completo del usuario o None si falla.
         Solo permite el acceso a cuentas activas Y validadas por el admin.
         """
         usuario = self.coleccion.find_one({
-            "email": email,
+            "nombre": nombre,
             "activo": True,
-            "email_verificado": True,
             "validado": True,
         })
         if usuario and check_password_hash(usuario["password"], password):
@@ -137,9 +137,9 @@ class Usuario:
             }},
         )
 
-    def verificar_respuesta_seguridad(self, email, respuesta):
+    def verificar_respuesta_seguridad(self, nombre, respuesta):
         """Comprueba la respuesta de seguridad. Devuelve False si el usuario no tiene pregunta configurada."""
-        usuario = self.coleccion.find_one({"email": email})
+        usuario = self.coleccion.find_one({"nombre": nombre})
         if usuario and usuario.get("respuesta_seguridad"):
             return check_password_hash(usuario["respuesta_seguridad"], respuesta.lower())
         return False

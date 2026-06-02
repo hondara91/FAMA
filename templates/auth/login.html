@@ -1,25 +1,21 @@
 {% extends "base.html" %}
-{% block title %}FAMA - Iniciar Sesion{% endblock %}
+{% block title %}FAMA - Iniciar Sesión{% endblock %}
 
 {% block content %}
-{# Tarjeta centrada de ancho medio para el formulario de login #}
 <div class="row justify-content-center">
     <div class="col-md-5">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <h3 class="card-title text-center mb-4">
-                    <i class="bi bi-box-arrow-in-right me-2 text-primary"></i>Iniciar Sesion
+                    <i class="bi bi-box-arrow-in-right me-2 text-primary"></i>Iniciar Sesión
                 </h3>
-
-                {# El formulario envia POST a la misma ruta /auth/login #}
                 <form method="POST" action="{{ url_for('auth.login') }}">
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        {# autofocus: el cursor se coloca aqui al cargar la pagina #}
-                        <input type="email" class="form-control" id="email" name="email" required autofocus>
+                        <label for="nombre" class="form-label">Nombre de usuario</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required autofocus>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Contrasenia</label>
+                        <label for="password" class="form-label">Contraseña</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
                     <div class="d-grid mb-3">
@@ -28,14 +24,11 @@
                         </button>
                     </div>
                 </form>
-
-                {# Enlaces de navegacion hacia registro y recuperacion de contrasenia #}
                 <div class="text-center">
-                    <a href="{{ url_for('auth.registro') }}" class="text-decoration-none">No tienes cuenta? Registrate</a>
+                    <a href="{{ url_for('auth.registro') }}" class="text-decoration-none">¿No tienes cuenta? Regístrate</a>
                     <br>
-                    {# Flujo de recuperacion mediante pregunta de seguridad #}
                     <a href="{{ url_for('auth.recuperar_password') }}" class="text-decoration-none text-muted small">
-                        Olvidaste tu contrasenia?
+                        ¿Olvidaste tu contraseña?
                     </a>
                 </div>
             </div>

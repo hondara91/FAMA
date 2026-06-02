@@ -97,9 +97,9 @@
                     </a>
 
                     <form method="POST" action="{{ url_for('admin.resetear_password', user_id=usuario._id) }}"
-                          onsubmit="return confirm('Resetear contrasenia de {{ usuario.nombre }}?')">
+                          onsubmit="return confirm('Resetear contraseña de {{ usuario.nombre }}?')">
                         <button type="submit" class="btn btn-outline-warning">
-                            <i class="bi bi-key me-1"></i>Resetear contrasenia
+                            <i class="bi bi-key me-1"></i>Resetear contraseña
                         </button>
                     </form>
 

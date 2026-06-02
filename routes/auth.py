@@ -16,7 +16,6 @@ from werkzeug.utils import secure_filename
 
 from models.usuario import Usuario
 from utils.db import get_db
-from utils.email import enviar_pendiente_validacion
 from utils.decorators import login_required
 from utils.logs import actualizar_contadores, registrar_log
 
@@ -68,31 +67,26 @@ def registro():
             flash("El nombre y el email son obligatorios.", "danger")
             return render_template("auth/registro.html")
 
-        # crear() devuelve None si el email ya esta registrado en MongoDB
-        user_id = modelo.crear(nombre, email)
-        if user_id is None:
-            flash("El email ya esta registrado.", "danger")
+        if "@" not in email:
+            flash("Introduce un email válido.", "danger")
             return render_template("auth/registro.html")
 
-        # Registrar la accion en el log y actualizar snapshot de contadores
+        resultado = modelo.crear(nombre, email)
+        if resultado is None:
+            flash("El email ya está registrado.", "danger")
+            return render_template("auth/registro.html")
+        if resultado == "nombre_duplicado":
+            flash("Ese nombre de usuario ya está en uso. Elige otro.", "danger")
+            return render_template("auth/registro.html")
+
         registrar_log(db, "registro", "crear_usuario", nombre, f"Email: {email}")
         actualizar_contadores(db)
 
-        # Notificar al usuario que su solicitud esta pendiente de validacion
-        enviado = enviar_pendiente_validacion(email, nombre)
-        if enviado:
-            flash(
-                f"Solicitud recibida. Hemos enviado un aviso a {email}. "
-                "Tu cuenta esta pendiente de validacion por el administrador; "
-                "este proceso puede durar unas horas.",
-                "info",
-            )
-        else:
-            flash(
-                "Solicitud registrada. Tu cuenta esta pendiente de validacion por el administrador. "
-                "Este proceso puede durar unas horas.",
-                "info",
-            )
+        flash(
+            "Solicitud recibida. Tu cuenta está pendiente de validación por el administrador. "
+            "Este proceso puede durar unas horas.",
+            "info",
+        )
         return redirect(url_for("auth.login"))
 
     # GET: mostrar el formulario vacio
@@ -112,17 +106,16 @@ def login():
         db = get_db()
         modelo = Usuario(db)
 
-        email    = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
+        nombre_login = request.form.get("nombre", "").strip()
+        password     = request.form.get("password", "")
 
-        # autenticar() comprueba email + hash de contrasenia + activo + email_verificado + validado
-        usuario = modelo.autenticar(email, password)
+        usuario = modelo.autenticar(nombre_login, password)
         if not usuario:
-            candidato = modelo.obtener_por_email(email)
+            candidato = db.usuarios.find_one({"nombre": nombre_login})
             if candidato and candidato.get("activo") and not candidato.get("validado"):
-                flash("Tu cuenta esta pendiente de validacion por el administrador.", "warning")
+                flash("Tu cuenta está pendiente de validación por el administrador.", "warning")
             else:
-                flash("Email o contrasenia incorrectos.", "danger")
+                flash("Usuario o contraseña incorrectos.", "danger")
             return render_template("auth/login.html")
 
         # ── Construir la sesion Flask ─────────────────────────────────────────
@@ -169,9 +162,7 @@ def cambiar_password():
         nueva    = request.form.get("nueva_password", "")
         confirmar = request.form.get("confirmar_password", "")
 
-        # Verificar la contrasenia actual antes de permitir el cambio
-        # (usa autenticar() para reutilizar la logica de verificacion de hash)
-        if not modelo.autenticar(session["email"], password_actual):
+        if not modelo.autenticar(session["nombre"], password_actual):
             flash("La contrasenia actual es incorrecta.", "danger")
             return render_template("auth/cambiar_password.html")
 
@@ -190,6 +181,32 @@ def cambiar_password():
         return redirect(url_for("main.index"))
 
     return render_template("auth/cambiar_password.html")
+
+
+# ── Simulación de rol ────────────────────────────────────────────────────────
+
+@auth_bp.route("/simular-rol/<rol>")
+@login_required
+def simular_rol(rol):
+    """Permite al admin simular temporalmente otro rol para probar la interfaz."""
+    roles_validos = ("admin", "gestor", "usuario")
+
+    # Solo el admin real puede activar la simulación
+    rol_real = session.get("rol_real") or session.get("rol")
+    if rol_real != "admin":
+        flash("Solo el administrador puede simular roles.", "danger")
+        return redirect(url_for("main.index"))
+
+    if rol not in roles_validos:
+        flash("Rol no válido.", "danger")
+        return redirect(url_for("main.index"))
+
+    # Guardar el rol real la primera vez que se activa la simulación
+    if not session.get("rol_real"):
+        session["rol_real"] = session["rol"]
+
+    session["rol"] = rol
+    return redirect(request.referrer or url_for("main.index"))
 
 
 # ── Perfil de usuario ────────────────────────────────────────────────────────
@@ -244,26 +261,23 @@ def recuperar_password():
         db = get_db()
         modelo = Usuario(db)
 
-        email    = request.form.get("email", "").strip().lower()
-        respuesta = request.form.get("respuesta_seguridad", "").strip()
-        nueva     = request.form.get("nueva_password", "")
-        confirmar = request.form.get("confirmar_password", "")
+        nombre_rec = request.form.get("nombre", "").strip()
+        respuesta  = request.form.get("respuesta_seguridad", "").strip()
+        nueva      = request.form.get("nueva_password", "")
+        confirmar  = request.form.get("confirmar_password", "")
 
-        # verificar_respuesta_seguridad() compara con el hash almacenado
-        if not modelo.verificar_respuesta_seguridad(email, respuesta):
-            # Mensaje generico para no revelar si el email existe
-            flash("Email o respuesta de seguridad incorrectos.", "danger")
+        if not modelo.verificar_respuesta_seguridad(nombre_rec, respuesta):
+            flash("Usuario o respuesta de seguridad incorrectos.", "danger")
             return render_template("auth/recuperar.html")
 
         if nueva != confirmar:
-            flash("Las contrasenias no coinciden.", "danger")
+            flash("Las contraseñas no coinciden.", "danger")
             return render_template("auth/recuperar.html")
 
-        # Buscar el usuario por email para obtener su ObjectId y cambiar la contrasenia
-        usuario = db.usuarios.find_one({"email": email})
+        usuario = db.usuarios.find_one({"nombre": nombre_rec})
         if usuario:
             modelo.cambiar_password(str(usuario["_id"]), nueva)
-            flash("Contrasenia recuperada correctamente. Ya puedes iniciar sesion.", "success")
+            flash("Contraseña recuperada correctamente. Ya puedes iniciar sesión.", "success")
             return redirect(url_for("auth.login"))
 
     return render_template("auth/recuperar.html")

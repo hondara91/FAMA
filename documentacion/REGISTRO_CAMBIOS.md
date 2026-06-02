@@ -902,3 +902,182 @@ db.usuarios.updateMany(
 - Se eliminan los breadcrumbs de todas las paginas de detalle: viviendas, servicios, compraventa, ocio, foro/detalle, foro/canal, foro/formulario y foro/nuevo_canal.
 - El dashboard de inicio reduce el limite de anuncios mostrados por seccion de 4 a 3.
 - La tabla de usuarios del panel admin incorpora `overflow:visible` para que el dropdown de roles no quede recortado.
+
+## 2026-06-02 CEST
+
+### Simplificacion del flujo de registro y validacion de usuarios
+
+Se redisena el flujo de alta eliminando el paso de verificacion de email.
+El nuevo flujo es mas sencillo y adecuado para una plataforma cerrada interna.
+
+#### Flujo nuevo
+
+1. El usuario rellena solo **nombre + email**.
+2. El sistema crea la cuenta con `email_verificado=True` y `validado=False`.
+3. Se envia email de aviso: *"Tu solicitud esta pendiente de validacion. Este proceso puede durar unas horas."*
+4. El admin ve el badge **Pendiente** en el panel y pulsa el boton de aprobacion.
+5. Al aprobar: se establece la contrasenia a `fama1234`, `debe_cambiar_password=True`, y se envia email: *"Tu cuenta ha sido aprobada. Tu contrasenia es fama1234. Cambiala en el primer inicio de sesion."*
+6. El usuario hace login con `fama1234` y queda forzado a cambiarla antes de continuar.
+
+#### Archivos modificados
+
+- `utils/email.py`:
+  - Eliminadas las funciones de token `itsdangerous` (`generar_token_verificacion`, `confirmar_token_verificacion`).
+  - Eliminada `enviar_verificacion_email()`.
+  - Nueva `enviar_pendiente_validacion()`: notifica que la cuenta espera aprobacion.
+  - `enviar_aprobacion_cuenta()`: simplificada — ya no recibe contrasenia aleatoria ni incluye enlace; muestra `fama1234` directamente.
+
+- `models/usuario.py`:
+  - `crear()`: `email_verificado=True` por defecto (sin paso de verificacion).
+  - Eliminados `generar_password_temporal()` y `verificar_email_usuario()`.
+
+- `routes/auth.py`:
+  - Eliminada la ruta `/auth/verificar-email/<token>`.
+  - Registro llama a `enviar_pendiente_validacion()`.
+  - Login simplificado: solo avisa de "pendiente de validacion" si procede; ya no comprueba `email_verificado`.
+
+- `routes/admin.py`:
+  - `validar_usuario()`: usa `fama1234` directamente en vez de contrasenia aleatoria.
+  - Query de pendientes en el panel ya no filtra por `email_verificado`.
+
+- `templates/admin/usuarios.html`:
+  - Eliminado el badge "Sin verificar" (ya no existe ese estado).
+  - Boton de validacion ya no exige `email_verificado=True` para mostrarse.
+
+#### Migracion ejecutada
+
+```js
+db.usuarios.updateMany(
+  {email_verificado: {$ne: true}},
+  {$set: {email_verificado: true}}
+)
+```
+
+### Contrasenia por defecto unificada a fama1234
+
+- `models/usuario.py` — `resetear_password()`: cambia la contrasenia a `fama1234` en vez de `Password`.
+- `routes/admin.py` — `validar_usuario()`: usa `fama1234` al aprobar una cuenta.
+- `scripts/resetear_passwords.py` (nuevo): pone `fama1234` y `debe_cambiar_password=True` a todos los usuarios excepto `admin@appfama.es`. Util para entornos de desarrollo.
+
+### Cambio de email del administrador
+
+- El email de login del administrador cambia de `admin@fama.es` a `admin@appfama.es`.
+- Archivos actualizados: `scripts/crear_admin.py`, `scripts/resetear_passwords.py`.
+- Documento actualizado en MongoDB:
+
+```js
+db.usuarios.updateOne(
+  {email: "admin@fama.es"},
+  {$set: {email: "admin@appfama.es"}}
+)
+```
+
+### Verificacion del dominio de email appfama.es
+
+- Se confirma que el dominio `appfama.es` queda verificado en Resend con los registros DNS dados de alta en IONOS.
+- El sistema de envio de emails transaccionales desde `noreply@appfama.es` queda operativo.
+
+## 2026-06-02 20:32:51 CEST
+
+### Ajustes visuales de logo y navegacion
+
+- Se sustituye el logo usado en la pagina por `static/img/famalogo.png`.
+- Se actualizan las referencias del logo en:
+  - `templates/base.html`
+  - `templates/index.html`
+- Se edita `static/img/famalogo.png` para eliminar el fondo gris y dejarlo con transparencia real.
+- Se corrigen zonas del propio logo que habian quedado mal tras la extraccion del fondo:
+  - Correccion de blancos en el faro.
+  - Correccion de blancos en el tejado de la casa.
+  - Perfilado puntual de bordes irregulares en la zona del faro.
+- Se ajusta el hero de la pagina principal:
+  - El logo central queda centrado horizontalmente.
+  - El texto "Foro de Apoyo Multiproposito de la Armada" baja para no solaparse con el logo.
+- Se ajusta la barra de navegacion superior:
+  - El logo del navbar queda mejor centrado verticalmente.
+  - Se reduce el espacio entre el logo y el enlace "Novedades".
+  - Se desplaza ligeramente el conjunto inicial de la navegacion para compactar la cabecera.
+
+#### Archivos modificados
+
+- `static/img/famalogo.png`
+- `static/css/estilos.css`
+- `templates/base.html`
+- `templates/index.html`
+
+## 2026-06-02 CEST (segunda sesión)
+
+### Eliminación del sistema de emails
+
+- Se elimina `utils/email.py` y se retira `resend==2.10.0` de `requirements.txt`.
+- Se eliminan las variables `RESEND_API_KEY`, `MAIL_FROM` y `APP_URL` de `utils/config.py`.
+- El registro ya no envía ningún correo: el flujo es únicamente nombre + email → validación manual por admin.
+
+### Login por nombre de usuario
+
+- El campo de login cambia de email a **nombre de usuario** (que debe ser único en la BD).
+- `models/usuario.py` — `autenticar()` busca ahora por `nombre` en lugar de email.
+- `models/usuario.py` — `crear()` valida unicidad de nombre (case-insensitive) antes de insertar.
+- `models/usuario.py` — `verificar_respuesta_seguridad()` acepta nombre en lugar de email.
+- `routes/auth.py` — login, cambiar_password y recuperar_password usan campo `nombre`.
+- `templates/auth/login.html` — campo "Nombre de usuario" en lugar de "Email".
+- `templates/auth/recuperar.html` — campo "Nombre de usuario" en lugar de "Email".
+
+### Validación de email simplificada
+
+- El registro solo exige que el email contenga `@`; el campo pasa a `type="text"`.
+- El texto de la página de registro ya no menciona verificación de correo.
+
+### Transferencia de rol de administrador
+
+- Al asignar rol `admin` a otro usuario, la cuenta del admin promotor se elimina y la sesión se cierra.
+- Esto garantiza una transferencia limpia del poder de administración.
+- `routes/admin.py` — `cambiar_rol()` ampliado con esta lógica.
+
+### Protección del último administrador
+
+- No es posible eliminar (desactivar) al único admin activo de la plataforma.
+- `routes/admin.py` — `eliminar_usuario()`: comprueba `count_documents({rol: admin, activo: True}) <= 1` antes de permitir la operación.
+- Los admins pueden eliminar a otros admins siempre que no sea el último.
+
+### Restauración de iconos Bootstrap en tarjetas de módulos
+
+- Se eliminan las ilustraciones (`viviendas-ilustracion.png`, `viaje.png`, `mercadillo.png`, `futball.png`) de las tarjetas del dashboard.
+- Se restauran los iconos Bootstrap originales: `bi-house-door`, `bi-tools`, `bi-shop`, `bi-trophy`.
+
+### Corrección de faltas de ortografía en el frontend
+
+- `Contrasenia` → `Contraseña` en todos los templates visibles al usuario:
+  - `templates/auth/login.html`, `cambiar_password.html`, `recuperar.html`
+  - `templates/base.html`, `templates/admin/usuarios.html`, `panel.html`, `ver_usuario.html`
+
+### Perfil de usuario ampliado
+
+- `templates/auth/perfil.html` muestra ahora: avatar, nombre, rol (badge de color), email y fecha de registro.
+- La sección de subida/borrado de foto se mantiene en una tarjeta separada.
+
+### Aviso de edición por gestor o admin
+
+- Cuando un gestor o admin edita un anuncio que no es suyo, se guardan `editado_por` y `fecha_edicion` en el documento MongoDB.
+- El detalle de cada módulo muestra un aviso amarillo con el nombre del editor y la fecha.
+- Módulos afectados: `routes/viviendas.py`, `routes/servicios.py`, `routes/compraventa.py`, `routes/ocio.py` y sus respectivos `detalle.html`.
+
+### Sistema de reportes de anuncios
+
+- Los gestores pueden reportar cualquier anuncio (vivienda, servicio, compraventa, ocio) indicando un motivo.
+- Los reportes se almacenan en la colección `reportes` de MongoDB.
+- Nueva ruta `POST /admin/reportes/nuevo` — crea el reporte.
+- Nueva ruta `GET /admin/reportes` — lista reportes para gestores y admins.
+- Nueva ruta `POST /admin/reportes/resolver/<id>` — marca como resuelto (solo admin).
+- Nueva ruta `POST /admin/reportes/eliminar/<id>` — elimina el reporte (solo admin).
+- `templates/admin/reportes.html` — tabla de reportes con estado y acciones.
+- El panel de administración incluye una tarjeta de acceso rápido a reportes.
+
+### Test de conexión a base de datos
+
+- Nueva ruta `GET /admin/test-bd` (solo admin): hace ping a MongoDB y muestra el resultado como mensaje flash.
+- `templates/admin/panel.html` — nueva tarjeta "Base de datos" con botón "Probar conexión".
+
+### Documentación PRIMER_ADMIN.md
+
+- Creado `documentacion/PRIMER_ADMIN.md` con instrucciones paso a paso para crear el primer administrador en un despliegue nuevo.

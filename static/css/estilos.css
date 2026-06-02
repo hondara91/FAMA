@@ -25,19 +25,22 @@ body {
 .fama-navbar .navbar-brand {
     font-size: 1.4rem;
     letter-spacing: 2px;
+    width: 88px;
+    justify-content: center;
 }
 
 .fama-logo-navbar {
     width: 72px;
     height: 42px;
     object-fit: contain;
-    transform: translateY(-5px) scale(1.3);
-    transform-origin: left center;
+    object-position: center;
+    transform: translate(-14px, 0) scale(1.3);
+    transform-origin: center center;
     filter: drop-shadow(0 0 1px var(--fama-azul));
 }
 
 .fama-navbar .navbar-nav.me-auto {
-    margin-left: 1.25rem;
+    margin-left: -2.125rem;
 }
 
 /* Badge de rol en el menu de usuario */
@@ -114,12 +117,12 @@ body {
     height: auto;
     display: block;
     border-radius: 8px;
-    transform: translateX(-22px);
+    transform: translateX(0);
     filter: drop-shadow(0 0 1px var(--fama-azul));
 }
 
 .fama-hero-subtitle {
-    margin-top: -48px;
+    margin-top: 0.75rem;
 }
 
 /* ── Tarjetas de modulos (index) ─────────────────────────── */
