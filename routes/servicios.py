@@ -11,6 +11,11 @@ from utils.decorators import login_required
 from utils.logs import actualizar_contadores, registrar_log
 from utils.uploads import eliminar_imagenes, guardar_imagenes
 
+
+def validar_telefono(telefono):
+    return telefono == "" or (telefono.isdigit() and len(telefono) == 9)
+
+
 servicios_bp = Blueprint("servicios", __name__, url_prefix="/servicios")
 
 
@@ -32,13 +37,28 @@ def nuevo():
         db = get_db()
         modelo = Servicio(db)
 
+        telefono = request.form.get("telefono", "").strip()
+        if not validar_telefono(telefono):
+            flash("El teléfono debe contener exactamente 9 dígitos numéricos.", "danger")
+            datos = {
+                "tipo": request.form.get("tipo"),
+                "categoria": request.form.get("categoria"),
+                "titulo": request.form.get("titulo", "").strip(),
+                "precio": request.form.get("precio", "").strip(),
+                "modalidad": request.form.get("modalidad"),
+                "telefono": telefono,
+                "ciudad": request.form.get("ciudad", "").strip(),
+                "descripcion": request.form.get("descripcion", "").strip(),
+            }
+            return render_template("servicios/formulario.html", anuncio=datos, accion="Crear")
+
         datos = {
             "tipo": request.form.get("tipo"),
             "categoria": request.form.get("categoria"),
             "titulo": request.form.get("titulo", "").strip(),
             "precio": request.form.get("precio", "").strip(),
             "modalidad": request.form.get("modalidad"),
-            "telefono": request.form.get("telefono", "").strip(),
+            "telefono": telefono,
             "ciudad": request.form.get("ciudad", "").strip(),
             "descripcion": request.form.get("descripcion", "").strip(),
         }
@@ -74,13 +94,29 @@ def editar(anuncio_id):
         return redirect(url_for("servicios.listar"))
 
     if request.method == "POST":
+        telefono = request.form.get("telefono", "").strip()
+        if not validar_telefono(telefono):
+            flash("El teléfono debe contener exactamente 9 dígitos numéricos.", "danger")
+            datos = {
+                "tipo": request.form.get("tipo"),
+                "categoria": request.form.get("categoria"),
+                "titulo": request.form.get("titulo", "").strip(),
+                "precio": request.form.get("precio", "").strip(),
+                "modalidad": request.form.get("modalidad"),
+                "telefono": telefono,
+                "ciudad": request.form.get("ciudad", "").strip(),
+                "descripcion": request.form.get("descripcion", "").strip(),
+                "fotos": list(anuncio.get("fotos") or []),
+            }
+            return render_template("servicios/formulario.html", anuncio=datos, accion="Editar")
+
         datos = {
             "tipo": request.form.get("tipo"),
             "categoria": request.form.get("categoria"),
             "titulo": request.form.get("titulo", "").strip(),
             "precio": request.form.get("precio", "").strip(),
             "modalidad": request.form.get("modalidad"),
-            "telefono": request.form.get("telefono", "").strip(),
+            "telefono": telefono,
             "ciudad": request.form.get("ciudad", "").strip(),
             "descripcion": request.form.get("descripcion", "").strip(),
         }

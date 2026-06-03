@@ -14,6 +14,11 @@ from utils.decorators import login_required
 from utils.logs import actualizar_contadores, registrar_log
 from utils.uploads import eliminar_imagenes, guardar_imagenes
 
+
+def validar_telefono(telefono):
+    return telefono == "" or (telefono.isdigit() and len(telefono) == 9)
+
+
 viviendas_bp = Blueprint("viviendas", __name__, url_prefix="/viviendas")
 
 
@@ -42,6 +47,24 @@ def nuevo():
         modelo = Vivienda(db)
 
         # Recoger y limpiar todos los campos del formulario
+        telefono = request.form.get("telefono", "").strip()
+        if not validar_telefono(telefono):
+            flash("El teléfono debe contener exactamente 9 dígitos numéricos.", "danger")
+            datos = {
+                "tipo_oferta":   request.form.get("tipo_oferta"),
+                "tipo_inmueble": request.form.get("tipo_inmueble"),
+                "ciudad":        request.form.get("ciudad", "").strip(),
+                "zona":          request.form.get("zona", "").strip(),
+                "habitaciones":  request.form.get("habitaciones"),
+                "banos":         request.form.get("banos"),
+                "planta":        request.form.get("planta", "").strip(),
+                "precio":        request.form.get("precio", "").strip(),
+                "extras":        request.form.getlist("extras"),
+                "telefono":      telefono,
+                "descripcion":   request.form.get("descripcion", "").strip(),
+            }
+            return render_template("viviendas/formulario.html", anuncio=datos, accion="Crear")
+
         datos = {
             "tipo_oferta":   request.form.get("tipo_oferta"),
             "tipo_inmueble": request.form.get("tipo_inmueble"),
@@ -53,7 +76,7 @@ def nuevo():
             "precio":        request.form.get("precio", "").strip(),
             # getlist() recoge multiples valores del mismo nombre (checkboxes de extras)
             "extras":        request.form.getlist("extras"),
-            "telefono":      request.form.get("telefono", "").strip(),
+            "telefono":      telefono,
             "descripcion":   request.form.get("descripcion", "").strip(),
         }
 
@@ -93,6 +116,25 @@ def editar(anuncio_id):
         return redirect(url_for("viviendas.listar"))
 
     if request.method == "POST":
+        telefono = request.form.get("telefono", "").strip()
+        if not validar_telefono(telefono):
+            flash("El teléfono debe contener exactamente 9 dígitos numéricos.", "danger")
+            datos = {
+                "tipo_oferta":   request.form.get("tipo_oferta"),
+                "tipo_inmueble": request.form.get("tipo_inmueble"),
+                "ciudad":        request.form.get("ciudad", "").strip(),
+                "zona":          request.form.get("zona", "").strip(),
+                "habitaciones":  request.form.get("habitaciones"),
+                "banos":         request.form.get("banos"),
+                "planta":        request.form.get("planta", "").strip(),
+                "precio":        request.form.get("precio", "").strip(),
+                "extras":        request.form.getlist("extras"),
+                "telefono":      telefono,
+                "descripcion":   request.form.get("descripcion", "").strip(),
+                "fotos":         list(anuncio.get("fotos") or []),
+            }
+            return render_template("viviendas/formulario.html", anuncio=datos, accion="Editar")
+
         datos = {
             "tipo_oferta":   request.form.get("tipo_oferta"),
             "tipo_inmueble": request.form.get("tipo_inmueble"),
@@ -103,7 +145,7 @@ def editar(anuncio_id):
             "planta":        request.form.get("planta", "").strip(),
             "precio":        request.form.get("precio", "").strip(),
             "extras":        request.form.getlist("extras"),
-            "telefono":      request.form.get("telefono", "").strip(),
+            "telefono":      telefono,
             "descripcion":   request.form.get("descripcion", "").strip(),
         }
         fotos = list(anuncio.get("fotos") or [])

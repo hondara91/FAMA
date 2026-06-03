@@ -52,7 +52,9 @@
                         <div class="col-md-6">
                             <label class="form-label">Telefono de contacto</label>
                             <input type="tel" class="form-control" name="telefono"
-                                   value="{{ anuncio.telefono if anuncio else '' }}">
+                                   value="{{ anuncio.telefono if anuncio else '' }}"
+                                   maxlength="9" pattern="[0-9]{9}" inputmode="numeric"
+                                   title="Solo se permiten 9 dígitos numéricos">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Descripcion</label>

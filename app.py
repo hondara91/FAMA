@@ -55,13 +55,29 @@ def create_app():
     # Los ficheros estáticos tampoco requieren sesión.
     @app.before_request
     def requiere_login():
-        from flask import request
+        from bson import ObjectId
+        from flask import request, flash
         if request.endpoint and (
             request.endpoint.startswith("auth.")
             or request.endpoint == "static"
         ):
             return None
         if not session.get("user_id"):
+            return redirect(url_for("auth.login"))
+
+        from utils.db import get_db
+        db = get_db()
+        usuario = db.usuarios.find_one(
+            {"_id": ObjectId(session["user_id"])},
+            {"activo": 1, "validado": 1},
+        )
+        if not usuario or not usuario.get("activo"):
+            session.clear()
+            flash("Tu sesión ha sido cerrada porque tu cuenta ha sido desactivada.", "danger")
+            return redirect(url_for("auth.login"))
+        if not usuario.get("validado"):
+            session.clear()
+            flash("Tu sesión ha sido cerrada porque tu cuenta ya no está validada.", "danger")
             return redirect(url_for("auth.login"))
 
     # ── Variables globales de plantillas ─────────────────────────────────────

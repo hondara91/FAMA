@@ -20,6 +20,19 @@ from utils.logs import exportar_logs_pdf, registrar_log
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
+def desactivar_admin_bootstrap(db, ignore_user_id=None):
+    """Desactiva el admin creado por defecto por scripts/crear_admin.py si existe."""
+    usuario_bootstrap = Usuario(db).obtener_por_email("admin@appfama.es")
+    if not usuario_bootstrap:
+        return False
+    if usuario_bootstrap.get("rol") != "admin" or not usuario_bootstrap.get("activo", False):
+        return False
+    if ignore_user_id and usuario_bootstrap["_id"] == ObjectId(ignore_user_id):
+        return False
+    Usuario(db).eliminar(usuario_bootstrap["_id"])
+    return True
+
+
 # ── Panel principal ───────────────────────────────────────────────────────────
 
 @admin_bp.route("/")
@@ -126,7 +139,14 @@ def editar_usuario(user_id):
         modelo.actualizar(user_id, datos)
         registrar_log(db, "registro", "editar_usuario", session["nombre"],
                       f"Usuario editado: {datos['nombre']}")
-        flash("Usuario actualizado.", "success")
+        if datos.get("rol") == "admin":
+            desactivado = desactivar_admin_bootstrap(db, ignore_user_id=user_id)
+            if desactivado:
+                flash("Usuario actualizado. El administrador bootstrap por defecto ha sido desactivado.", "success")
+            else:
+                flash("Usuario actualizado.", "success")
+        else:
+            flash("Usuario actualizado.", "success")
         return redirect(url_for("admin.listar_usuarios"))
 
     # GET: mostrar el formulario con los datos actuales del usuario
@@ -150,14 +170,14 @@ def cambiar_rol(user_id):
     modelo.cambiar_rol(user_id, nuevo_rol)
     registrar_log(db, "registro", "cambiar_rol", session["nombre"],
                   f"Usuario: {usuario['nombre']} -> Nuevo rol: {nuevo_rol}")
-    flash(f"Rol actualizado a '{nuevo_rol}' para {usuario['nombre']}.", "success")
 
-    # Al promover a admin, la cuenta del admin que lo promueve se elimina (transferencia de poder)
     if nuevo_rol == "admin":
-        db.usuarios.delete_one({"_id": ObjectId(session["user_id"])})
-        session.clear()
-        flash("Rol de administrador transferido. Inicia sesión con la nueva cuenta de administrador.", "info")
-        return redirect(url_for("auth.login", nuevo_admin=usuario["nombre"]))
+        desactivado = desactivar_admin_bootstrap(db, ignore_user_id=user_id)
+        if desactivado:
+            flash("Rol actualizado a 'admin'. El administrador bootstrap por defecto ha sido desactivado.", "success")
+        else:
+            flash(f"Rol actualizado a '{nuevo_rol}' para {usuario['nombre']}", "success")
+        return redirect(url_for("admin.listar_usuarios"))
 
     return redirect(url_for("admin.listar_usuarios"))
 
