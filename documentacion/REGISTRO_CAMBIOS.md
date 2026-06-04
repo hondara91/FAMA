@@ -1367,3 +1367,23 @@ Se revisa todo el código en busca de inconsistencias y se aplican las siguiente
 - La ruta `perfil()` consulta los 4 colecciones de MongoDB filtrando por `usuario_id` y las pasa al template como `mis_anuncios`.
 - La página se reestructura en layout de dos columnas (col-md-4 / col-md-8).
 - Archivos modificados: `routes/auth.py`, `templates/auth/perfil.html`.
+
+### Botón "Volver" con preservación de filtros en todos los submódulos
+
+- Todas las páginas de detalle (viviendas, servicios, compraventa, ocio, foro/detalle, foro/canal) disponen ahora de un botón **Volver** al inicio del contenido.
+- Todos los botones "Cancelar" de formularios (viviendas, servicios, compraventa, ocio, foro post, foro canal, tienda Armada) usan `onclick="history.back(); return false;"` con un `href` de fallback.
+- El mecanismo `history.back()` devuelve al usuario exactamente al punto donde estaba, preservando filtros de búsqueda, paginación y cualquier parámetro de URL activo.
+- Archivos modificados: `templates/viviendas/detalle.html`, `templates/servicios/detalle.html`, `templates/compraventa/detalle.html`, `templates/ocio/detalle.html`, `templates/foro/detalle.html`, `templates/foro/canal.html`, `templates/viviendas/formulario.html`, `templates/servicios/formulario.html`, `templates/compraventa/formulario.html`, `templates/ocio/formulario.html`, `templates/foro/formulario.html`, `templates/foro/nuevo_canal.html`, `templates/compraventa/armada.html`.
+
+### Precio obligatorio en viviendas y compraventa
+
+- El campo precio en el formulario de viviendas pasa a ser `required` (antes era opcional) y se añade asterisco a la etiqueta.
+- Validación en servidor en `routes/viviendas.py` (`nuevo` y `editar`) y `routes/compraventa.py` (`nuevo` y `editar`) para rechazar envíos sin precio aunque se manipule el HTML.
+- Archivos modificados: `templates/viviendas/formulario.html`, `routes/viviendas.py`, `routes/compraventa.py`.
+
+### Favicon actualizado con logohead.png
+
+- Se sustituye el favicon por `static/img/logohead.png` (logo circular de FAMA con fondo azul integrado).
+- Se añaden tres declaraciones `<link rel="icon">` con tamaños 192×192 y 32×32, más `<link rel="apple-touch-icon" sizes="180x180">` para mejor calidad en distintos contextos (navegador, favoritos, móvil).
+- Se elimina el `favicon.svg` como fuente primaria (ya no es necesario al tener el fondo azul en el propio PNG).
+- Archivo modificado: `templates/base.html`.

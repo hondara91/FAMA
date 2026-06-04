@@ -34,6 +34,7 @@ TIPOS_NOVEDAD = ["Curso", "Comision de servicio", "Otros"]
 
 
 @novedades_bp.route("/")
+@login_required
 def listar():
     """
     Muestra todas las novedades ordenadas de mas reciente a mas antigua.

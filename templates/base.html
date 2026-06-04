@@ -27,7 +27,7 @@
    La clase 'active' se aplica dinamicamente segun el endpoint activo
    para resaltar el modulo que el usuario esta visitando.
 #}
-<nav class="navbar navbar-expand-lg navbar-dark fama-navbar">
+<nav class="navbar navbar-expand-lg navbar-dark fama-navbar sticky-top">
     <div class="container-fluid">
 
         {# Logotipo / enlace a inicio #}
@@ -47,13 +47,15 @@
             {# ── Menu de modulos (izquierda) ─────────────────────────────── #}
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-                {# Novedades: se resalta en amarillo si hay novedades sin ver #}
+                {# Novedades: solo visible para usuarios autenticados #}
+                {% if session.user_id %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('novedades') %}active{% endif %} {{ 'text-warning fw-semibold' if hay_novedades else '' }}"
                        href="{{ url_for('novedades.listar') }}">
                         <i class="bi bi-{{ 'bell-fill' if hay_novedades else 'bell' }} me-1"></i>Novedades
                     </a>
                 </li>
+                {% endif %}
 
                 {# Foro: enlace directo al listado de publicaciones #}
                 <li class="nav-item">
