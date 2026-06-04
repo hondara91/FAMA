@@ -14,9 +14,9 @@
     </a>
 </div>
 
-{% if articulos %}
+{% if artículos %}
 <div class="row g-3">
-    {% for a in articulos %}
+    {% for a in artículos %}
     <div class="col-md-6 col-lg-3">
         <div class="card h-100 border-2 border-primary shadow-sm">
             <div class="card-header bg-primary text-white text-center py-1">
@@ -47,7 +47,7 @@
 {% else %}
 <div class="text-center py-5 text-muted">
     <i class="bi bi-star fs-1 d-block mb-3"></i>
-    <p>Aun no hay merchandising disponible.</p>
+    <p>Aún no hay merchandising disponible.</p>
     <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-primary">Publicar el primero</a>
 </div>
 {% endif %}

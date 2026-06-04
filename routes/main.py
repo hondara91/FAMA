@@ -1,8 +1,8 @@
 """
-routes/main.py - Ruta principal de la aplicacion FAMA.
+routes/main.py - Ruta principal de la aplicación FAMA.
 
-Sirve el dashboard de inicio con los ultimos anuncios de cada modulo
-y el indicador de estado de la conexion con MongoDB.
+Sirve el dashboard de inicio con los últimos anuncios de cada módulo
+y el indicador de estado de la conexión con MongoDB.
 """
 from flask import Blueprint, render_template
 
@@ -15,17 +15,17 @@ main_bp = Blueprint("main", __name__)
 @main_bp.route("/")
 def index():
     """
-    Pagina principal: verifica MongoDB y carga los ultimos anuncios de cada modulo.
+    Página principal: verifica MongoDB y carga los últimos anuncios de cada módulo.
     Los datos se pasan a la plantilla para poblar las secciones del dashboard.
     """
-    # Comprobar la conexion con MongoDB antes de cualquier consulta
-    # El resultado se muestra como indicador visual en el hero de la pagina
+    # Comprobar la conexión con MongoDB antes de cualquier consulta
+    # El resultado se muestra como indicador visual en el hero de la página
     mongo_ok, mongo_message = check_mongo_connection()
 
     db = get_db()
 
-    # Obtener los 4 anuncios mas recientes de cada modulo para el dashboard.
-    # Se usa limit(3) para no sobrecargar la pagina de inicio.
+    # Obtener los 4 anuncios más recientes de cada módulo para el dashboard.
+    # Se usa limit(3) para no sobrecargar la página de inicio.
     viviendas = list(db.viviendas.find().sort("fecha_creacion", -1).limit(3))
     servicios  = list(db.servicios.find().sort("fecha_creacion", -1).limit(3))
 
@@ -34,7 +34,7 @@ def index():
         db.compraventa.find({"es_merchandising": False}).sort("fecha_creacion", -1).limit(3)
     )
 
-    # Los eventos de ocio se ordenan por fecha ascendente (proximos primero)
+    # Los eventos de ocio se ordenan por fecha ascendente (próximos primero)
     eventos = list(db.ocio.find().sort("fecha", 1).limit(3))
 
     return render_template(

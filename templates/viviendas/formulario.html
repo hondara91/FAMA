@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{# 'accion' vale 'Crear' o 'Editar'; se usa en el titulo y en el boton de submit #}
+{# 'acción' vale 'Crear' o 'Editar'; se usa en el título y en el botón de submit #}
 {% block title %}FAMA - {{ accion }} Vivienda{% endblock %}
 
 {% block content %}
@@ -20,7 +20,7 @@
                             <select class="form-select" name="tipo_oferta" required>
                                 <option value="">Selecciona...</option>
                                 {% for t in ['alquiler', 'intercambio', 'compartir'] %}
-                                {# En modo edicion, el 'selected' marca el valor actual del anuncio #}
+                                {# En modo edición, el 'selected' marca el valor actual del anuncio #}
                                 <option value="{{ t }}" {% if anuncio and anuncio.tipo_oferta == t %}selected{% endif %}>{{ t|capitalize }}</option>
                                 {% endfor %}
                             </select>
@@ -35,10 +35,10 @@
                             </select>
                         </div>
 
-                        {# ── Ubicacion ─────────────────────────────────────── #}
+                        {# ── Ubicación ─────────────────────────────────────── #}
                         <div class="col-md-6">
                             <label class="form-label">Ciudad *</label>
-                            {# 'if anuncio else ""' rellena el campo en modo edicion y lo deja vacio en creacion #}
+                            {# 'if anuncio else ""' rellena el campo en modo edición y lo deja vacío en creación #}
                             <input type="text" class="form-control" name="ciudad" required
                                    value="{{ anuncio.ciudad if anuncio else '' }}">
                         </div>
@@ -87,7 +87,7 @@
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="checkbox" name="extras"
                                            value="{{ extra }}" id="extra_{{ extra }}"
-                                           {# En edicion, marcar si el extra estaba en la lista del anuncio #}
+                                           {# En edición, marcar si el extra estaba en la lista del anuncio #}
                                            {% if anuncio and extra in (anuncio.extras or []) %}checked{% endif %}>
                                     <label class="form-check-label" for="extra_{{ extra }}">{{ extra|capitalize }}</label>
                                 </div>
@@ -95,16 +95,16 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Telefono de contacto</label>
+                            <label class="form-label">Teléfono de contacto</label>
                             <input type="tel" class="form-control" name="telefono"
                                    value="{{ anuncio.telefono if anuncio else '' }}"
                                    maxlength="9" pattern="[0-9]{9}" inputmode="numeric"
                                    title="Solo se permiten 9 dígitos numéricos">
                         </div>
 
-                        {# ── Descripcion libre ─────────────────────────────── #}
+                        {# ── Descripción libre ─────────────────────────────── #}
                         <div class="col-12">
-                            <label class="form-label">Descripcion</label>
+                            <label class="form-label">Descripción</label>
                             <textarea class="form-control" name="descripcion" rows="4"
                                       placeholder="Describe el inmueble...">{{ anuncio.descripcion if anuncio else '' }}</textarea>
                         </div>
@@ -142,9 +142,9 @@
                         <div class="form-text">El anuncio se eliminará automáticamente al finalizar ese día.</div>
                     </div>
 
-                    {# ── Botones de accion ─────────────────────────────────── #}
+                    {# ── Botones de acción ─────────────────────────────────── #}
                     <div class="mt-4 d-flex gap-2">
-                        {# El texto del boton refleja si estamos creando o editando #}
+                        {# El texto del botón refleja si estamos creando o editando #}
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-1"></i>{{ accion }} anuncio
                         </button>

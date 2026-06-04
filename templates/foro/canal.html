@@ -27,7 +27,7 @@
         </div>
     </div>
     <a href="{{ url_for('foro.nuevo', canal_id=canal._id) }}" class="btn btn-{{ canal.color }}">
-        <i class="bi bi-plus-lg me-1"></i>Nueva publicacion
+        <i class="bi bi-plus-lg me-1"></i>Nueva publicación
     </a>
 </div>
 
@@ -37,7 +37,7 @@
         <form method="GET" class="row g-2">
             <div class="col-md-6">
                 <input type="text" name="q" class="form-control form-control-sm"
-                       placeholder="Buscar en titulo o contenido..."
+                       placeholder="Buscar en título o contenido..."
                        value="{{ filtros.get('q', '') }}">
             </div>
             <div class="col-md-4">
@@ -136,7 +136,7 @@
 {% else %}
 <div class="text-center py-5 text-muted">
     <i class="bi bi-chat-dots fs-1 d-block mb-3"></i>
-    <p>Todavia no hay publicaciones en este canal.</p>
+    <p>Todavía no hay publicaciones en este canal.</p>
     <a href="{{ url_for('foro.nuevo', canal_id=canal._id) }}" class="btn btn-{{ canal.color }}">
         Ser el primero en publicar
     </a>

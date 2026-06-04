@@ -1,8 +1,8 @@
 """
 models/usuario.py - Modelo de datos para los usuarios de FAMA.
 
-Encapsula toda la logica de creacion, autenticacion, gestion de roles
-y recuperacion de contrasena. Nunca almacena contrasenias en texto plano:
+Encapsula toda la logica de creacion, autenticación, gestion de roles
+y recuperacion de contrasena. Nunca almacena contraseñas en texto plano:
 usa el hash de werkzeug (PBKDF2 + salt aleatorio).
 """
 import secrets
@@ -15,15 +15,15 @@ from werkzeug.security import check_password_hash, generate_password_hash
 class Usuario:
     """Representa a un usuario de la plataforma FAMA."""
 
-    # Unico lugar donde se definen los roles validos; cualquier validacion
-    # de rol en el resto del codigo debe referenciar esta constante.
+    # Único lugar donde se definen los roles validos; cualquier validación
+    # de rol en el resto del código debe referenciar esta constante.
     ROLES_VALIDOS = ("usuario", "gestor", "admin")
 
     def __init__(self, db):
         # Referencia directa a la coleccion MongoDB para todas las operaciones
         self.coleccion = db.usuarios
 
-    # ── Creacion ──────────────────────────────────────────────────────────────
+    # ── Creación ──────────────────────────────────────────────────────────────
 
     def crear(self, nombre, email, password=None, nombre_real="", apellidos="",
               pregunta_seguridad=None, respuesta_seguridad=None, rol="usuario", validado=False):
@@ -57,7 +57,7 @@ class Usuario:
         resultado = self.coleccion.insert_one(usuario)
         return resultado.inserted_id
 
-    # ── Autenticacion ─────────────────────────────────────────────────────────
+    # ── Autenticación ─────────────────────────────────────────────────────────
 
     def autenticar(self, nombre, password):
         """
@@ -108,7 +108,7 @@ class Usuario:
     def resetear_password(self, user_id):
         """
         Establece la contrasena a 'fama1234' y activa el flag 'debe_cambiar_password'
-        para obligar al usuario a escoger una nueva en su proximo inicio de sesion.
+        para obligar al usuario a escoger una nueva en su proximo inicio de sesión.
         """
         self.coleccion.update_one(
             {"_id": ObjectId(user_id)},
@@ -159,7 +159,7 @@ class Usuario:
         return False
 
     def validar_usuario(self, user_id):
-        """Aprueba la cuenta de un usuario pendiente de validacion."""
+        """Aprueba la cuenta de un usuario pendiente de validación."""
         self.coleccion.update_one({"_id": ObjectId(user_id)}, {"$set": {"validado": True}})
 
     def eliminar(self, user_id):

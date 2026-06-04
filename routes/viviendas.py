@@ -1,5 +1,5 @@
 """
-routes/viviendas.py - Rutas del modulo de Viviendas (CRUD completo).
+routes/viviendas.py - Rutas del módulo de Viviendas (CRUD completo).
 
 Patron de permisos usado en editar y eliminar:
   - El propietario del anuncio siempre puede modificarlo.
@@ -39,7 +39,7 @@ viviendas_bp = Blueprint("viviendas", __name__, url_prefix="/viviendas")
 
 @viviendas_bp.route("/")
 def listar():
-    """Muestra todos los anuncios con buscador. Accesible sin autenticacion."""
+    """Muestra todos los anuncios con buscador. Accesible sin autenticación."""
     db     = get_db()
     modelo = Vivienda(db)
     # construir_filtros() traduce los parametros GET a una query MongoDB
@@ -49,7 +49,7 @@ def listar():
     return render_template("viviendas/listar.html", anuncios=anuncios, filtros=request.args)
 
 
-# ── Creacion ──────────────────────────────────────────────────────────────────
+# ── Creación ──────────────────────────────────────────────────────────────────
 
 @viviendas_bp.route("/nuevo", methods=["GET", "POST"])
 @login_required  # Solo usuarios autenticados pueden publicar
@@ -107,11 +107,11 @@ def nuevo():
         flash("Anuncio de vivienda publicado correctamente.", "success")
         return redirect(url_for("viviendas.listar"))
 
-    # GET: formulario vacio; anuncio=None indica modo creacion en la plantilla
+    # GET: formulario vacío; anuncio=None indica modo creación en la plantilla
     return render_template("viviendas/formulario.html", anuncio=None, accion="Crear")
 
 
-# ── Edicion ───────────────────────────────────────────────────────────────────
+# ── Edición ───────────────────────────────────────────────────────────────────
 
 @viviendas_bp.route("/editar/<anuncio_id>", methods=["GET", "POST"])
 @login_required
@@ -189,7 +189,7 @@ def editar(anuncio_id):
         flash("Anuncio de vivienda actualizado correctamente.", "success")
         return redirect(url_for("viviendas.listar"))
 
-    # GET: formulario pre-rellenado con los datos actuales; accion="Editar" para el boton
+    # GET: formulario pre-rellenado con los datos actuales; acción="Editar" para el botón
     return render_template("viviendas/formulario.html", anuncio=anuncio, accion="Editar")
 
 
@@ -207,7 +207,7 @@ def eliminar(anuncio_id):
         flash("Anuncio no encontrado.", "danger")
         return redirect(url_for("viviendas.listar"))
 
-    # Mismo patron de permisos que en editar
+    # Mismo patrón de permisos que en editar
     es_propietario  = anuncio["usuario_id"] == session["user_id"]
     es_privilegiado = session.get("rol") in ("admin", "gestor")
     if not es_propietario and not es_privilegiado:
@@ -227,7 +227,7 @@ def eliminar(anuncio_id):
 
 @viviendas_bp.route("/detalle/<anuncio_id>")
 def detalle(anuncio_id):
-    """Vista de detalle de un anuncio. Accesible sin autenticacion."""
+    """Vista de detalle de un anuncio. Accesible sin autenticación."""
     db      = get_db()
     anuncio = Vivienda(db).obtener_por_id(anuncio_id)
 

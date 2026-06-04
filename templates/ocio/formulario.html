@@ -19,12 +19,12 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Aforo maximo *</label>
+                            <label class="form-label">Aforo máximo *</label>
                             <input type="number" class="form-control" name="aforo_maximo" min="1" required
                                    value="{{ evento.aforo_maximo if evento else '' }}">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Titulo del evento *</label>
+                            <label class="form-label">Título del evento *</label>
                             <input type="text" class="form-control" name="titulo" required
                                    value="{{ evento.titulo if evento else '' }}">
                         </div>
@@ -45,7 +45,7 @@
                                    value="{{ evento.lugar if evento else '' }}">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Descripcion</label>
+                            <label class="form-label">Descripción</label>
                             <textarea class="form-control" name="descripcion" rows="4">{{ evento.descripcion if evento else '' }}</textarea>
                         </div>
                     </div>

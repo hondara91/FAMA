@@ -5,13 +5,13 @@
 
 {# ── Hero principal ──────────────────────────────────────────────────────────
    Muestra el nombre de la plataforma, el estado de MongoDB y,
-   si el usuario no esta autenticado, los botones de acceso.
+   si el usuario no está autenticado, los botones de acceso.
 #}
 <div class="fama-hero rounded-3 mb-5 p-5 text-center">
     <img class="fama-logo-hero mx-auto mb-3" src="{{ url_for('static', filename='img/famalogo.png') }}" alt="Logo FAMA">
     <p class="lead text-white-50 fama-hero-subtitle mb-0">Foro de Apoyo Multiprop&oacute;sito de la Armada</p>
 
-    {# Alerta visible solo si MongoDB no esta disponible (mongo_ok=False) #}
+    {# Alerta visible solo si MongoDB no está disponible (mongo_ok=False) #}
     {% if not mongo_ok %}
         <div class="alert alert-warning d-inline-block mt-2 py-1 px-3 small">
             <i class="bi bi-exclamation-triangle me-1"></i>{{ mongo_message }}
@@ -32,15 +32,15 @@
     </div>
 </div>
 
-{# ── Tarjetas de acceso rapido a modulos ─────────────────────────────────────
+{# ── Tarjetas de acceso rápido a módulos ─────────────────────────────────────
    Cuatro tarjetas con efecto hover que llevan directamente al listado
-   de cada modulo principal de la aplicacion.
+   de cada módulo principal de la aplicación.
 #}
 <div class="row g-4 mb-5">
-    {# Modulo Viviendas #}
+    {# Módulo Viviendas #}
     <div class="col-md-3">
         <a href="{{ url_for('viviendas.listar') }}" class="text-decoration-none">
-            <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
+            <div class="card fama-módulo-card h-100 text-center border-0 shadow-sm">
                 <div class="card-body py-5 px-4">
                     <i class="bi bi-house-door display-1 text-primary mb-4 d-block"></i>
                     <h3 class="card-title">Viviendas</h3>
@@ -49,10 +49,10 @@
             </div>
         </a>
     </div>
-    {# Modulo Servicios #}
+    {# Módulo Servicios #}
     <div class="col-md-3">
         <a href="{{ url_for('servicios.listar') }}" class="text-decoration-none">
-            <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
+            <div class="card fama-módulo-card h-100 text-center border-0 shadow-sm">
                 <div class="card-body py-5 px-4">
                     <i class="bi bi-car-front display-1 text-success mb-4 d-block"></i>
                     <h3 class="card-title">Servicios</h3>
@@ -61,10 +61,10 @@
             </div>
         </a>
     </div>
-    {# Modulo Compra-Venta (segunda mano + Tienda Armada) #}
+    {# Módulo Compra-Venta (segunda mano + Tienda Armada) #}
     <div class="col-md-3">
         <a href="{{ url_for('compraventa.listar') }}" class="text-decoration-none">
-            <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
+            <div class="card fama-módulo-card h-100 text-center border-0 shadow-sm">
                 <div class="card-body py-5 px-4">
                     <i class="bi bi-shop display-1 text-warning mb-4 d-block"></i>
                     <h3 class="card-title">Compra-Venta</h3>
@@ -73,10 +73,10 @@
             </div>
         </a>
     </div>
-    {# Modulo Ocio (eventos y calendario) #}
+    {# Módulo Ocio (eventos y calendario) #}
     <div class="col-md-3">
         <a href="{{ url_for('ocio.listar') }}" class="text-decoration-none">
-            <div class="card fama-modulo-card h-100 text-center border-0 shadow-sm">
+            <div class="card fama-módulo-card h-100 text-center border-0 shadow-sm">
                 <div class="card-body py-5 px-4">
                     <i class="bi bi-trophy display-1 text-info mb-4 d-block"></i>
                     <h3 class="card-title">Ocio</h3>
@@ -87,8 +87,8 @@
     </div>
 </div>
 
-{# ── Dashboard de ultimos anuncios ───────────────────────────────────────────
-   Macro reutilizable para generar el titulo de cada seccion del dashboard
+{# ── Dashboard de últimos anuncios ───────────────────────────────────────────
+   Macro reutilizable para generar el título de cada sección del dashboard
    evitando repetir el mismo bloque HTML cuatro veces.
 #}
 {% macro cabecera_seccion(titulo, icono, color) %}
@@ -97,7 +97,7 @@
 
 <div class="row g-4 justify-content-center">
 
-    {# Seccion: ultimas 4 viviendas publicadas (ordenadas por fecha_creacion desc) #}
+    {# Sección: últimas 4 viviendas publicadas (ordenadas por fecha_creacion desc) #}
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Últimas Viviendas', 'house-door', 'primary') }}
         {% for v in viviendas %}
@@ -124,7 +124,7 @@
         <a href="{{ url_for('viviendas.listar') }}" class="btn btn-sm btn-primary mt-1">Ver todos</a>
     </div>
 
-    {# Seccion: ultimos 4 servicios publicados #}
+    {# Sección: últimos 4 servicios publicados #}
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Últimos Servicios', 'gear', 'success') }}
         {% for s in servicios %}
@@ -151,7 +151,7 @@
         <a href="{{ url_for('servicios.listar') }}" class="btn btn-sm btn-success mt-1">Ver todos</a>
     </div>
 
-    {# Seccion: ultimos 4 articulos de segunda mano (sin merchandising) #}
+    {# Sección: últimos 4 artículos de segunda mano (sin merchandising) #}
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Últimos Artículos', 'shop', 'warning') }}
         {% for c in compraventa %}
@@ -178,7 +178,7 @@
         <a href="{{ url_for('compraventa.listar') }}" class="btn btn-sm btn-warning mt-1">Ver todos</a>
     </div>
 
-    {# Seccion: proximos 4 eventos de ocio (ordenados por fecha asc) #}
+    {# Sección: próximos 4 eventos de ocio (ordenados por fecha asc) #}
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Próximos Eventos', 'calendar-event', 'info') }}
         {% for e in eventos %}

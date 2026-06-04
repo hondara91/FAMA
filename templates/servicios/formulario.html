@@ -10,7 +10,7 @@
                 <form method="POST" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Que necesitas? *</label>
+                            <label class="form-label">¿Qué necesitas? *</label>
                             <select class="form-select" name="tipo" required>
                                 <option value="">Selecciona...</option>
                                 <option value="ofrecer" {% if anuncio and anuncio.tipo=='ofrecer' %}selected{% endif %}>Ofrecer servicio</option>
@@ -18,16 +18,16 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Categoria *</label>
+                            <label class="form-label">Categoría *</label>
                             <select class="form-select" name="categoria" required>
                                 <option value="">Selecciona...</option>
-                                {% for c in ['Viajes compartidos', 'Clases de apoyo', 'Trabajos', 'Ninera', 'Consultoria', 'Otros'] %}
+                                {% for c in ['Viajes compartidos', 'Clases de apoyo', 'Trabajos', 'Consultoría', 'Otros'] %}
                                 <option value="{{ c }}" {% if anuncio and anuncio.categoria==c %}selected{% endif %}>{{ c }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Titulo del anuncio *</label>
+                            <label class="form-label">Título del anuncio *</label>
                             <input type="text" class="form-control" name="titulo" required
                                    value="{{ anuncio.titulo if anuncio else '' }}">
                         </div>
@@ -50,14 +50,14 @@
                                    value="{{ anuncio.ciudad if anuncio else '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Telefono de contacto</label>
+                            <label class="form-label">Teléfono de contacto</label>
                             <input type="tel" class="form-control" name="telefono"
                                    value="{{ anuncio.telefono if anuncio else '' }}"
                                    maxlength="9" pattern="[0-9]{9}" inputmode="numeric"
                                    title="Solo se permiten 9 dígitos numéricos">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Descripcion</label>
+                            <label class="form-label">Descripción</label>
                             <textarea class="form-control" name="descripcion" rows="4">{{ anuncio.descripcion if anuncio else '' }}</textarea>
                         </div>
                         <div class="col-12">

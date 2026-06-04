@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {# Cada plantilla hija puede sobreescribir el titulo con {% block title %} #}
+    {# Cada plantilla hija puede sobreescribir el título con {% block title %} #}
     <title>{% block title %}FAMA - Foro de Apoyo Militar de la Armada{% endblock %}</title>
 
     {# Bootstrap 5 CSS desde CDN: estilos base de rejilla, componentes y utilidades #}
@@ -23,9 +23,9 @@
 </head>
 <body>
 
-{# ── Barra de navegacion principal ──────────────────────────────────────────
+{# ── Barra de navegación principal ──────────────────────────────────────────
    La clase 'active' se aplica dinamicamente segun el endpoint activo
-   para resaltar el modulo que el usuario esta visitando.
+   para resaltar el módulo que el usuario está visitando.
 #}
 <nav class="navbar navbar-expand-lg navbar-dark fama-navbar sticky-top">
     <div class="container-fluid">
@@ -35,7 +35,7 @@
             <img class="fama-logo-navbar" src="{{ url_for('static', filename='img/famalogo.png') }}" alt="Logo FAMA">
         </a>
 
-        {# Boton hamburguesa para pantallas pequeñas (Bootstrap collapse) #}
+        {# Botón hamburguesa para pantallas pequeñas (Bootstrap collapse) #}
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarMain" aria-controls="navbarMain"
                 aria-expanded="false" aria-label="Menu">
@@ -44,7 +44,7 @@
 
         <div class="collapse navbar-collapse" id="navbarMain">
 
-            {# ── Menu de modulos (izquierda) ─────────────────────────────── #}
+            {# ── Menu de módulos (izquierda) ─────────────────────────────── #}
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
                 {# Novedades: solo visible para usuarios autenticados #}
@@ -89,9 +89,9 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="{{ url_for('compraventa.listar') }}">
-                            <i class="bi bi-grid me-1"></i>Todos los articulos</a></li>
+                            <i class="bi bi-grid me-1"></i>Todos los artículos</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        {# Tienda Armada: seccion especial de merchandising oficial #}
+                        {# Tienda Armada: sección especial de merchandising oficial #}
                         <li><a class="dropdown-item text-primary fw-semibold" href="{{ url_for('compraventa.armada') }}">
                             <i class="bi bi-star me-1"></i>Tienda Armada</a></li>
                     </ul>
@@ -182,10 +182,10 @@
                         </ul>
                     </li>
                 {% else %}
-                    {# Si no hay sesion activa: mostrar botones de login y registro #}
+                    {# Si no hay sesión activa: mostrar botones de login y registro #}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('auth.login') }}">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar sesion
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar sesión
                         </a>
                     </li>
                     <li class="nav-item">
@@ -202,7 +202,7 @@
 
 {# ── Mensajes Flash ──────────────────────────────────────────────────────────
    Flask envia mensajes de una sola vez con flash(); aqui se renderizan.
-   scripts.js los cierra automaticamente a los 5 segundos.
+   scripts.js los cierra automáticamente a los 5 segundos.
    Las categorias (danger, success, warning, info) mapean a clases Bootstrap.
 #}
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -226,7 +226,7 @@
 </main>
 
 {# ── Footer ──────────────────────────────────────────────────────────────────
-   'now' es inyectado por el context_processor de app.py en cada peticion.
+   'now' es inyectado por el context_processor de app.py en cada petición.
    El operador 'if now else 2024' es un fallback por si la variable no llega.
 #}
 <footer class="fama-footer text-center py-3 mt-auto">

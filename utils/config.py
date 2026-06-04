@@ -12,5 +12,5 @@ class Config:
     MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
     MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "fama_db")
 
-    # Tamano maximo de archivo subido: 5 MB (Flask rechaza automaticamente lo que supere este limite)
+    # Tamaño máximo de archivo subido: 5 MB (Flask rechaza automáticamente lo que supere este límite)
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024

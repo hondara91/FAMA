@@ -1,7 +1,7 @@
 """
 crear_admin.py - Script de utilidad para crear el usuario administrador.
 
-Ejecutar UNA SOLA VEZ despues de arrancar la aplicacion por primera vez:
+Ejecutar UNA SOLA VEZ después de arrancar la aplicación por primera vez:
 
     python crear_admin.py
 
@@ -30,13 +30,13 @@ from utils.config import Config
 ADMIN_NOMBRE   = "admin"
 ADMIN_EMAIL    = "admin@appfama.es"
 ADMIN_PASSWORD = "admin1234"
-ADMIN_PREGUNTA = "Nombre del primer buque de la Armada?"
+ADMIN_PREGUNTA = "¿Nombre del primer buque de la Armada?"
 ADMIN_RESPUESTA = "galera"  # Normalizado a minusculas al hashear
 
 
 def crear_admin():
     """Crea el usuario administrador por defecto si no existe en la base de datos."""
-    # Conexion directa a MongoDB sin contexto Flask (script de utilidad)
+    # Conexión directa a MongoDB sin contexto Flask (script de utilidad)
     cliente = MongoClient(Config.MONGO_URI)
     db      = cliente[Config.MONGO_DB_NAME]
 
@@ -50,13 +50,13 @@ def crear_admin():
     admin = {
         "nombre": ADMIN_NOMBRE,
         "email":  ADMIN_EMAIL,
-        # Hashear la contrasenia; nunca almacenar en texto plano
+        # Hashear la contraseña; nunca almacenar en texto plano
         "password": generate_password_hash(ADMIN_PASSWORD),
         "rol": "admin",
         "pregunta_seguridad": ADMIN_PREGUNTA,
         # Normalizar la respuesta a minusculas igual que hace Usuario.crear()
         "respuesta_seguridad": generate_password_hash(ADMIN_RESPUESTA.lower()),
-        # No forzar cambio de contrasenia en el primer login del admin
+        # No forzar cambio de contraseña en el primer login del admin
         "debe_cambiar_password": False,
         "activo": True,
         "validado": True,
@@ -71,10 +71,10 @@ def crear_admin():
     print("Usuario administrador creado correctamente.")
     print(f"   Email:       {ADMIN_EMAIL}")
     print(f"   Contrasenia: {ADMIN_PASSWORD}")
-    print("   Cambia la contrasenia tras el primer login.")
+    print("   Cambia la contraseña tras el primer login.")
     print("=" * 50)
 
-    cliente.close()  # Cerrar la conexion al terminar el script
+    cliente.close()  # Cerrar la conexión al terminar el script
 
 
 if __name__ == "__main__":

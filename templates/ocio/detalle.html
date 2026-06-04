@@ -39,15 +39,15 @@
                 </div>
 
                 <hr>
-                <p>{{ evento.descripcion or 'Sin descripcion.' }}</p>
+                <p>{{ evento.descripcion or 'Sin descripción.' }}</p>
             </div>
         </div>
     </div>
 
-    {# ── Columna lateral: aforo e inscripcion ─────────────────────────────── #}
+    {# ── Columna lateral: aforo e inscripción ─────────────────────────────── #}
     <div class="col-lg-4">
 
-        {# ── Bloque de aforo e inscripcion ────────────────────────────────── #}
+        {# ── Bloque de aforo e inscripción ────────────────────────────────── #}
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body">
                 <h6><i class="bi bi-people me-2"></i>Aforo</h6>
@@ -67,29 +67,52 @@
                     ({{ plazas_libres }} libres)
                 </p>
 
-                {# ── Logica de inscripcion (3 estados posibles) ───────────── #}
+                {# ── Lógica de inscripción (3 estados posibles) ───────────── #}
                 {% if session.user_id and user_inscrito %}
-                {# Estado 1: el usuario ya esta inscrito → ofrecer desinscripcion #}
+                {# Estado 1: el usuario ya está inscrito → ofrecer desinscripcion #}
                 <form method="POST" action="{{ url_for('ocio.desinscribir', evento_id=evento._id) }}">
                     <button type="submit" class="btn btn-outline-danger w-100">
-                        <i class="bi bi-x-circle me-1"></i>Cancelar inscripcion
+                        <i class="bi bi-x-circle me-1"></i>Cancelar inscripción
                     </button>
                 </form>
                 {% elif plazas_libres > 0 %}
-                {# Estado 2: hay plazas libres → ofrecer inscripcion (login requerido al pulsar) #}
+                {# Estado 2: hay plazas libres → ofrecer inscripción (login requerido al pulsar) #}
                 <form method="POST" action="{{ url_for('ocio.inscribir', evento_id=evento._id) }}">
                     <button type="submit" class="btn btn-info text-white w-100">
                         <i class="bi bi-person-plus me-1"></i>Inscribirme
                     </button>
                 </form>
                 {% else %}
-                {# Estado 3: aforo completo → boton desactivado #}
+                {# Estado 3: aforo completo → botón desactivado #}
                 <button class="btn btn-secondary w-100" disabled>Aforo completo</button>
                 {% endif %}
             </div>
         </div>
 
-        {# ── Informacion del organizador ──────────────────────────────────── #}
+        {# ── Lista de inscritos ───────────────────────────────────────────── #}
+        {% if inscritos_usuarios %}
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h6 class="mb-3">
+                    <i class="bi bi-people me-2"></i>Inscritos
+                    <span class="badge bg-info text-dark ms-1">{{ inscritos_usuarios|length }}</span>
+                </h6>
+                <ul class="list-unstyled mb-0">
+                    {% for u in inscritos_usuarios %}
+                    <li class="d-flex align-items-center gap-2 py-1 border-bottom last-child-no-border">
+                        <i class="bi bi-person-circle text-secondary"></i>
+                        <span class="small">{{ u.nombre }}</span>
+                        {% if session.user_id and u._id|string == session.user_id %}
+                        <span class="badge bg-info text-dark ms-auto" style="font-size:.65rem">Tú</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        {# ── Información del organizador ──────────────────────────────────── #}
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h6><i class="bi bi-person-circle me-2"></i>Organizador</h6>
@@ -105,14 +128,14 @@
             </div>
         </div>
 
-        {# ── Acciones de edicion/borrado (propietario o privilegiado) ─────── #}
+        {# ── Acciones de edición/borrado (propietario o privilegiado) ─────── #}
         {% if session.user_id and (session.user_id == evento.usuario_id or session.rol in ('admin','gestor')) %}
         <div class="card border-0 shadow-sm mt-3">
             <div class="card-body">
                 <a href="{{ url_for('ocio.editar', evento_id=evento._id) }}" class="btn btn-outline-primary w-100 mb-2">
                     <i class="bi bi-pencil me-1"></i>Editar
                 </a>
-                {# confirmarEliminacion() muestra un dialogo de confirmacion antes de enviar #}
+                {# confirmarEliminacion() muestra un diálogo de confirmación antes de enviar #}
                 <form method="POST" action="{{ url_for('ocio.eliminar', evento_id=evento._id) }}"
                       onsubmit="return confirmarEliminacion()">
                     <button type="submit" class="btn btn-outline-danger w-100">
@@ -129,7 +152,7 @@
                 <h6 class="text-danger"><i class="bi bi-flag me-1"></i>Reportar evento</h6>
                 <form method="POST" action="{{ url_for('admin.crear_reporte') }}">
                     <input type="hidden" name="anuncio_id" value="{{ evento._id }}">
-                    <input type="hidden" name="tipo_modulo" value="ocio">
+                    <input type="hidden" name="tipo_módulo" value="ocio">
                     <div class="mb-2">
                         <textarea class="form-control form-control-sm" name="motivo"
                                   rows="2" placeholder="Motivo del reporte..." required></textarea>

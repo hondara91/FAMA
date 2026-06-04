@@ -1,4 +1,4 @@
-# Registro cronologico de cambios - Proyecto FAMA
+# Registro cronológico de cambios - Proyecto FAMA
 
 Este archivo recoge los cambios realizados en el proyecto con fecha y hora.
 Formato usado: `AAAA-MM-DD HH:MM:SS ZONA`.
@@ -8,10 +8,10 @@ Formato usado: `AAAA-MM-DD HH:MM:SS ZONA`.
 ### Definicion del proyecto FAMA
 
 - Se define el nombre del proyecto: FAMA (Foro de Apoyo Multiproposito de la Armada).
-- Se establece el objetivo: aplicacion web interna de apoyo al personal de la Armada.
-- Se identifican los cuatro modulos principales: Viviendas, Servicios, Compra-venta, Ocio.
+- Se establece el objetivo: aplicación web interna de apoyo al personal de la Armada.
+- Se identifican los cuatro módulos principales: Viviendas, Servicios, Compra-venta, Ocio.
 - Se define el stack tecnico: Python + Flask, MongoDB, Bootstrap, Docker, Ubuntu Server.
-- Se define la arquitectura: patron MVC.
+- Se define la arquitectura: patrón MVC.
 - Se documenta el proyecto en `CONTEXTO_PROYECTO_FAMA.md`.
 
 ## 2026-05-30 11:00:00 CEST
@@ -33,7 +33,7 @@ Formato usado: `AAAA-MM-DD HH:MM:SS ZONA`.
 
 ## 2026-05-30 12:00:00 CEST
 
-### Creacion de la estructura de directorios del proyecto
+### Creación de la estructura de directorios del proyecto
 
 - Se crea el directorio raiz del proyecto: `FAMA/`.
 - Se crea la estructura base orientada a MVC:
@@ -42,14 +42,14 @@ Formato usado: `AAAA-MM-DD HH:MM:SS ZONA`.
   - `templates/` — para las plantillas Jinja2.
   - `static/css/` — para las hojas de estilo.
   - `static/js/` — para los scripts de cliente.
-  - `utils/` — para modulos de configuracion y conexion a base de datos.
+  - `utils/` — para módulos de configuración y conexión a base de datos.
   - `documentacion/` — para la documentacion del proyecto.
 - Se crean los ficheros `__init__.py` en `routes/` y `utils/` para registrarlos como paquetes Python.
 - Se inicializa el fichero `.gitignore` para excluir entornos virtuales, cache y ficheros sensibles.
 
 ## 2026-05-30 12:45:00 CEST
 
-### Creacion del entorno virtual local inicial
+### Creación del entorno virtual local inicial
 
 - Se crea el entorno virtual local en `.venv/` con `python3 -m venv .venv`.
 - Se activa el entorno: `source .venv/bin/activate`.
@@ -69,7 +69,7 @@ Formato usado: `AAAA-MM-DD HH:MM:SS ZONA`.
 
 ## 2026-05-31 15:22:25 CEST
 
-### Creacion del registro de cambios
+### Creación del registro de cambios
 
 - Se crea este archivo para documentar de forma cronologica la evolucion del proyecto.
 - A partir de este punto, los cambios relevantes se iran anotando aqui.
@@ -78,41 +78,41 @@ Formato usado: `AAAA-MM-DD HH:MM:SS ZONA`.
 
 - Se crea `Dockerfile` para construir una imagen Python portable basada en `python:3.12-slim`.
 - Se crea `docker-compose.yml` con dos servicios:
-  - `web`: aplicacion Flask expuesta inicialmente en `http://localhost:5000`.
+  - `web`: aplicación Flask expuesta inicialmente en `http://localhost:5000`.
   - `mongo`: base de datos MongoDB con volumen persistente `mongo_data`.
 - Se crea `.dockerignore` para excluir archivos temporales, entornos virtuales, cache y metadatos locales.
 - Se crea `requirements.txt` con dependencias iniciales:
   - `Flask`
   - `pymongo`
-- Se crea `app.py` como punto de entrada de la aplicacion Flask.
-- Se crea `utils/config.py` para centralizar la configuracion mediante variables de entorno.
-- Se crea `utils/db.py` para gestionar la conexion con MongoDB y comprobar el estado mediante `ping`.
+- Se crea `app.py` como punto de entrada de la aplicación Flask.
+- Se crea `utils/config.py` para centralizar la configuración mediante variables de entorno.
+- Se crea `utils/db.py` para gestionar la conexión con MongoDB y comprobar el estado mediante `ping`.
 - Se crea `routes/main.py` como controlador inicial de la ruta `/`.
 - Se crean `routes/__init__.py` y `utils/__init__.py` para preparar los paquetes Python.
 - Se crea `templates/base.html` como plantilla base con Bootstrap y recursos estaticos.
-- Se crea `templates/index.html` como pagina inicial de Proyecto FAMA.
+- Se crea `templates/index.html` como página inicial de Proyecto FAMA.
 - Se crea `static/css/estilos.css` con estilos iniciales de la interfaz.
-- Se crea `static/js/scripts.js` con una carga inicial minima de JavaScript.
+- Se crea `static/js/scripts.js` con una carga inicial mínima de JavaScript.
 
 ### Validaciones realizadas
 
 - Se comprueba que la estructura del proyecto contiene los archivos esperados.
 - Se valida la sintaxis Python con `python3 -m py_compile`.
-- No se pudo ejecutar `docker compose up --build` porque Docker no esta disponible en el entorno actual.
+- No se pudo ejecutar `docker compose up --build` porque Docker no está disponible en el entorno actual.
 
 ## 2026-05-31 15:42:04 CEST
 
-### Validacion con Docker disponible
+### Validación con Docker disponible
 
-- Se comprueba que Docker esta instalado: `Docker version 29.5.2`.
-- Se comprueba que Docker Compose esta instalado: `Docker Compose version v5.1.3`.
-- Se valida la configuracion con `docker compose config`.
+- Se comprueba que Docker está instalado: `Docker version 29.5.2`.
+- Se comprueba que Docker Compose está instalado: `Docker Compose version v5.1.3`.
+- Se valida la configuración con `docker compose config`.
 - Se construye y arranca la pila con Docker Compose.
 - Se confirma que `fama_mongo` queda en estado `healthy`.
 - Se confirma que `fama_web` queda publicado como `0.0.0.0:8000->5000/tcp`.
 - Se verifica `http://localhost:8000/` con respuesta HTTP `200`.
-- Se confirma en la pagina inicial el estado `Flask funcionando`.
-- Se confirma en la pagina inicial el estado `Conexion con MongoDB activa`.
+- Se confirma en la página inicial el estado `Flask funcionando`.
+- Se confirma en la página inicial el estado `Conexión con MongoDB activa`.
 
 ## 2026-05-31 17:22:15 CEST
 
@@ -152,7 +152,7 @@ Formato usado: `AAAA-MM-DD HH:MM:SS ZONA`.
 - Se actualiza `pip`.
 - Se instalan las dependencias desde `requirements.txt`.
 - Se mantiene Docker como entorno principal de ejecución.
-- El entorno virtual local se usará para validaciones, desarrollo y ejecución de comandos Python fuera del contenedor.
+- El entorno virtual local se usará para validaciónes, desarrollo y ejecución de comandos Python fuera del contenedor.
 
 ## 2026-05-31 16:32:18 CEST
 
@@ -215,14 +215,14 @@ git push -u origin main
 
 ## 2026-05-31 17:35:58 CEST
 
-### Eliminacion del contenedor residual fama_web
+### Eliminación del contenedor residual fama_web
 
 - Se detecta conflicto al arrancar otro proyecto Docker con caracteristicas similares.
-- El error indica que el nombre `/fama_web` ya esta en uso por un contenedor anterior.
+- El error indica que el nombre `/fama_web` ya está en uso por un contenedor anterior.
 - Se comprueba que el contenedor `fama_web` sigue activo (estado `Up`) de una ejecucion previa al renombrado.
 - Se para y elimina el contenedor residual con `docker stop fama_web && docker rm fama_web`.
 - El proyecto FAMA no se ve afectado: `docker-compose.yml` ya usa `container_name: fama_web1`.
-- El proximo `docker compose up` levantara el contenedor con el nombre correcto `fama_web1`.
+- El próximo `docker compose up` levantara el contenedor con el nombre correcto `fama_web1`.
 
 ## 2026-05-31 17:48:32 CEST
 
@@ -241,18 +241,18 @@ git push -u origin main
 - Se detecta contenedor residual `fama_mongo` en estado `Created` bloqueando el arranque.
 - Se elimina el contenedor residual con `docker rm fama_mongo`.
 - Se ejecuta `docker compose down` para parar y eliminar contenedores y red existentes.
-- Se ejecuta `docker compose up -d` con la configuracion actualizada.
+- Se ejecuta `docker compose up -d` con la configuración actualizada.
 - Se confirma arranque correcto de ambos contenedores:
   - `fama_mongo1`: estado `healthy`, puerto `27018:27017`.
   - `fama_web1`: estado `Up`, puerto `8000:5000`.
-- Aplicacion disponible en `http://localhost:8000`.
+- Aplicación disponible en `http://localhost:8000`.
 
 ## 2026-05-31 HH:MM:SS CEST
 
-### Integracion completa de modulos funcionales (migracion desde Proyecto_FAMA_1.0)
+### Integracion completa de módulos funcionales (migracion desde Proyecto_FAMA_1.0)
 
-Se incorporan al proyecto FAMA todos los modulos de negocio desarrollados en
-Proyecto_FAMA_1.0, respetando y mejorando la politica de organizacion, calidad
+Se incorporan al proyecto FAMA todos los módulos de negocio desarrollados en
+Proyecto_FAMA_1.0, respetando y mejorando la política de organización, calidad
 y facilidad de seguimiento de errores propia del proyecto FAMA base.
 Los contenedores Docker (`fama_web1`, `fama_mongo1`) y los puertos (`8000`, `27018`)
 no se modifican para evitar conflictos con Proyecto_FAMA_1.0.
@@ -273,27 +273,27 @@ no se modifican para evitar conflictos con Proyecto_FAMA_1.0.
 #### models/ (nuevo directorio)
 
 - Se crea `models/__init__.py` para registrar el paquete.
-- Se crean los cinco modelos de datos, cada uno encapsulando su logica de negocio:
-  - `models/usuario.py`: creacion con hash de contrasenia, autenticacion, roles,
-    reseteo de contrasenia, pregunta de seguridad y soft-delete.
+- Se crean los cinco modelos de datos, cada uno encapsulando su lógica de negocio:
+  - `models/usuario.py`: creación con hash de contraseña, autenticación, roles,
+    reseteo de contraseña, pregunta de seguridad y soft-delete.
   - `models/vivienda.py`: CRUD de anuncios de vivienda con buscador por filtros.
   - `models/servicio.py`: CRUD de anuncios de servicios con buscador por filtros.
-  - `models/compraventa.py`: CRUD de articulos, seccion especial de merchandising Armada.
+  - `models/compraventa.py`: CRUD de artículos, sección especial de merchandising Armada.
   - `models/ocio.py`: CRUD de eventos, inscripciones/desinscripciones con control de aforo,
     colores por tipo de evento y formato para FullCalendar.js.
 
 #### routes/ (nuevas rutas)
 
-- `routes/auth.py`: registro, login, logout, cambio de contrasenia, recuperacion por
+- `routes/auth.py`: registro, login, logout, cambio de contraseña, recuperacion por
   pregunta de seguridad.
 - `routes/viviendas.py`: listado con buscador, crear, editar, eliminar, detalle.
   Control de permisos: propietario o rol privilegiado (gestor/admin).
 - `routes/servicios.py`: misma estructura CRUD que viviendas.
 - `routes/compraventa.py`: CRUD con ruta adicional `/armada` para merchandising.
-- `routes/ocio.py`: CRUD de eventos mas rutas de inscripcion/desinscripcion y calendario.
-- `routes/admin.py`: panel de estadisticas, gestion de usuarios (editar, cambiar rol,
-  resetear contrasenia, desactivar), logs con filtrado, eliminacion selectiva y exportacion PDF.
-- `routes/main.py` (actualizado): dashboard con los 4 ultimos anuncios de cada modulo
+- `routes/ocio.py`: CRUD de eventos más rutas de inscripción/desinscripcion y calendario.
+- `routes/admin.py`: panel de estadisticas, gestión de usuarios (editar, cambiar rol,
+  resetear contraseña, desactivar), logs con filtrado, eliminación selectiva y exportacion PDF.
+- `routes/main.py` (actualizado): dashboard con los 4 últimos anuncios de cada módulo
   y conserva el healthcheck de MongoDB.
 
 #### app.py (actualizado)
@@ -305,17 +305,17 @@ no se modifican para evitar conflictos con Proyecto_FAMA_1.0.
 
 #### requirements.txt (actualizado)
 
-- Se añaden `Werkzeug==3.0.3` (hash de contrasenias), `reportlab==4.2.2` (PDF)
+- Se añaden `Werkzeug==3.0.3` (hash de contraseñas), `reportlab==4.2.2` (PDF)
   y `python-docx==1.1.2`.
 - Se actualiza `pymongo` de `4.7.3` a `4.8.0`.
 
 #### templates/ (actualizadas y nuevas)
 
-- `templates/base.html`: barra de navegacion naval completa con dropdowns para
+- `templates/base.html`: barra de navegación naval completa con dropdowns para
   Compra-Venta y Ocio, menu de usuario con badge de rol, mensajes flash con
   autocerrado, footer con año dinamico.
-- `templates/index.html`: hero con indicador de estado MongoDB, tarjetas de modulos
-  con efecto hover, dashboard de ultimos anuncios por modulo.
+- `templates/index.html`: hero con indicador de estado MongoDB, tarjetas de módulos
+  con efecto hover, dashboard de últimos anuncios por módulo.
 - Nuevas: `auth/` (4 plantillas), `viviendas/` (3), `servicios/` (3),
   `compraventa/` (4 incluyendo Tienda Armada), `ocio/` (4 incluyendo calendario
   FullCalendar), `admin/` (4: panel, usuarios, editar usuario, logs).
@@ -323,7 +323,7 @@ no se modifican para evitar conflictos con Proyecto_FAMA_1.0.
 #### static/ (actualizados)
 
 - `static/css/estilos.css`: identidad visual naval completa (navbar degradado azul marino,
-  hero, tarjetas de modulo con hover, hero Armada, footer, tablas admin, responsive).
+  hero, tarjetas de módulo con hover, hero Armada, footer, tablas admin, responsive).
 - `static/js/scripts.js`: `confirmarEliminacion()` para formularios de borrado,
   autocerrado de alertas flash a los 5 segundos.
 
@@ -341,52 +341,52 @@ no se modifican para evitar conflictos con Proyecto_FAMA_1.0.
 
 - Sintaxis Python verificada con `python3 -m py_compile` en los 17 archivos `.py`.
 - Estructura de directorios completa: `models/`, `routes/`, `utils/`, `templates/`
-  (con subdirectorios por modulo) y `static/`.
+  (con subdirectorios por módulo) y `static/`.
 - Docker-compose sin cambios: `fama_web1` en puerto `8000`, `fama_mongo1` en puerto
   `27018`, sin conflicto con Proyecto_FAMA_1.0.
 
 ## 2026-05-31 HH:MM:SS CEST
 
-### Documentacion inline: comentarios en todos los archivos de codigo y plantillas
+### Documentacion inline: comentarios en todos los archivos de código y plantillas
 
 Se añaden comentarios explicativos en los 17 archivos Python y en los principales
-templates HTML, distinguiendo que hace cada seccion, por que se toman ciertas
+templates HTML, distinguiendo que hace cada sección, por que se toman ciertas
 decisiones y como se relacionan los componentes entre si.
 
 #### Python
 
-- `app.py`: proposito de cada import, seccion de blueprints, explicacion del
+- `app.py`: proposito de cada import, sección de blueprints, explicacion del
   `context_processor` e instancia global para gunicorn.
-- `utils/db.py`: patron singleton/lazy-init, por que `serverSelectionTimeoutMS=3000`,
+- `utils/db.py`: patrón singleton/lazy-init, por que `serverSelectionTimeoutMS=3000`,
   cuando usar `get_db` vs `get_database`.
 - `utils/helpers.py`: por que `@wraps`, diferencia admin vs gestor, tipos de log
   `'registro'` vs `'control'`, secciones del PDF con ReportLab.
-- `models/usuario.py`: hash de contrasenias, normalizacion a minusculas de la
+- `models/usuario.py`: hash de contraseñas, normalizacion a minusculas de la
   respuesta de seguridad, anti-enumeracion en `autenticar()`, soft-delete.
 - `models/ocio.py`: estructura del array `inscritos`, operadores `$push`/`$pull`,
   proyeccion MongoDB, colores FullCalendar.
 - `models/vivienda.py`, `servicio.py`, `compraventa.py`: campos comentados,
-  logica `$regex` en buscadores, nota sobre `es_merchandising`.
-- `routes/auth.py`: flujo completo por ruta, construccion de sesion, flag
+  lógica `$regex` en buscadores, nota sobre `es_merchandising`.
+- `routes/auth.py`: flujo completo por ruta, construcción de sesión, flag
   `debe_cambiar_password`.
 - `routes/admin.py`: jerarquia de roles, `$in` en delete_many, diferencia
-  gestor/admin por accion.
-- `routes/viviendas.py`: patron de permisos (propietario o privilegiado),
+  gestor/admin por acción.
+- `routes/viviendas.py`: patrón de permisos (propietario o privilegiado),
   `getlist('extras')` para checkboxes multiples.
 - `routes/main.py`: por que `limit(4)`, orden ascendente en eventos de ocio.
 - `crear_admin.py`: idempotencia del script, uso de `Config.MONGO_URI`.
 
 #### HTML (Jinja2)
 
-- `templates/base.html`: logica de `active` en navbar, cuando se muestra Panel Admin,
+- `templates/base.html`: lógica de `active` en navbar, cuando se muestra Panel Admin,
   categorizacion de mensajes flash, `now` del context_processor en el footer.
 - `templates/index.html`: hero con estado MongoDB, macro `cabecera_seccion`,
   filtro de merchandising en compraventa, orden ascendente en eventos.
 - `templates/viviendas/listar.html`: buscador con persistencia de filtros,
-  patron de permisos en botones editar/eliminar.
-- `templates/viviendas/formulario.html`: modo crear vs editar con `accion`,
-  pre-relleno de campos en edicion, `getlist` para checkboxes.
-- `templates/ocio/detalle.html`: tres estados de inscripcion, barra de progreso
+  patrón de permisos en botones editar/eliminar.
+- `templates/viviendas/formulario.html`: modo crear vs editar con `acción`,
+  pre-relleno de campos en edición, `getlist` para checkboxes.
+- `templates/ocio/detalle.html`: tres estados de inscripción, barra de progreso
   de aforo, bloque de acciones solo para propietario o privilegiado.
 - `templates/ocio/calendario.html`: uso de `| safe` en JSON, opciones de
   FullCalendar, `eventClick` para navegar al detalle.
@@ -415,27 +415,27 @@ decisiones y como se relacionan los componentes entre si.
 
 ### Ajuste visual: botones del hero con la misma anchura
 
-- Se envuelven los botones "Registrarse" e "Iniciar sesion" del hero
+- Se envuelven los botones "Registrarse" e "Iniciar sesión" del hero
   de `templates/index.html` en un contenedor `d-inline-flex gap-2`.
 - Se añade `flex-fill` a ambos botones para que se repartan el espacio
   disponible por igual y queden exactamente a la misma anchura.
 - Se conserva el formato original: "Registrarse" en `btn-light` (blanco
-  solido) e "Iniciar sesion" en `btn-outline-light` (transparente con borde).
-- En movil los botones se apilan en columna (`flex-column`) y en pantallas
+  sólido) e "Iniciar sesión" en `btn-outline-light` (transparente con borde).
+- En móvil los botones se apilan en columna (`flex-column`) y en pantallas
   `sm+` se muestran en fila (`flex-sm-row`).
 
 ## 2026-05-31 HH:MM:SS CEST
 
-### Nuevo modulo: Foro de publicaciones
+### Nuevo módulo: Foro de publicaciones
 
-Se implementa el modulo Foro siguiendo la organizacion, estilo visual y
-politica de calidad del resto de modulos del proyecto FAMA.
+Se implementa el módulo Foro siguiendo la organización, estilo visual y
+política de calidad del resto de módulos del proyecto FAMA.
 
 #### Nuevos archivos
 
 - `models/foro.py`: dos clases de modelo sobre colecciones MongoDB separadas:
-  - `ForoPost`: publicaciones principales (titulo, contenido, imagen opcional,
-    autor, fechas de creacion y modificacion).
+  - `ForoPost`: publicaciones principales (título, contenido, imagen opcional,
+    autor, fechas de creación y modificacion).
   - `ForoRespuesta`: respuestas anidadas a un post (post_id de referencia,
     contenido, imagen opcional, autor, fecha).
   - Metodos: CRUD completo, buscador con `$or` y `$regex`, conteo de
@@ -445,35 +445,35 @@ politica de calidad del resto de modulos del proyecto FAMA.
   - `GET  /foro/`                         listado con buscador por texto y autor.
   - `GET  /foro/detalle/<id>`             post completo con hilo de respuestas.
   - `POST /foro/detalle/<id>`             anadir respuesta al hilo.
-  - `GET/POST /foro/nuevo`                crear publicacion nueva.
-  - `GET/POST /foro/editar/<id>`          editar publicacion propia.
+  - `GET/POST /foro/nuevo`                crear publicación nueva.
+  - `GET/POST /foro/editar/<id>`          editar publicación propia.
   - `POST /foro/eliminar/<id>`            eliminar post y todas sus respuestas.
   - `POST /foro/respuesta/eliminar/<id>`  eliminar una respuesta concreta.
-  - Subida de imagenes: PNG/JPG/JPEG/GIF/WEBP, max 5 MB, guardadas en
-    `static/uploads/foro/` con nombre unico basado en timestamp.
+  - Subida de imágenes: PNG/JPG/JPEG/GIF/WEBP, max 5 MB, guardadas en
+    `static/uploads/foro/` con nombre único basado en timestamp.
   - `_guardar_imagen()` y `_eliminar_imagen()`: utilidades internas de
-    gestion de archivos en disco.
+    gestión de archivos en disco.
   - Control de permisos: propietario o rol `gestor`/`admin` en todas las
     operaciones de modificacion y borrado.
 
-- `templates/foro/listar.html`: tarjetas con miniatura de imagen, titulo,
+- `templates/foro/listar.html`: tarjetas con miniatura de imagen, título,
   vista previa del contenido, autor, fecha y contador de respuestas.
 - `templates/foro/detalle.html`: post completo con imagen, hilo de respuestas
-  con sus propias imagenes y formulario de respuesta al final.
-- `templates/foro/formulario.html`: formulario de creacion/edicion con campo
-  de titulo, textarea de contenido, subida de imagen y opcion de borrar
-  la imagen existente en modo edicion.
+  con sus propias imágenes y formulario de respuesta al final.
+- `templates/foro/formulario.html`: formulario de creación/edición con campo
+  de título, textarea de contenido, subida de imagen y opción de borrar
+  la imagen existente en modo edición.
 
 #### Archivos modificados
 
 - `utils/config.py`: se añade `MAX_CONTENT_LENGTH = 5 MB` para que Flask
-  rechace automaticamente archivos que superen el limite permitido.
+  rechace automáticamente archivos que superen el límite permitido.
 - `app.py`: se importa y registra `foro_bp`.
 - `templates/base.html`: se añade entrada "Foro" al navbar con icono
   `bi-chat-dots` y clase `active` dinamica.
-- `templates/index.html`: el boton FORO del hero pasa a apuntar a
+- `templates/index.html`: el botón FORO del hero pasa a apuntar a
   `foro.listar` en lugar de `auth.login`.
-- `static/uploads/foro/`: directorio creado para almacenar las imagenes
+- `static/uploads/foro/`: directorio creado para almacenar las imágenes
   subidas por los usuarios del foro.
 
 #### Validaciones realizadas
@@ -483,12 +483,12 @@ politica de calidad del resto de modulos del proyecto FAMA.
 
 ## 2026-05-31 HH:MM:SS CEST
 
-### Ajuste de permisos del modulo Foro
+### Ajuste de permisos del módulo Foro
 
-Se redefinieron las reglas de acceso a las acciones de edicion y borrado
-en el foro para reflejar la politica operativa correcta:
+Se redefinieron las reglas de acceso a las acciones de edición y borrado
+en el foro para reflejar la política operativa correcta:
 
-| Accion         | Autor                  | Gestor | Admin |
+| Acción         | Autor                  | Gestor | Admin |
 |----------------|------------------------|--------|-------|
 | Editar post    | Si, solo sin respuestas| No     | Si    |
 | Borrar post    | Si                     | Si     | Si    |
@@ -496,36 +496,36 @@ en el foro para reflejar la politica operativa correcta:
 
 #### Cambios en `routes/foro.py`
 
-- `editar()`: el permiso de edicion se restringe a admin siempre y al
+- `editar()`: el permiso de edición se restringe a admin siempre y al
   autor solo si `ForoRespuesta.contar_por_post()` devuelve 0. El gestor
-  pierde el permiso de edicion.
+  pierde el permiso de edición.
 - `eliminar()`: se recupera el gestor en la lista de roles que pueden
   borrar posts (`admin` o `gestor` o autor).
 - `eliminar_respuesta()`: idem, gestor puede borrar respuestas.
 
 #### Cambios en plantillas
 
-- `templates/foro/listar.html`: boton editar condicionado a
+- `templates/foro/listar.html`: botón editar condicionado a
   `session.rol == 'admin'` o `(autor y num_respuestas == 0)`;
-  boton borrar condicionado a autor, gestor o admin.
-- `templates/foro/detalle.html`: misma logica para el post principal;
-  boton borrar de cada respuesta condicionado a autor, gestor o admin.
+  botón borrar condicionado a autor, gestor o admin.
+- `templates/foro/detalle.html`: misma lógica para el post principal;
+  botón borrar de cada respuesta condicionado a autor, gestor o admin.
 
 ## 2026-05-31 HH:MM:SS CEST
 
-### Botones hero siempre visibles + nuevo modulo Novedades
+### Botones hero siempre visibles + nuevo módulo Novedades
 
 #### Botones NOVEDADES y FORO en el hero
 
 - Se elimina la condicion `{% if not session.user_id %}` para que ambos
-  botones sean siempre visibles independientemente del estado de sesion.
-- El boton NOVEDADES es dinamico:
+  botones sean siempre visibles independientemente del estado de sesión.
+- El botón NOVEDADES es dinamico:
   - Sin novedades nuevas: mismo estilo que FORO (`btn-outline-light`).
   - Con novedades sin ver: amarillo (`btn-warning`) con icono `bell-fill`.
-- El enlace Novedades del navbar sigue la misma logica: texto amarillo
+- El enlace Novedades del navbar sigue la misma lógica: texto amarillo
   y negrita + icono relleno si `hay_novedades` es True.
 
-#### Nuevo modulo Novedades (`routes/novedades.py`)
+#### Nuevo módulo Novedades (`routes/novedades.py`)
 
 - `GET  /novedades/`          listado de novedades; al visitar actualiza
   `session["novedades_vistas_hasta"]` para desactivar el indicador.
@@ -535,11 +535,11 @@ en el foro para reflejar la politica operativa correcta:
 #### Tracking de novedades no vistas
 
 - `app.py` context_processor ampliado con `hay_novedades` (bool):
-  - Si el usuario tiene `novedades_vistas_hasta` en sesion, compara la
+  - Si el usuario tiene `novedades_vistas_hasta` en sesión, compara la
     fecha de la ultima novedad de MongoDB con ese timestamp.
   - Si no tiene timestamp (primera visita), hay_novedades=True si existe
     alguna novedad en la coleccion.
-  - Errores de conexion quedan silenciados para no romper la aplicacion.
+  - Errores de conexión quedan silenciados para no romper la aplicación.
 
 #### Novedades en el navbar
 
@@ -548,10 +548,10 @@ en el foro para reflejar la politica operativa correcta:
 
 ## 2026-05-31 HH:MM:SS CEST
 
-### Rediseno del modulo Novedades: nuevos campos y permisos de gestor
+### Rediseno del módulo Novedades: nuevos campos y permisos de gestor
 
 Se amplian los campos del modelo de novedad y se extienden los permisos
-de publicacion al rol gestor.
+de publicación al rol gestor.
 
 #### Permisos
 
@@ -584,14 +584,14 @@ de publicacion al rol gestor.
 
 ## 2026-05-31 22:12:21 CEST
 
-### Actualizacion visual de identidad FAMA
+### Actualización visual de identidad FAMA
 
-- Se incorpora el logo de FAMA en la barra de navegacion superior.
+- Se incorpora el logo de FAMA en la barra de navegación superior.
 - Se elimina el texto `FAMA` del navbar para dejar solo el logo.
-- Se ajusta el tamano, posicion vertical y separacion del logo respecto a los enlaces del menu.
+- Se ajusta el tamaño, posicion vertical y separacion del logo respecto a los enlaces del menu.
 - Se incorpora el logo en el bloque principal de inicio.
-- Se elimina el titulo textual `FAMA` del hero y se mantiene el subtitulo `Foro de Apoyo Multiproposito de la Armada`.
-- Se ajusta el tamano del logo central, su desplazamiento horizontal y la altura del bloque azul principal.
+- Se elimina el título textual `FAMA` del hero y se mantiene el subtitulo `Foro de Apoyo Multiproposito de la Armada`.
+- Se ajusta el tamaño del logo central, su desplazamiento horizontal y la altura del bloque azul principal.
 - Se genera y usa una version del logo con fondo transparente: `static/img/logofama-transparente.png`.
 - Se realizan pruebas de mejora sobre los bordes del logo y se conserva una variante experimental con contorno azul: `static/img/logofama-contorno-azul.png`.
 
@@ -601,7 +601,7 @@ de publicacion al rol gestor.
 - Se crea la ruta `/auth/perfil` para que cada usuario pueda subir, cambiar o eliminar su foto de perfil.
 - Se crea la plantilla `templates/auth/perfil.html`.
 - Las fotos de perfil se guardan en `static/uploads/perfiles/`.
-- Se actualiza la sesion de usuario para incluir `foto_perfil` tras iniciar sesion o cambiar la foto.
+- Se actualiza la sesión de usuario para incluir `foto_perfil` tras iniciar sesión o cambiar la foto.
 - Se anade acceso a `Mi perfil` en el desplegable del usuario del navbar.
 - Se muestra la foto de perfil del usuario en el navbar cuando existe.
 
@@ -609,7 +609,7 @@ de publicacion al rol gestor.
 
 - Se actualiza `routes/foro.py` para resolver la foto de perfil actual de cada autor mediante `usuario_id`.
 - Se muestran avatares en el listado de publicaciones del foro.
-- Se muestran avatares en el detalle de cada publicacion.
+- Se muestran avatares en el detalle de cada publicación.
 - Se muestran avatares en las respuestas del foro.
 - Se incorpora un avatar por defecto para usuarios sin foto de perfil.
 - Se anaden estilos CSS reutilizables para avatares en varios tamanos.
@@ -622,7 +622,7 @@ de publicacion al rol gestor.
 python3 -m py_compile routes/auth.py routes/foro.py models/usuario.py
 ```
 
-- La validacion termina sin errores.
+- La validación termina sin errores.
 
 ## 2026-05-31 22:40:40 CEST
 
@@ -631,7 +631,7 @@ python3 -m py_compile routes/auth.py routes/foro.py models/usuario.py
 Se completa el registro anterior dejando constancia detallada de todos los
 archivos modificados o anadidos desde el ultimo cambio documentado,
 independientemente de si los cambios fueron realizados por Codex, por el
-usuario o por otra herramienta durante la sesion de desarrollo.
+usuario o por otra herramienta durante la sesión de desarrollo.
 
 #### Archivos modificados
 
@@ -642,13 +642,13 @@ usuario o por otra herramienta durante la sesion de desarrollo.
   - Se anaden utilidades internas para guardar y eliminar fotos de perfil.
   - Se validan extensiones permitidas: PNG, JPG, JPEG, GIF y WEBP.
   - Se guarda la imagen subida en `static/uploads/perfiles/`.
-  - Se anade `session["foto_perfil"]` al iniciar sesion.
+  - Se anade `session["foto_perfil"]` al iniciar sesión.
   - Se crea la ruta `/auth/perfil` para subir, cambiar y borrar la foto del usuario.
 
 - `routes/foro.py`
   - Se anade `_anotar_fotos_autor()` para resolver la foto actual del autor.
-  - El listado del foro anota `foto_autor` en cada publicacion.
-  - El detalle del foro anota `foto_autor` en la publicacion principal y en cada respuesta.
+  - El listado del foro anota `foto_autor` en cada publicación.
+  - El detalle del foro anota `foto_autor` en la publicación principal y en cada respuesta.
 
 - `templates/base.html`
   - El navbar pasa a mostrar el logo grafico de FAMA en lugar del texto con icono.
@@ -661,11 +661,11 @@ usuario o por otra herramienta durante la sesion de desarrollo.
   - Se elimina el encabezado textual `FAMA`.
 
 - `templates/foro/listar.html`
-  - Se muestra avatar del autor en cada tarjeta de publicacion.
+  - Se muestra avatar del autor en cada tarjeta de publicación.
   - Se mantiene miniatura independiente para imagen adjunta del post.
 
 - `templates/foro/detalle.html`
-  - Se muestra avatar del autor en la cabecera de la publicacion.
+  - Se muestra avatar del autor en la cabecera de la publicación.
   - Se muestra avatar del autor en cada respuesta.
 
 - `static/css/estilos.css`
@@ -680,7 +680,7 @@ usuario o por otra herramienta durante la sesion de desarrollo.
 - `templates/auth/perfil.html`
   - Nueva pantalla de perfil con previsualizacion de avatar.
   - Formulario de subida de foto.
-  - Accion para eliminar la foto existente.
+  - Acción para eliminar la foto existente.
 
 - `static/img/logofama.png`
   - Logo original incorporado al proyecto.
@@ -691,34 +691,34 @@ usuario o por otra herramienta durante la sesion de desarrollo.
 - `static/img/logofama-contorno-azul.png`
   - Variante experimental con contorno azul conservada para comparacion.
 
-#### Estado de validacion
+#### Estado de validación
 
-- Se mantiene como validacion realizada:
+- Se mantiene como validación realizada:
 
 ```bash
 python3 -m py_compile routes/auth.py routes/foro.py models/usuario.py
 ```
 
-- La validacion de sintaxis Python termino sin errores.
+- La validación de sintaxis Python termino sin errores.
 
 ## 2026-05-31 22:46:31 CEST
 
-### Prueba de ilustracion en el modulo Viviendas
+### Prueba de ilustracion en el módulo Viviendas
 
-- Se genera una ilustracion tipo acuarela para representar el modulo Viviendas.
+- Se genera una ilustracion tipo acuarela para representar el módulo Viviendas.
 - Se guarda el asset en `static/img/viviendas-ilustracion.png`.
 - Se sustituye temporalmente el icono Bootstrap de la tarjeta `Viviendas` en la portada por la nueva ilustracion.
-- Se anade la clase CSS `fama-modulo-img` para controlar tamano, recorte circular y encaje visual dentro de la tarjeta.
+- Se anade la clase CSS `fama-módulo-img` para controlar tamaño, recorte circular y encaje visual dentro de la tarjeta.
 - El cambio afecta a `templates/index.html` y `static/css/estilos.css`.
 
 ## 2026-05-31 22:50:22 CEST
 
-### Prueba de ilustracion en el modulo Servicios
+### Prueba de ilustracion en el módulo Servicios
 
-- Se genera una ilustracion tipo acuarela para representar el modulo Servicios.
+- Se genera una ilustracion tipo acuarela para representar el módulo Servicios.
 - Se guarda el asset en `static/img/servicios-ilustracion.png`.
 - Se sustituye temporalmente el icono Bootstrap de la tarjeta `Servicios` en la portada por la nueva ilustracion.
-- Se reutiliza la clase CSS `fama-modulo-img` para mantener coherencia visual con la tarjeta de Viviendas.
+- Se reutiliza la clase CSS `fama-módulo-img` para mantener coherencia visual con la tarjeta de Viviendas.
 - El cambio afecta a `templates/index.html`.
 
 ## 2026-05-31 22:55:48 CEST
@@ -728,12 +728,12 @@ python3 -m py_compile routes/auth.py routes/foro.py models/usuario.py
 - Se genera una ilustracion tipo acuarela centrada en coches para representar la tarjeta de Compra-Venta.
 - Se guarda el asset en `static/img/compraventa-coches-ilustracion.png`.
 - Se sustituye temporalmente el icono Bootstrap de la tarjeta `Compra-Venta` en la portada por la nueva ilustracion.
-- Se reutiliza la clase CSS `fama-modulo-img` para mantener coherencia visual con Viviendas y Servicios.
+- Se reutiliza la clase CSS `fama-módulo-img` para mantener coherencia visual con Viviendas y Servicios.
 - El cambio afecta a `templates/index.html`.
 
 ## 2026-05-31 23:04:55 CEST
 
-### Correccion de ubicacion de la ilustracion de coches
+### Correccion de ubicación de la ilustracion de coches
 
 - Se mueve la ilustracion `static/img/compraventa-coches-ilustracion.png` desde la tarjeta `Compra-Venta` a la tarjeta `Servicios`.
 - Se restaura en `Compra-Venta` el icono Bootstrap original de tienda (`bi-shop`).
@@ -741,20 +741,20 @@ python3 -m py_compile routes/auth.py routes/foro.py models/usuario.py
 
 ## 2026-05-31 23:16:41 CEST
 
-### Imagen de futbol en el modulo Ocio
+### Imagen de futbol en el módulo Ocio
 
 - Se usa `static/img/futball.png` como imagen de la tarjeta `Ocio` en la portada.
-- La tarjeta reutiliza la clase `fama-modulo-img` para mantener el mismo tamano y recorte circular que el resto de modulos ilustrados.
+- La tarjeta reutiliza la clase `fama-módulo-img` para mantener el mismo tamaño y recorte circular que el resto de módulos ilustrados.
 - El cambio queda reflejado en `templates/index.html`.
 
 ## 2026-06-01 CEST
 
-### Reorganizacion del codigo utilitario
+### Reorganizacion del código utilitario
 
-- Se elimina `utils/helpers.py` y su contenido se divide en dos modulos especializados:
+- Se elimina `utils/helpers.py` y su contenido se divide en dos módulos especializados:
   - `utils/decorators.py`: decoradores de control de acceso (`login_required`, `admin_required`, `gestor_required`).
   - `utils/logs.py`: funciones de auditoria (`registrar_log`, `actualizar_contadores`, `exportar_logs_pdf`).
-- Se actualiza cada fichero que importaba `utils/helpers` para usar los nuevos modulos.
+- Se actualiza cada fichero que importaba `utils/helpers` para usar los nuevos módulos.
 - Se mueve `crear_admin.py` a `scripts/crear_admin.py`.
 - Se eliminan `node_modules/`, `package.json` y `package-lock.json` (artefactos de un `npm install resend` accidental).
 - Se añade `node_modules/` a `.gitignore`.
@@ -762,14 +762,14 @@ python3 -m py_compile routes/auth.py routes/foro.py models/usuario.py
 
 ### Subida de multiples fotos
 
-Se implementa soporte para adjuntar varias imagenes en los modulos Viviendas, Servicios, Compraventa y Foro.
+Se implementa soporte para adjuntar varias imágenes en los módulos Viviendas, Servicios, Compraventa y Foro.
 
 #### Nuevo fichero
 
-- `utils/uploads.py`: centraliza la logica de subida y borrado de archivos.
-  - `guardar_imagenes(archivos, subcarpeta)`: valida extension, genera nombre unico y guarda en `static/uploads/<subcarpeta>/`.
+- `utils/uploads.py`: centraliza la lógica de subida y borrado de archivos.
+  - `guardar_imagenes(archivos, subcarpeta)`: valida extension, genera nombre único y guarda en `static/uploads/<subcarpeta>/`.
   - `eliminar_imagenes(nombres, subcarpeta)`: borra del disco los archivos indicados.
-  - Todas las rutas que antes duplicaban esta logica pasan a usar estas funciones.
+  - Todas las rutas que antes duplicaban está lógica pasan a usar estas funciones.
 
 #### Modelos actualizados
 
@@ -783,13 +783,13 @@ Se implementa soporte para adjuntar varias imagenes en los modulos Viviendas, Se
 
 - `routes/viviendas.py`, `routes/servicios.py`, `routes/compraventa.py`, `routes/foro.py`:
   - Lectura de lista de archivos con `request.files.getlist('fotos')`.
-  - Al eliminar un anuncio se borran automaticamente sus imagenes del disco.
+  - Al eliminar un anuncio se borran automáticamente sus imágenes del disco.
 
 #### Plantillas actualizadas
 
-- Formularios: `enctype="multipart/form-data"` + `<input multiple>` + miniaturas con checkbox de borrado individual en modo edicion.
-- Detalles: imagen simple si hay 1 foto; carousel Bootstrap si hay mas de una.
-- Listados: `card-img-top` con badge de conteo cuando hay mas de una foto.
+- Formularios: `enctype="multipart/form-data"` + `<input multiple>` + miniaturas con checkbox de borrado individual en modo edición.
+- Detalles: imagen simple si hay 1 foto; carousel Bootstrap si hay más de una.
+- Listados: `card-img-top` con badge de conteo cuando hay más de una foto.
 - `templates/index.html`: miniatura 44×44 px en las mini-cards del dashboard de inicio.
 
 #### Carpetas de uploads
@@ -800,19 +800,19 @@ Se implementa soporte para adjuntar varias imagenes en los modulos Viviendas, Se
 - `static/uploads/foro/`
 - `static/uploads/perfiles/`
 
-### Canales en el modulo Foro
+### Canales en el módulo Foro
 
 Se reorganiza el Foro con un sistema de canales tematicos.
 
 #### Modelo nuevo
 
 - `ForoCanal` en `models/foro.py` sobre la coleccion `foro_canales`.
-  - Campos: `nombre`, `descripcion`, `color` (clase Bootstrap), `icono` (Bootstrap Icon), `usuario_id`, `fecha_creacion`.
+  - Campos: `nombre`, `descripción`, `color` (clase Bootstrap), `icono` (Bootstrap Icon), `usuario_id`, `fecha_creacion`.
 - `ForoPost` incorpora el campo obligatorio `canal_id`.
 
 #### Rutas
 
-| Metodo | URL | Descripcion |
+| Método | URL | Descripción |
 |--------|-----|-------------|
 | GET | `/foro/` | Lista de canales (tarjetas con color e icono) |
 | GET/POST | `/foro/canal/nuevo` | Crear canal |
@@ -822,7 +822,7 @@ Se reorganiza el Foro con un sistema de canales tematicos.
 
 #### Permisos
 
-| Accion | Permisos |
+| Acción | Permisos |
 |--------|----------|
 | Crear canal | Cualquier usuario autenticado |
 | Eliminar canal | Admin y gestor |
@@ -844,33 +844,33 @@ Para asignar canal a posts existentes sin `canal_id`:
 db.foro_posts.updateMany({canal_id: {$exists: false}}, {$set: {canal_id: "<id_canal>"}})
 ```
 
-### Nuevo flujo de registro y validacion de usuarios
+### Nuevo flujo de registro y validación de usuarios
 
 Se redisena el alta de usuarios para incluir verificacion de email y aprobacion manual por el admin.
 
 #### Flujo completo
 
-1. El usuario rellena solo **nombre + email** (sin contrasenia ni pregunta de seguridad).
-2. El sistema crea la cuenta con `email_verificado=False, validado=False` y una contrasenia interna aleatoria.
+1. El usuario rellena solo **nombre + email** (sin contraseña ni pregunta de seguridad).
+2. El sistema crea la cuenta con `email_verificado=False, validado=False` y una contraseña interna aleatoria.
 3. **Resend** envia un email de verificacion con enlace firmado (token `itsdangerous`, expira en 24 h).
 4. El usuario hace clic → `email_verificado=True`.
-5. El admin ve el badge **"Pendiente"** en el panel y pulsa el boton de aprobacion.
-6. Al aprobar: se genera una contrasenia temporal aleatoria (10 caracteres), se envia por email y se marca `debe_cambiar_password=True`.
-7. El usuario hace login con la contrasenia temporal y queda forzado a cambiarla en el primer acceso.
+5. El admin ve el badge **"Pendiente"** en el panel y pulsa el botón de aprobacion.
+6. Al aprobar: se genera una contraseña temporal aleatoria (10 caracteres), se envia por email y se marca `debe_cambiar_password=True`.
+7. El usuario hace login con la contraseña temporal y queda forzado a cambiarla en el primer acceso.
 
 #### Nuevos campos en la coleccion `usuarios`
 
-| Campo | Tipo | Descripcion |
+| Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `email_verificado` | Boolean | `False` hasta que el usuario hace clic en el enlace |
 | `validado` | Boolean | `False` hasta la aprobacion manual del admin |
-| `debe_cambiar_password` | Boolean | `True` tras la aprobacion; se desactiva al cambiar contrasenia |
+| `debe_cambiar_password` | Boolean | `True` tras la aprobacion; se desactiva al cambiar contraseña |
 
 #### Archivos modificados o creados
 
-- `models/usuario.py`: `crear()` sin campo contrasenia, `generar_password_temporal()`, `establecer_password_temporal()`, `verificar_email_usuario()`, `validar_usuario()`.
+- `models/usuario.py`: `crear()` sin campo contraseña, `generar_password_temporal()`, `establecer_password_temporal()`, `verificar_email_usuario()`, `validar_usuario()`.
 - `routes/auth.py`: registro simplificado a nombre + email, ruta `/auth/verificar-email/<token>`, mensajes de login diferenciados por estado de cuenta.
-- `routes/admin.py`: ruta `/admin/usuarios/validar/<user_id>` que genera la contrasenia temporal y envia el email de aprobacion.
+- `routes/admin.py`: ruta `/admin/usuarios/validar/<user_id>` que genera la contraseña temporal y envia el email de aprobacion.
 - `utils/email.py` (nuevo): `enviar_verificacion_email()`, `enviar_aprobacion_cuenta()`.
 - `utils/config.py`: variables `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL`.
 - `.env`: API key de Resend, dominio `noreply@appfama.es`.
@@ -879,8 +879,8 @@ Se redisena el alta de usuarios para incluir verificacion de email y aprobacion 
 #### Servicio de email
 
 - Proveedor: **Resend** (resend.com).
-- Remitente: `FAMA <noreply@appfama.es>` (dominio dado de alta en IONOS, pendiente de confirmacion DNS en Resend).
-- API key almacenada en `.env`, nunca en el codigo fuente.
+- Remitente: `FAMA <noreply@appfama.es>` (dominio dado de alta en IONOS, pendiente de confirmación DNS en Resend).
+- API key almacenada en `.env`, nunca en el código fuente.
 
 #### Migracion de usuarios existentes
 
@@ -894,29 +894,29 @@ db.usuarios.updateMany(
 ### Mejoras en el panel de administracion
 
 - Las estadisticas del panel pasan a ocupar una sola fila usando `col` (distribucion automatica Bootstrap) en lugar de `col-lg-2`.
-- La tarjeta "Pendientes" se resalta en rojo cuando hay usuarios esperando validacion.
+- La tarjeta "Pendientes" se resalta en rojo cuando hay usuarios esperando validación.
 - El dropdown de cambio de rol en la tabla de usuarios se corrige con `overflow:visible` + `data-bs-boundary="viewport"` para evitar que quede cortado por el contenedor; se muestra una marca visual en el rol activo.
 
 ### Mejoras visuales generales
 
-- Se eliminan los breadcrumbs de todas las paginas de detalle: viviendas, servicios, compraventa, ocio, foro/detalle, foro/canal, foro/formulario y foro/nuevo_canal.
-- El dashboard de inicio reduce el limite de anuncios mostrados por seccion de 4 a 3.
+- Se eliminan los breadcrumbs de todas las páginas de detalle: viviendas, servicios, compraventa, ocio, foro/detalle, foro/canal, foro/formulario y foro/nuevo_canal.
+- El dashboard de inicio reduce el límite de anuncios mostrados por sección de 4 a 3.
 - La tabla de usuarios del panel admin incorpora `overflow:visible` para que el dropdown de roles no quede recortado.
 
 ## 2026-06-02 CEST
 
-### Simplificacion del flujo de registro y validacion de usuarios
+### Simplificacion del flujo de registro y validación de usuarios
 
 Se redisena el flujo de alta eliminando el paso de verificacion de email.
-El nuevo flujo es mas sencillo y adecuado para una plataforma cerrada interna.
+El nuevo flujo es más sencillo y adecuado para una plataforma cerrada interna.
 
 #### Flujo nuevo
 
 1. El usuario rellena solo **nombre + email**.
 2. El sistema crea la cuenta con `email_verificado=True` y `validado=False`.
-3. Se envia email de aviso: *"Tu solicitud esta pendiente de validacion. Este proceso puede durar unas horas."*
-4. El admin ve el badge **Pendiente** en el panel y pulsa el boton de aprobacion.
-5. Al aprobar: se establece la contrasenia a `fama1234`, `debe_cambiar_password=True`, y se envia email: *"Tu cuenta ha sido aprobada. Tu contrasenia es fama1234. Cambiala en el primer inicio de sesion."*
+3. Se envia email de aviso: *"Tu solicitud está pendiente de validación. Este proceso puede durar unas horas."*
+4. El admin ve el badge **Pendiente** en el panel y pulsa el botón de aprobacion.
+5. Al aprobar: se establece la contraseña a `fama1234`, `debe_cambiar_password=True`, y se envia email: *"Tu cuenta ha sido aprobada. Tu contraseña es fama1234. Cambiala en el primer inicio de sesión."*
 6. El usuario hace login con `fama1234` y queda forzado a cambiarla antes de continuar.
 
 #### Archivos modificados
@@ -924,8 +924,8 @@ El nuevo flujo es mas sencillo y adecuado para una plataforma cerrada interna.
 - `utils/email.py`:
   - Eliminadas las funciones de token `itsdangerous` (`generar_token_verificacion`, `confirmar_token_verificacion`).
   - Eliminada `enviar_verificacion_email()`.
-  - Nueva `enviar_pendiente_validacion()`: notifica que la cuenta espera aprobacion.
-  - `enviar_aprobacion_cuenta()`: simplificada — ya no recibe contrasenia aleatoria ni incluye enlace; muestra `fama1234` directamente.
+  - Nueva `enviar_pendiente_validación()`: notifica que la cuenta espera aprobacion.
+  - `enviar_aprobacion_cuenta()`: simplificada — ya no recibe contraseña aleatoria ni incluye enlace; muestra `fama1234` directamente.
 
 - `models/usuario.py`:
   - `crear()`: `email_verificado=True` por defecto (sin paso de verificacion).
@@ -933,16 +933,16 @@ El nuevo flujo es mas sencillo y adecuado para una plataforma cerrada interna.
 
 - `routes/auth.py`:
   - Eliminada la ruta `/auth/verificar-email/<token>`.
-  - Registro llama a `enviar_pendiente_validacion()`.
-  - Login simplificado: solo avisa de "pendiente de validacion" si procede; ya no comprueba `email_verificado`.
+  - Registro llama a `enviar_pendiente_validación()`.
+  - Login simplificado: solo avisa de "pendiente de validación" si procede; ya no comprueba `email_verificado`.
 
 - `routes/admin.py`:
-  - `validar_usuario()`: usa `fama1234` directamente en vez de contrasenia aleatoria.
+  - `validar_usuario()`: usa `fama1234` directamente en vez de contraseña aleatoria.
   - Query de pendientes en el panel ya no filtra por `email_verificado`.
 
 - `templates/admin/usuarios.html`:
   - Eliminado el badge "Sin verificar" (ya no existe ese estado).
-  - Boton de validacion ya no exige `email_verificado=True` para mostrarse.
+  - Botón de validación ya no exige `email_verificado=True` para mostrarse.
 
 #### Migracion ejecutada
 
@@ -953,9 +953,9 @@ db.usuarios.updateMany(
 )
 ```
 
-### Contrasenia por defecto unificada a fama1234
+### Contraseña por defecto unificada a fama1234
 
-- `models/usuario.py` — `resetear_password()`: cambia la contrasenia a `fama1234` en vez de `Password`.
+- `models/usuario.py` — `resetear_password()`: cambia la contraseña a `fama1234` en vez de `Password`.
 - `routes/admin.py` — `validar_usuario()`: usa `fama1234` al aprobar una cuenta.
 - `scripts/resetear_passwords.py` (nuevo): pone `fama1234` y `debe_cambiar_password=True` a todos los usuarios excepto `admin@appfama.es`. Util para entornos de desarrollo.
 
@@ -979,9 +979,9 @@ db.usuarios.updateOne(
 
 ## 2026-06-02 20:32:51 CEST
 
-### Ajustes visuales de logo y navegacion
+### Ajustes visuales de logo y navegación
 
-- Se sustituye el logo usado en la pagina por `static/img/famalogo.png`.
+- Se sustituye el logo usado en la página por `static/img/famalogo.png`.
 - Se actualizan las referencias del logo en:
   - `templates/base.html`
   - `templates/index.html`
@@ -990,13 +990,13 @@ db.usuarios.updateOne(
   - Correccion de blancos en el faro.
   - Correccion de blancos en el tejado de la casa.
   - Perfilado puntual de bordes irregulares en la zona del faro.
-- Se ajusta el hero de la pagina principal:
+- Se ajusta el hero de la página principal:
   - El logo central queda centrado horizontalmente.
   - El texto "Foro de Apoyo Multiproposito de la Armada" baja para no solaparse con el logo.
-- Se ajusta la barra de navegacion superior:
+- Se ajusta la barra de navegación superior:
   - El logo del navbar queda mejor centrado verticalmente.
   - Se reduce el espacio entre el logo y el enlace "Novedades".
-  - Se desplaza ligeramente el conjunto inicial de la navegacion para compactar la cabecera.
+  - Se desplaza ligeramente el conjunto inicial de la navegación para compactar la cabecera.
 
 #### Archivos modificados
 
@@ -1032,7 +1032,7 @@ db.usuarios.updateOne(
 
 - Al asignar rol `admin` a otro usuario, la cuenta del admin promotor se elimina y la sesión se cierra.
 - Esto garantiza una transferencia limpia del poder de administración.
-- `routes/admin.py` — `cambiar_rol()` ampliado con esta lógica.
+- `routes/admin.py` — `cambiar_rol()` ampliado con está lógica.
 
 ### Protección del último administrador
 
@@ -1047,7 +1047,7 @@ db.usuarios.updateOne(
 
 ### Corrección de faltas de ortografía en el frontend
 
-- `Contrasenia` → `Contraseña` en todos los templates visibles al usuario:
+- `Contraseña` → `Contraseña` en todos los templates visibles al usuario:
   - `templates/auth/login.html`, `cambiar_password.html`, `recuperar.html`
   - `templates/base.html`, `templates/admin/usuarios.html`, `panel.html`, `ver_usuario.html`
 
@@ -1223,7 +1223,7 @@ Se revisa todo el código en busca de inconsistencias y se aplican las siguiente
 - Se elimina la redirección global a login para usuarios no autenticados.
 - Los listados, detalles, foro y calendario son accesibles libremente.
 - Las rutas interactivas (crear, editar, eliminar, inscribirse, responder) siguen protegidas por `@login_required` individualmente y redirigen al login al intentar usarlas.
-- El `before_request` pasa a llamarse `verificar_sesion` y solo comprueba que los usuarios ya autenticados siguen activos y validados.
+- El `before_request` pasa a llamarse `verificar_sesión` y solo comprueba que los usuarios ya autenticados siguen activos y validados.
 - Archivos modificados: `app.py`.
 
 ### Botones de acción visibles para usuarios no autenticados
@@ -1277,7 +1277,7 @@ Se revisa todo el código en busca de inconsistencias y se aplican las siguiente
 - El campo tiene `min="{{ now.strftime('%Y-%m-%d') }}"` para impedir seleccionar fechas pasadas.
 - La fecha se almacena en MongoDB como `datetime(año, mes, día, 23, 59, 59)` (fin del día seleccionado), de modo que el anuncio es visible durante todo el día elegido.
 - En `app.py` se define la función `_limpiar_expirados()` que consulta las colecciones `viviendas`, `servicios` y `compraventa` buscando documentos con `fecha_expiracion <= ahora`, elimina sus fotos del disco con `eliminar_imagenes()` y borra los documentos de MongoDB.
-- La limpieza se invoca desde el `before_request` (`verificar_sesion`) como máximo **una vez por hora**, controlada por la variable global `_ts_limpieza`.
+- La limpieza se invoca desde el `before_request` (`verificar_sesión`) como máximo **una vez por hora**, controlada por la variable global `_ts_limpieza`.
 - Las tarjetas de los listados muestran un indicador naranja `⏰ Expira DD/MM/AAAA` si el anuncio tiene fecha límite.
 - Archivos modificados: `app.py`, `models/vivienda.py`, `models/servicio.py`, `models/compraventa.py`, `routes/viviendas.py`, `routes/servicios.py`, `routes/compraventa.py`, `templates/viviendas/formulario.html`, `templates/servicios/formulario.html`, `templates/compraventa/formulario.html`, `templates/viviendas/listar.html`, `templates/servicios/listar.html`, `templates/compraventa/listar.html`.
 
@@ -1303,7 +1303,7 @@ Se revisa todo el código en busca de inconsistencias y se aplican las siguiente
 ### Botón "Reportar usuario" en la tabla de usuarios
 
 - Los gestores disponen del botón `bi-flag` (reportar) en cada fila de la tabla de usuarios (`/admin/usuarios`), al lado de los botones de resetear contraseña y ver ficha.
-- Se usa un único modal dinámico `#modalReportarTabla` cuyos datos (nombre del usuario y URL de la acción) se actualizan via el evento `show.bs.modal` de Bootstrap al hacer clic.
+- Se usa un único modal dinámico `#modalReportarTabla` cuyos datos (nombre del usuario y URL de la acción) se actualizan vía el evento `show.bs.modal` de Bootstrap al hacer clic.
 - El modal de la ficha individual (`ver_usuario.html`) se mantiene independiente.
 - Archivos modificados: `templates/admin/usuarios.html`.
 
@@ -1312,7 +1312,7 @@ Se revisa todo el código en busca de inconsistencias y se aplican las siguiente
 - La columna **Objeto reportado** en `templates/admin/reportes.html` muestra un enlace clicable hacia el anuncio o usuario reportado en lugar del ID crudo.
 - Para reportes de usuario: enlaza a la ficha del usuario en el panel admin (mismo tab).
 - Para reportes de anuncio: enlaza al detalle del anuncio en pestaña nueva (`target="_blank"`) con icono de enlace externo.
-- La lógica usa `mod = tipo_modulo | lower` y comparaciones con `in mod` para tolerar variaciones de capitalización y forma singular/plural: `'viviend'`, `'servicio'`, `'compra'`, `'ocio'`.
+- La lógica usa `mod = tipo_módulo | lower` y comparaciones con `in mod` para tolerar variaciones de capitalización y forma singular/plural: `'viviend'`, `'servicio'`, `'compra'`, `'ocio'`.
 - El badge de tipo usa colores diferenciados por módulo: azul (vivienda), verde (servicio), amarillo (compraventa), cian (ocio), amarillo oscuro (usuario).
 - Título de la página actualizado de "Reportes de anuncios" a "Reportes".
 - Archivos modificados: `templates/admin/reportes.html`.
@@ -1337,7 +1337,7 @@ Se revisa todo el código en busca de inconsistencias y se aplican las siguiente
 
 - Las contraseñas deben cumplir: mínimo 8 caracteres, al menos 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial.
 - Nueva función `validar_password_fuerte()` en `utils/validators.py` usada en todas las rutas que aceptan contraseñas nuevas: registro, cambiar contraseña, recuperación y creación de usuario por admin.
-- Indicador visual rediseñado: icono `!` amarillo (`bi-exclamation-circle`) a la derecha del campo de contraseña (dentro de un `input-group`). Al pasar el ratón encima aparece un **popover Bootstrap** titulado "Requisitos de contraseña" con los 5 puntos en tiempo real (gris/verde según se cumplan). Cuando todos los requisitos están cubiertos el icono cambia a `✓` verde (`bi-check-circle-fill`). Implementado en `static/js/scripts.js` usando `bootstrap.Popover` con `setContent()` dinámico; se auto-descubre via `data-pwd-indicator` y funciona dentro de modales (evento `shown.bs.modal`).
+- Indicador visual rediseñado: icono `!` amarillo (`bi-exclamation-circle`) a la derecha del campo de contraseña (dentro de un `input-group`). Al pasar el ratón encima aparece un **popover Bootstrap** titulado "Requisitos de contraseña" con los 5 puntos en tiempo real (gris/verde según se cumplan). Cuando todos los requisitos están cubiertos el icono cambia a `✓` verde (`bi-check-circle-fill`). Implementado en `static/js/scripts.js` usando `bootstrap.Popover` con `setContent()` dinámico; se auto-descubre vía `data-pwd-indicator` y funciona dentro de modales (evento `shown.bs.modal`).
 - El atributo `minlength` de todos los campos de contraseña nueva actualizado de 6 a 8.
 - Archivos modificados/creados: `utils/validators.py` (nuevo), `routes/auth.py`, `routes/admin.py`, `static/js/scripts.js`, `templates/auth/registro.html`, `templates/auth/cambiar_password.html`, `templates/auth/recuperar.html`, `templates/admin/usuarios.html`.
 
@@ -1387,3 +1387,29 @@ Se revisa todo el código en busca de inconsistencias y se aplican las siguiente
 - Se añaden tres declaraciones `<link rel="icon">` con tamaños 192×192 y 32×32, más `<link rel="apple-touch-icon" sizes="180x180">` para mejor calidad en distintos contextos (navegador, favoritos, móvil).
 - Se elimina el `favicon.svg` como fuente primaria (ya no es necesario al tener el fondo azul en el propio PNG).
 - Archivo modificado: `templates/base.html`.
+
+### Novedades restringida a usuarios autenticados
+
+- La ruta `GET /novedades/` pasa a llevar `@login_required`; visitantes sin sesión son redirigidos al login.
+- El enlace "Novedades" del navbar queda envuelto en `{% if session.user_id %}` para que no aparezca a usuarios no registrados.
+- Archivos modificados: `routes/novedades.py`, `templates/base.html`.
+
+### Navbar sticky
+
+- Se añade la clase Bootstrap `sticky-top` al `<nav>` en `templates/base.html`.
+- El navbar acompaña el scroll de la página sin desaparecer, sin necesidad de padding adicional en el body.
+- Archivo modificado: `templates/base.html`.
+
+### Eliminación de la categoría "Niñera" del módulo Servicios
+
+- La categoría "Ninera" se elimina de la lista de categorías en el filtro del listado y en el selector del formulario de creación/edición.
+- Se eliminan de MongoDB todos los anuncios de servicios existentes con esa categoría (`deletedCount: 0` — no había ninguno).
+- Archivos modificados: `templates/servicios/listar.html`, `templates/servicios/formulario.html`.
+
+### Lista de inscritos visible en el detalle de evento (Ocio)
+
+- La columna lateral del detalle de evento muestra una tarjeta **Inscritos** con el nombre de cada usuario apuntado al evento.
+- Si el usuario autenticado está entre los inscritos aparece un badge "Tú" junto a su nombre.
+- La tarjeta no se muestra si nadie se ha inscrito todavía.
+- La ruta `ocio.detalle` resuelve los nombres de los inscritos consultando la colección `usuarios` por los `_id` almacenados en el array `inscritos` del evento.
+- Archivos modificados: `routes/ocio.py`, `templates/ocio/detalle.html`.

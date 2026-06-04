@@ -1,5 +1,5 @@
 """
-routes/ocio.py - Rutas del modulo de Ocio (CRUD + inscripciones + calendario).
+routes/ocio.py - Rutas del módulo de Ocio (CRUD + inscripciones + calendario).
 
 Gestiona eventos de ocio y el calendario unificado del personal militar.
 """
@@ -169,8 +169,20 @@ def detalle(evento_id):
         flash("Evento no encontrado.", "danger")
         return redirect(url_for("ocio.listar"))
 
-    user_inscrito = session.get("user_id") in evento.get("inscritos", [])
-    plazas_libres = evento.get("aforo_maximo", 0) - len(evento.get("inscritos", []))
+    inscritos_ids = evento.get("inscritos", [])
+    user_inscrito = session.get("user_id") in inscritos_ids
+    plazas_libres = evento.get("aforo_maximo", 0) - len(inscritos_ids)
+
+    # Resolver nombres de los usuarios inscritos
+    from bson import ObjectId
+    inscritos_usuarios = []
+    if inscritos_ids:
+        inscritos_usuarios = list(db.usuarios.find(
+            {"_id": {"$in": [ObjectId(uid) for uid in inscritos_ids]}},
+            {"nombre": 1}
+        ))
 
     return render_template("ocio/detalle.html", evento=evento,
-                           user_inscrito=user_inscrito, plazas_libres=plazas_libres)
+                           user_inscrito=user_inscrito,
+                           plazas_libres=plazas_libres,
+                           inscritos_usuarios=inscritos_usuarios)

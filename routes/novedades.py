@@ -2,7 +2,7 @@
 routes/novedades.py - Modulo de Novedades de FAMA.
 
 Permite a administradores y gestores publicar novedades de servicio.
-Al visitar la pagina se registra la fecha de visita en la sesion del usuario
+Al visitar la pagina se registra la fecha de visita en la sesión del usuario
 para que el indicador del boton deje de iluminarse.
 
 Campos de una novedad:
@@ -38,7 +38,7 @@ TIPOS_NOVEDAD = ["Curso", "Comision de servicio", "Otros"]
 def listar():
     """
     Muestra todas las novedades ordenadas de mas reciente a mas antigua.
-    Actualiza 'novedades_vistas_hasta' en la sesion para desactivar el indicador.
+    Actualiza 'novedades_vistas_hasta' en la sesión para desactivar el indicador.
     """
     db = get_db()
     novedades = list(db.novedades.find().sort("fecha_creacion", -1))

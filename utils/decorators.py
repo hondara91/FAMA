@@ -4,8 +4,8 @@ utils/decorators.py - Decoradores de control de acceso para las rutas de FAMA.
 Jerarquia de roles: admin > gestor > usuario
 
 Orden de apilado recomendado sobre las rutas:
-    @login_required    <- primero: sin sesion no tiene sentido comprobar el rol
-    @admin_required    <- segundo: comprueba el rol una vez confirmada la sesion
+    @login_required    <- primero: sin sesión no tiene sentido comprobar el rol
+    @admin_required    <- segundo: comprueba el rol una vez confirmada la sesión
 """
 from functools import wraps
 
@@ -13,11 +13,11 @@ from flask import flash, redirect, session, url_for
 
 
 def login_required(f):
-    """Redirige al login si el usuario no ha iniciado sesion."""
+    """Redirige al login si el usuario no ha iniciado sesión."""
     @wraps(f)
     def decorated(*args, **kwargs):
         if "user_id" not in session:
-            flash("Debes iniciar sesion para acceder.", "warning")
+            flash("Debes iniciar sesión para acceder.", "warning")
             return redirect(url_for("auth.login"))
         return f(*args, **kwargs)
     return decorated

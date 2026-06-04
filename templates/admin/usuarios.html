@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}FAMA - Gestion de Usuarios{% endblock %}
+{% block title %}FAMA - Gestión de Usuarios{% endblock %}
 
 {% block content %}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-people text-primary me-2"></i>Gestion de Usuarios
+    <h2><i class="bi bi-people text-primary me-2"></i>Gestión de Usuarios
         <small class="text-muted fs-6 ms-2">{{ total }} en total</small>
     </h2>
     <div class="d-flex gap-2">
@@ -128,7 +128,7 @@
 
                             {# Resetear contraseña #}
                             <form method="POST" action="{{ url_for('admin.resetear_password', user_id=u._id) }}"
-                                  onsubmit="return confirm('Resetear contraseña de {{ u.nombre }}?')">
+                                  onsubmit="return confirm('¿Resetear contraseña de {{ u.nombre }}?')">
                                 <button type="submit" class="btn btn-sm btn-outline-warning" title="Resetear contraseña">
                                     <i class="bi bi-key"></i>
                                 </button>
@@ -173,7 +173,7 @@
 
                             {% if u.activo %}
                             <form method="POST" action="{{ url_for('admin.eliminar_usuario', user_id=u._id) }}"
-                                  onsubmit="return confirm('Desactivar a {{ u.nombre }}?')">
+                                  onsubmit="return confirm('¿Desactivar a {{ u.nombre }}?')">
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Desactivar">
                                     <i class="bi bi-person-x"></i>
                                 </button>
@@ -185,7 +185,7 @@
                                 </button>
                             </form>
                             <form method="POST" action="{{ url_for('admin.eliminar_definitivo_usuario', user_id=u._id) }}"
-                                  onsubmit="return confirm('Eliminar DEFINITIVAMENTE a {{ u.nombre }}? Esta acción no se puede deshacer.')">
+                                  onsubmit="return confirm('¿Eliminar DEFINITIVAMENTE a {{ u.nombre }}? Esta acción no se puede deshacer.')">
                                 <button type="submit" class="btn btn-sm btn-danger" title="Eliminar definitivamente">
                                     <i class="bi bi-trash"></i>
                                 </button>

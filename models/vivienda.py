@@ -1,5 +1,5 @@
 """
-models/vivienda.py - Modelo de datos para el modulo de Viviendas.
+models/vivienda.py - Modelo de datos para el módulo de Viviendas.
 
 Gestiona alquileres, intercambios y pisos compartidos del personal militar.
 Los campos 'usuario_id' y 'nombre_usuario' permiten mostrar el autor
@@ -16,7 +16,7 @@ class Vivienda:
     def __init__(self, db):
         self.coleccion = db.viviendas
 
-    # ── Creacion ──────────────────────────────────────────────────────────────
+    # ── Creación ──────────────────────────────────────────────────────────────
 
     def crear(self, datos, user_id, nombre_usuario):
         """Construye y persiste el documento de un nuevo anuncio. Devuelve su ObjectId."""
@@ -55,7 +55,7 @@ class Vivienda:
         """Devuelve los anuncios publicados por un usuario especifico."""
         return list(self.coleccion.find({"usuario_id": user_id}).sort("fecha_creacion", -1))
 
-    # ── Actualizacion y borrado ───────────────────────────────────────────────
+    # ── Actualización y borrado ───────────────────────────────────────────────
 
     def actualizar(self, anuncio_id, datos):
         """Actualiza campos con $set y renueva la fecha de modificacion."""
@@ -80,10 +80,10 @@ class Vivienda:
             query["tipo_oferta"] = form_data["tipo_oferta"]
         if form_data.get("tipo_inmueble"):
             query["tipo_inmueble"] = form_data["tipo_inmueble"]
-        # $regex con 'i' para busqueda parcial insensible a mayusculas
+        # $regex con 'i' para búsqueda parcial insensible a mayúsculas
         if form_data.get("ciudad"):
             query["ciudad"] = {"$regex": form_data["ciudad"], "$options": "i"}
-        # Coincidencia exacta para el numero de habitaciones (string del select)
+        # Coincidencia exacta para el número de habitaciones (string del select)
         if form_data.get("habitaciones"):
             query["habitaciones"] = form_data["habitaciones"]
         return query

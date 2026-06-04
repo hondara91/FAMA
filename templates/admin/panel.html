@@ -34,11 +34,11 @@
 {# ── Accesos rapidos a las secciones de administracion ────────────────────── #}
 <div class="row g-3">
 
-    {# Gestion de usuarios: disponible para gestor y admin #}
+    {# Gestión de usuarios: disponible para gestor y admin #}
     <div class="col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <h5><i class="bi bi-people me-2 text-primary"></i>Gestion de Usuarios</h5>
+                <h5><i class="bi bi-people me-2 text-primary"></i>Gestión de Usuarios</h5>
                 <p class="text-muted small">Editar usuarios, asignar roles y resetear contraseñas.</p>
                 <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-primary">
                     <i class="bi bi-arrow-right me-1"></i>Ir a usuarios
@@ -47,7 +47,7 @@
         </div>
     </div>
 
-    {# Logs de la aplicacion: SOLO para admin (datos sensibles de auditoria) #}
+    {# Logs de la aplicación: SOLO para admin (datos sensibles de auditoria) #}
     {% if session.rol == 'admin' %}
     <div class="col-md-6">
         <div class="card border-0 shadow-sm h-100">

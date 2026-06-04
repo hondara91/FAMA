@@ -1,5 +1,5 @@
 """
-models/ocio.py - Modelo de datos para el modulo de Ocio.
+models/ocio.py - Modelo de datos para el módulo de Ocio.
 
 Gestiona eventos de ocio: creacion, edicion, eliminacion,
 inscripcion/desinscripcion con control de aforo y exportacion
@@ -24,7 +24,7 @@ class Ocio:
     def __init__(self, db):
         self.coleccion = db.ocio
 
-    # ── Creacion ──────────────────────────────────────────────────────────────
+    # ── Creación ──────────────────────────────────────────────────────────────
 
     def crear(self, datos, user_id, nombre_usuario):
         """Crea un nuevo evento y devuelve su ObjectId."""
@@ -47,7 +47,7 @@ class Ocio:
     # ── Consultas ─────────────────────────────────────────────────────────────
 
     def obtener_todos(self, filtros=None):
-        """Devuelve todos los eventos, ordenados por fecha ascendente (proximos primero)."""
+        """Devuelve todos los eventos, ordenados por fecha ascendente (próximos primero)."""
         return list(self.coleccion.find(filtros or {}).sort("fecha", 1))
 
     def obtener_por_id(self, evento_id):
@@ -58,7 +58,7 @@ class Ocio:
         """Devuelve los eventos creados por un usuario concreto."""
         return list(self.coleccion.find({"usuario_id": user_id}).sort("fecha", 1))
 
-    # ── Actualizacion y borrado ───────────────────────────────────────────────
+    # ── Actualización y borrado ───────────────────────────────────────────────
 
     def actualizar(self, evento_id, datos):
         """Actualiza los campos de un evento y renueva su fecha de modificacion."""
@@ -69,7 +69,7 @@ class Ocio:
         """Elimina fisicamente un evento (las inscripciones se pierden con el)."""
         self.coleccion.delete_one({"_id": ObjectId(evento_id)})
 
-    # ── Gestion de inscripciones ──────────────────────────────────────────────
+    # ── Gestión de inscripciones ──────────────────────────────────────────────
 
     def inscribir_usuario(self, evento_id, user_id):
         """
@@ -92,16 +92,16 @@ class Ocio:
         if user_id in evento.get("inscritos", []):
             return False, "Ya estas inscrito en este evento."
 
-        # Condicion 3: el numero de inscritos no puede superar el aforo maximo
+        # Condicion 3: el número de inscritos no puede superar el aforo máximo
         if len(evento.get("inscritos", [])) >= evento.get("aforo_maximo", 0):
-            return False, "El aforo maximo ha sido alcanzado."
+            return False, "El aforo máximo ha sido alcanzado."
 
         # $push anade el user_id al array 'inscritos' de forma atomica en MongoDB
         self.coleccion.update_one(
             {"_id": ObjectId(evento_id)},
             {"$push": {"inscritos": user_id}},
         )
-        return True, "Inscripcion realizada con exito."
+        return True, "Inscripción realizada con éxito."
 
     def desinscribir_usuario(self, evento_id, user_id):
         """
@@ -151,7 +151,7 @@ class Ocio:
         # Coincidencia exacta para el tipo de evento (select)
         if form_data.get("tipo_evento"):
             query["tipo_evento"] = form_data["tipo_evento"]
-        # Busqueda parcial insensible a mayusculas para titulo y lugar
+        # Búsqueda parcial insensible a mayúsculas para título y lugar
         if form_data.get("titulo"):
             query["titulo"] = {"$regex": form_data["titulo"], "$options": "i"}
         if form_data.get("lugar"):

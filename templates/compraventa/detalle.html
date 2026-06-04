@@ -45,7 +45,7 @@
                 {% if anuncio.uco %}<p class="text-muted"><i class="bi bi-building me-1"></i>{{ anuncio.uco }}</p>{% endif %}
                 <h4 class="text-warning">{{ anuncio.precio }}€</h4>
                 <hr>
-                <p>{{ anuncio.descripcion or 'Sin descripcion.' }}</p>
+                <p>{{ anuncio.descripcion or 'Sin descripción.' }}</p>
             </div>
         </div>
     </div>
@@ -86,7 +86,7 @@
                 <h6 class="text-danger"><i class="bi bi-flag me-1"></i>Reportar anuncio</h6>
                 <form method="POST" action="{{ url_for('admin.crear_reporte') }}">
                     <input type="hidden" name="anuncio_id" value="{{ anuncio._id }}">
-                    <input type="hidden" name="tipo_modulo" value="compraventa">
+                    <input type="hidden" name="tipo_módulo" value="compraventa">
                     <div class="mb-2">
                         <textarea class="form-control form-control-sm" name="motivo"
                                   rows="2" placeholder="Motivo del reporte..." required></textarea>

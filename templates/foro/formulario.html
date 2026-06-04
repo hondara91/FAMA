@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}FAMA - {{ accion }} publicacion{% endblock %}
+{% block title %}FAMA - {{ accion }} publicación{% endblock %}
 
 {% block content %}
 
@@ -14,17 +14,17 @@
                     {% else %}
                     <i class="bi bi-chat-dots text-primary me-2"></i>
                     {% endif %}
-                    {{ accion }} publicacion{% if canal %} en {{ canal.nombre }}{% endif %}
+                    {{ accion }} publicación{% if canal %} en {{ canal.nombre }}{% endif %}
                 </h3>
 
                 {# enctype multipart obligatorio para la subida de imagen #}
                 <form method="POST" enctype="multipart/form-data">
 
-                    {# ── Titulo ────────────────────────────────────────────── #}
+                    {# ── Título ────────────────────────────────────────────── #}
                     <div class="mb-3">
-                        <label class="form-label">Titulo *</label>
+                        <label class="form-label">Título *</label>
                         <input type="text" class="form-control" name="titulo" required
-                               placeholder="Titulo de la publicacion"
+                               placeholder="Título de la publicación"
                                value="{{ post.titulo if post else '' }}">
                     </div>
 
@@ -32,7 +32,7 @@
                     <div class="mb-3">
                         <label class="form-label">Contenido *</label>
                         <textarea class="form-control" name="contenido" rows="8"
-                                  placeholder="Escribe aqui tu publicacion..." required
+                                  placeholder="Escribe aquí tu publicación..." required
                                   >{{ post.contenido if post else '' }}</textarea>
                     </div>
 
@@ -65,7 +65,7 @@
                         <div class="form-text">JPG, PNG, GIF, WEBP. Puedes seleccionar varias fotos a la vez.</div>
                     </div>
 
-                    {# ── Botones de accion ─────────────────────────────────── #}
+                    {# ── Botones de acción ─────────────────────────────────── #}
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-1"></i>{{ accion }}

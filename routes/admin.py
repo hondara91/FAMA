@@ -2,7 +2,7 @@
 routes/admin.py - Panel de administracion de FAMA.
 
 Rutas protegidas por rol:
-  - gestor_required: panel, listar/editar usuarios, resetear contrasenia.
+  - gestor_required: panel, listar/editar usuarios, resetear contraseña.
   - admin_required : cambiar rol, eliminar usuario, ver/eliminar/exportar logs.
 
 Jerarquia de roles: admin > gestor > usuario
@@ -52,14 +52,14 @@ def panel():
         "compraventa": db.compraventa.count_documents({}),
         "ocio":        db.ocio.count_documents({}),
     }
-    # Calcular el total de anuncios como suma de todos los modulos
+    # Calcular el total de anuncios como suma de todos los módulos
     stats["total_anuncios"] = (
         stats["viviendas"] + stats["servicios"] + stats["compraventa"] + stats["ocio"]
     )
     return render_template("admin/panel.html", stats=stats)
 
 
-# ── Gestion de usuarios ───────────────────────────────────────────────────────
+# ── Gestión de usuarios ───────────────────────────────────────────────────────
 
 @admin_bp.route("/usuarios")
 @login_required
@@ -278,7 +278,7 @@ def cambiar_rol(user_id):
 @login_required
 @gestor_required
 def validar_usuario(user_id):
-    """Aprueba la cuenta de un usuario pendiente de validacion."""
+    """Aprueba la cuenta de un usuario pendiente de validación."""
     db = get_db()
     modelo  = Usuario(db)
     usuario = modelo.obtener_por_id(user_id)
@@ -296,7 +296,7 @@ def validar_usuario(user_id):
 
 @admin_bp.route("/usuarios/resetear/<user_id>", methods=["POST"])
 @login_required
-@gestor_required  # Gestores pueden resetear contrasenias de usuarios normales
+@gestor_required  # Gestores pueden resetear contraseñas de usuarios normales
 def resetear_password(user_id):
     """Resetea la contraseña del usuario a 'fama1234' y obliga a cambiarla en el próximo login."""
     db = get_db()
@@ -388,7 +388,7 @@ def eliminar_usuario(user_id):
     return redirect(url_for("admin.listar_usuarios"))
 
 
-# ── Gestion de logs ───────────────────────────────────────────────────────────
+# ── Gestión de logs ───────────────────────────────────────────────────────────
 
 @admin_bp.route("/logs")
 @login_required

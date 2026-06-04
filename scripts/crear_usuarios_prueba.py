@@ -28,10 +28,10 @@ USUARIOS = [
     ("nicolas", "nico.sanchez@gmail.com",        (230,126, 34)),   # naranja oscuro
 ]
 
-PASSWORD = "Fama1234"   # contrasenia comun para todos los usuarios de prueba
+PASSWORD = "Fama1234"   # contraseña comun para todos los usuarios de prueba
 
 
-# ── Generador de PNG solido sin dependencias externas ────────────────────────
+# ── Generador de PNG sólido sin dependencias externas ────────────────────────
 
 def _chunk(name: bytes, data: bytes) -> bytes:
     c = name + data

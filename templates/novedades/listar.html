@@ -64,7 +64,7 @@
                 <div class="col-12">
                     <label class="form-label">Observaciones</label>
                     <textarea class="form-control" name="observaciones" rows="2"
-                              placeholder="Informacion adicional..."></textarea>
+                              placeholder="Información adicional..."></textarea>
                 </div>
 
             </div>
@@ -97,7 +97,7 @@
                     {% else %}bg-secondary{% endif %}">
                     {{ n.tipo }}
                 </span>
-                {# Boton de eliminar: visible para admin y gestor #}
+                {# Botón de eliminar: visible para admin y gestor #}
                 {% if session.rol in ('admin', 'gestor') %}
                 <form method="POST"
                       action="{{ url_for('novedades.eliminar', novedad_id=n._id) }}"
@@ -157,7 +157,7 @@
             <p class="mb-3" style="white-space: pre-wrap;">{{ n.observaciones }}</p>
             {% endif %}
 
-            {# Pie: autor y fecha de publicacion #}
+            {# Pie: autor y fecha de publicación #}
             <div class="small text-muted">
                 <i class="bi bi-person me-1"></i>{{ n.autor }} &bull;
                 <i class="bi bi-clock me-1"></i>
@@ -171,7 +171,7 @@
 {% else %}
 <div class="text-center py-5 text-muted">
     <i class="bi bi-bell-slash fs-1 d-block mb-3"></i>
-    <p>No hay novedades publicadas todavia.</p>
+    <p>No hay novedades publicadas todavía.</p>
 </div>
 {% endif %}
 

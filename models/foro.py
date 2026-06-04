@@ -1,5 +1,5 @@
 """
-models/foro.py - Modelos de datos para el modulo de Foro.
+models/foro.py - Modelos de datos para el módulo de Foro.
 
 Colecciones MongoDB:
   - foro_canales:   canales tematicos que agrupan los hilos.
@@ -61,7 +61,7 @@ class ForoPost:
     def __init__(self, db):
         self.coleccion = db.foro_posts
 
-    # ── Creacion ──────────────────────────────────────────────────────────────
+    # ── Creación ──────────────────────────────────────────────────────────────
 
     def obtener_por_canal(self, canal_id, filtros=None):
         """Devuelve posts de un canal ordenados por fecha descendente."""
@@ -101,7 +101,7 @@ class ForoPost:
         """Devuelve los posts publicados por un usuario concreto."""
         return list(self.coleccion.find({"usuario_id": user_id}).sort("fecha_creacion", -1))
 
-    # ── Actualizacion y borrado ───────────────────────────────────────────────
+    # ── Actualización y borrado ───────────────────────────────────────────────
 
     def actualizar(self, post_id, datos):
         """Actualiza los campos indicados y renueva la fecha de modificacion."""
@@ -117,7 +117,7 @@ class ForoPost:
     def construir_filtros(self, form_data):
         """Traduce los parametros GET del buscador a una query MongoDB."""
         query = {}
-        # Busqueda parcial insensible a mayusculas en titulo y contenido
+        # Búsqueda parcial insensible a mayúsculas en título y contenido
         if form_data.get("q"):
             query["$or"] = [
                 {"titulo":    {"$regex": form_data["q"], "$options": "i"}},
@@ -135,7 +135,7 @@ class ForoRespuesta:
     def __init__(self, db):
         self.coleccion = db.foro_respuestas
 
-    # ── Creacion ──────────────────────────────────────────────────────────────
+    # ── Creación ──────────────────────────────────────────────────────────────
 
     def crear(self, post_id, contenido, fotos, user_id, nombre_usuario):
         """Inserta una nueva respuesta asociada al post indicado."""

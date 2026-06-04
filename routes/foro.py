@@ -1,5 +1,5 @@
 """
-routes/foro.py - Rutas del modulo de Foro (canales + posts + respuestas).
+routes/foro.py - Rutas del módulo de Foro (canales + posts + respuestas).
 
   GET  /foro/                          -> lista de canales
   GET/POST /foro/canal/nuevo           -> crear canal (gestor/admin)
@@ -55,7 +55,7 @@ def _anotar_fotos_autor(db, documentos):
 
 @foro_bp.route("/")
 def listar():
-    """Pagina principal del foro: muestra todos los canales disponibles."""
+    """Página principal del foro: muestra todos los canales disponibles."""
     db     = get_db()
     modelo = ForoCanal(db)
     posts  = ForoPost(db)
@@ -160,7 +160,7 @@ def ver_canal(canal_id):
 def detalle(post_id):
     """
     GET:  muestra el post completo con todas sus respuestas.
-    POST: procesa el formulario de nueva respuesta (requiere sesion).
+    POST: procesa el formulario de nueva respuesta (requiere sesión).
     """
     db         = get_db()
     modelo     = ForoPost(db)
@@ -172,9 +172,9 @@ def detalle(post_id):
         return redirect(url_for("foro.listar"))
 
     if request.method == "POST":
-        # El formulario de respuesta requiere sesion activa
+        # El formulario de respuesta requiere sesión activa
         if "user_id" not in session:
-            flash("Debes iniciar sesion para responder.", "warning")
+            flash("Debes iniciar sesión para responder.", "warning")
             return redirect(url_for("auth.login"))
 
         contenido = request.form.get("contenido", "").strip()
@@ -218,13 +218,13 @@ def nuevo(canal_id):
         contenido = request.form.get("contenido", "").strip()
 
         if not titulo or not contenido:
-            flash("El titulo y el contenido son obligatorios.", "danger")
+            flash("El título y el contenido son obligatorios.", "danger")
             return render_template("foro/formulario.html", post=None, canal=canal, accion="Publicar")
 
         fotos = guardar_imagenes(request.files.getlist("fotos"), "foro")
         modelo.crear(titulo, contenido, fotos, canal_id, session["user_id"], session["nombre"])
         registrar_log(db, "registro", "crear_post_foro",
-                      session["nombre"], f"Canal: {canal['nombre']} | Titulo: {titulo}")
+                      session["nombre"], f"Canal: {canal['nombre']} | Título: {titulo}")
 
         flash("Publicacion creada correctamente.", "success")
         return redirect(url_for("foro.ver_canal", canal_id=canal_id))
@@ -232,7 +232,7 @@ def nuevo(canal_id):
     return render_template("foro/formulario.html", post=None, canal=canal, accion="Publicar")
 
 
-# ── Edicion ───────────────────────────────────────────────────────────────────
+# ── Edición ───────────────────────────────────────────────────────────────────
 
 @foro_bp.route("/editar/<post_id>", methods=["GET", "POST"])
 @login_required
@@ -264,7 +264,7 @@ def editar(post_id):
         contenido = request.form.get("contenido", "").strip()
 
         if not titulo or not contenido:
-            flash("El titulo y el contenido son obligatorios.", "danger")
+            flash("El título y el contenido son obligatorios.", "danger")
             return render_template("foro/formulario.html", post=post, accion="Guardar")
 
         datos = {"titulo": titulo, "contenido": contenido}
@@ -295,7 +295,7 @@ def editar(post_id):
     return render_template("foro/formulario.html", post=post, canal=canal, accion="Guardar")
 
 
-# ── Eliminacion de post ───────────────────────────────────────────────────────
+# ── Eliminación de post ───────────────────────────────────────────────────────
 
 @foro_bp.route("/eliminar/<post_id>", methods=["POST"])
 @login_required
@@ -336,7 +336,7 @@ def eliminar(post_id):
     return redirect(url_for("foro.listar"))
 
 
-# ── Eliminacion de respuesta ──────────────────────────────────────────────────
+# ── Eliminación de respuesta ──────────────────────────────────────────────────
 
 @foro_bp.route("/respuesta/eliminar/<respuesta_id>", methods=["POST"])
 @login_required

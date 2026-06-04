@@ -1,8 +1,8 @@
 """
-app.py - Punto de entrada de la aplicacion FAMA.
+app.py - Punto de entrada de la aplicación FAMA.
 
-Crea la aplicacion Flask mediante el patron factoria (create_app),
-registra todos los blueprints de cada modulo y configura el
+Crea la aplicación Flask mediante el patron factoria (create_app),
+registra todos los blueprints de cada módulo y configura el
 contexto global de plantillas.
 """
 import time
@@ -19,12 +19,12 @@ def _limpiar_expirados(db, static_folder):
     """Elimina anuncios cuya fecha_expiracion ya ha pasado, incluyendo sus fotos."""
     from utils.uploads import eliminar_imagenes
     ahora = datetime.now()
-    modulos = [
+    módulos = [
         (db.viviendas,    "viviendas"),
         (db.servicios,    "servicios"),
         (db.compraventa,  "compraventa"),
     ]
-    for coleccion, subcarpeta in modulos:
+    for coleccion, subcarpeta in módulos:
         expirados = list(coleccion.find({
             "fecha_expiracion": {"$exists": True, "$ne": None, "$lte": ahora},
         }))
@@ -35,12 +35,12 @@ def _limpiar_expirados(db, static_folder):
             except Exception:
                 pass
 
-# Clase de configuracion que lee variables de entorno
+# Clase de configuración que lee variables de entorno
 from utils.config import Config
 
-# Blueprint de cada modulo funcional de la aplicacion
-from routes.main import main_bp           # Pagina principal y dashboard
-from routes.auth import auth_bp           # Registro, login, logout y contrasenas
+# Blueprint de cada módulo funcional de la aplicación
+from routes.main import main_bp           # Página principal y dashboard
+from routes.auth import auth_bp           # Registro, login, logout y contraseñas
 from routes.viviendas import viviendas_bp # Anuncios de alquiler e intercambio
 from routes.servicios import servicios_bp # Servicios entre personal militar
 from routes.compraventa import compraventa_bp  # Segunda mano y tienda Armada
@@ -52,20 +52,20 @@ from routes.novedades import novedades_bp     # Novedades y anuncios del admin
 
 def create_app():
     """
-    Factoria de la aplicacion Flask.
+    Factoria de la aplicación Flask.
 
     Centraliza la creacion de la app para facilitar pruebas unitarias
     e integracion con servidores WSGI como gunicorn.
     """
     app = Flask(__name__)
 
-    # Cargar toda la configuracion desde utils/config.py (variables de entorno)
+    # Cargar toda la configuración desde utils/config.py (variables de entorno)
     app.config.from_object(Config)
 
     # ── Registro de blueprints ────────────────────────────────────────────────
     # Cada blueprint tiene su propio prefijo de URL definido en su archivo.
-    # El orden no afecta el funcionamiento, pero se mantiene logico:
-    # primero los modulos publicos, luego los de autenticacion y admin.
+    # El orden no afecta el funcionamiento, pero se mantiene lógico:
+    # primero los módulos públicos, luego los de autenticación y admin.
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(viviendas_bp)
@@ -81,7 +81,7 @@ def create_app():
     # login. Las rutas interactivas llevan @login_required individualmente.
     # Aquí solo verificamos que los usuarios ya autenticados siguen activos.
     @app.before_request
-    def verificar_sesion():
+    def verificar_sesión():
         from bson import ObjectId
         from flask import request, flash
         if request.endpoint and (
@@ -121,7 +121,7 @@ def create_app():
 
     # ── Variables globales de plantillas ─────────────────────────────────────
     # Inyecta 'now' y 'hay_novedades' en TODAS las plantillas Jinja2.
-    # 'hay_novedades' controla si el boton NOVEDADES se ilumina en amarillo.
+    # 'hay_novedades' controla si el botón NOVEDADES se ilumina en amarillo.
     @app.context_processor
     def inyectar_contexto():
         from utils.db import get_db
@@ -169,8 +169,8 @@ def create_app():
     return app
 
 
-# ── Instancia global de la aplicacion ────────────────────────────────────────
-# Se crea aqui (y no solo en __main__) para que gunicorn pueda importarla
+# ── Instancia global de la aplicación ────────────────────────────────────────
+# Se crea aquí (y no solo en __main__) para que gunicorn pueda importarla
 # directamente con: gunicorn "app:app"
 app = create_app()
 

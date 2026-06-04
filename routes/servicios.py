@@ -1,5 +1,5 @@
 """
-routes/servicios.py - Rutas del modulo de Servicios (CRUD completo).
+routes/servicios.py - Rutas del módulo de Servicios (CRUD completo).
 
 Gestiona ofertas y busquedas de servicios entre el personal militar.
 """
@@ -79,7 +79,7 @@ def nuevo():
         datos["fotos"] = guardar_imagenes(request.files.getlist("fotos"), "servicios")
         modelo.crear(datos, session["user_id"], session["nombre"])
         registrar_log(db, "registro", "crear_servicio", session["nombre"],
-                      f"Titulo: {datos['titulo']}, Categoria: {datos['categoria']}")
+                      f"Título: {datos['titulo']}, Categoría: {datos['categoria']}")
         actualizar_contadores(db)
 
         flash("Anuncio de servicio publicado correctamente.", "success")

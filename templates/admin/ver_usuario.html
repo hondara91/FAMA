@@ -75,7 +75,7 @@
         {# Validar si está pendiente #}
         {% if usuario.activo and not usuario.get('validado') %}
         <div class="alert alert-warning d-flex justify-content-between align-items-center mb-0">
-            <span><i class="bi bi-exclamation-circle me-2"></i>Esta cuenta esta pendiente de validacion.</span>
+            <span><i class="bi bi-exclamation-circle me-2"></i>Esta cuenta está pendiente de validación.</span>
             <form method="POST" action="{{ url_for('admin.validar_usuario', user_id=usuario._id) }}">
                 <button type="submit" class="btn btn-success btn-sm">
                     <i class="bi bi-person-check me-1"></i>Aprobar
@@ -95,7 +95,7 @@
                     </a>
 
                     <form method="POST" action="{{ url_for('admin.resetear_password', user_id=usuario._id) }}"
-                          onsubmit="return confirm('Resetear contraseña de {{ usuario.nombre }}?')">
+                          onsubmit="return confirm('¿Resetear contraseña de {{ usuario.nombre }}?')">
                         <button type="submit" class="btn btn-outline-warning">
                             <i class="bi bi-key me-1"></i>Resetear contraseña
                         </button>
@@ -110,7 +110,7 @@
 
                     {% if session.rol == 'admin' and usuario.activo %}
                     <form method="POST" action="{{ url_for('admin.eliminar_usuario', user_id=usuario._id) }}"
-                          onsubmit="return confirm('Desactivar a {{ usuario.nombre }}?')">
+                          onsubmit="return confirm('¿Desactivar a {{ usuario.nombre }}?')">
                         <button type="submit" class="btn btn-outline-danger">
                             <i class="bi bi-person-x me-1"></i>Desactivar cuenta
                         </button>
@@ -144,7 +144,7 @@
         {# Información adicional #}
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <h6 class="mb-3"><i class="bi bi-info-circle me-2"></i>Informacion adicional</h6>
+                <h6 class="mb-3"><i class="bi bi-info-circle me-2"></i>Información adicional</h6>
                 <dl class="row mb-0 small">
                     <dt class="col-sm-4 text-muted">ID MongoDB</dt>
                     <dd class="col-sm-8 font-monospace">{{ usuario._id }}</dd>

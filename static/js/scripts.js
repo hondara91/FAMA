@@ -1,18 +1,18 @@
 /**
- * scripts.js - Scripts personalizados de la aplicacion FAMA.
- * Funciones de utilidad globales usadas en todas las paginas.
+ * scripts.js - Scripts personalizados de la aplicación FAMA.
+ * Funciones de utilidad globales usadas en todas las páginas.
  */
 
 /**
- * Muestra un dialogo de confirmacion antes de eliminar un elemento.
+ * Muestra un diálogo de confirmación antes de eliminar un elemento.
  * Se llama desde los atributos onsubmit de los formularios de borrado.
  */
 function confirmarEliminacion() {
-    return confirm('Estas seguro de que quieres eliminar este elemento? Esta accion no se puede deshacer.');
+    return confirm('¿Estás seguro de que quieres eliminar este elemento? Esta acción no se puede deshacer.');
 }
 
 /**
- * Cierra automaticamente las alertas flash despues de 5 segundos.
+ * Cierra automáticamente las alertas flash después de 5 segundos.
  */
 document.addEventListener('DOMContentLoaded', function () {
     const alertas = document.querySelectorAll('.alert.alert-dismissible');
@@ -90,10 +90,10 @@ document.addEventListener('DOMContentLoaded', function () {
 }());
 
 /**
- * Lightbox: abre las fotos de un anuncio ampliadas con navegacion prev/next.
- * Las imagenes deben tener la clase .fama-lightbox y los atributos:
+ * Lightbox: abre las fotos de un anuncio ampliadas con navegación prev/next.
+ * Las imágenes deben tener la clase .fama-lightbox y los atributos:
  *   data-fotos  -> JSON array de URLs absolutas de todas las fotos del anuncio
- *   data-index  -> indice (0-based) de la foto actual dentro del array
+ *   data-index  -> índice (0-based) de la foto actual dentro del array
  */
 (function () {
     var fotos = [];
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
             abrir(lista, indice);
         });
 
-        // Botones de navegacion
+        // Botones de navegación
         var btnPrev = document.getElementById('lbPrev');
         var btnNext = document.getElementById('lbNext');
         if (btnPrev) btnPrev.addEventListener('click', function () {
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
             mostrar();
         });
 
-        // Navegacion con teclado (flechas)
+        // Navegación con teclado (flechas)
         document.addEventListener('keydown', function (e) {
             var modal = document.getElementById('famaLightbox');
             if (!modal || !modal.classList.contains('show')) return;

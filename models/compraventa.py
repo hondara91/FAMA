@@ -1,7 +1,7 @@
 """
-models/compraventa.py - Modelo de datos para el modulo de Compra-Venta.
+models/compraventa.py - Modelo de datos para el módulo de Compra-Venta.
 
-Gestiona dos tipos de articulos en la misma coleccion MongoDB:
+Gestiona dos tipos de artículos en la misma coleccion MongoDB:
   - Articulos de segunda mano generales (es_merchandising=False).
   - Merchandising oficial de unidades de la Armada (es_merchandising=True),
     que se muestran en la seccion especial 'Tienda Armada'.
@@ -17,7 +17,7 @@ class Compraventa:
     def __init__(self, db):
         self.coleccion = db.compraventa
 
-    # ── Creacion ──────────────────────────────────────────────────────────────
+    # ── Creación ──────────────────────────────────────────────────────────────
 
     def crear(self, datos, user_id, nombre_usuario):
         """Construye y persiste el documento de un nuevo articulo. Devuelve su ObjectId."""
@@ -26,7 +26,7 @@ class Compraventa:
             "uco":             datos.get("uco"),          # Unidad, Centro u Organismo del vendedor
             "precio":          datos.get("precio"),
             "descripcion":     datos.get("descripcion"),
-            # Flag que determina si el articulo va a la seccion Tienda Armada
+            # Flag que determina si el articulo va a la sección Tienda Armada
             "es_merchandising": datos.get("es_merchandising", False),
             # Solo relevante si es_merchandising=True; nombre de la unidad Armada
             "unidad_armada":    datos.get("unidad_armada", ""),
@@ -42,12 +42,12 @@ class Compraventa:
     # ── Consultas ─────────────────────────────────────────────────────────────
 
     def obtener_todos(self, filtros=None):
-        """Devuelve articulos ordenados por fecha de creacion descendente."""
+        """Devuelve artículos ordenados por fecha de creacion descendente."""
         return list(self.coleccion.find(filtros or {}).sort("fecha_creacion", -1))
 
     def obtener_merchandising(self):
         """
-        Devuelve solo los articulos de la Tienda Armada.
+        Devuelve solo los artículos de la Tienda Armada.
         La ruta /compraventa/ usa un filtro separado para excluirlos
         y mostrar solo segunda mano general.
         """
@@ -58,10 +58,10 @@ class Compraventa:
         return self.coleccion.find_one({"_id": ObjectId(anuncio_id)})
 
     def obtener_por_usuario(self, user_id):
-        """Devuelve los articulos publicados por un usuario especifico."""
+        """Devuelve los artículos publicados por un usuario especifico."""
         return list(self.coleccion.find({"usuario_id": user_id}).sort("fecha_creacion", -1))
 
-    # ── Actualizacion y borrado ───────────────────────────────────────────────
+    # ── Actualización y borrado ───────────────────────────────────────────────
 
     def actualizar(self, anuncio_id, datos):
         """Actualiza campos con $set y renueva la fecha de modificacion."""
@@ -78,10 +78,10 @@ class Compraventa:
         """
         Traduce los parametros GET del buscador a una query MongoDB.
         La ruta /compraventa/ anade manualmente 'es_merchandising=False'
-        despues de llamar a este metodo para excluir la Tienda Armada.
+        después de llamar a este metodo para excluir la Tienda Armada.
         """
         query = {}
-        # Busqueda parcial insensible a mayusculas para nombre y UCO
+        # Búsqueda parcial insensible a mayúsculas para nombre y UCO
         if form_data.get("nombre_articulo"):
             query["nombre_articulo"] = {"$regex": form_data["nombre_articulo"], "$options": "i"}
         if form_data.get("uco"):

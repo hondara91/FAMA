@@ -1,5 +1,5 @@
 """
-models/servicio.py - Modelo de datos para el modulo de Servicios.
+models/servicio.py - Modelo de datos para el módulo de Servicios.
 
 Gestiona anuncios en los que el personal militar puede ofrecer
 o buscar servicios: clases, viajes compartidos, trabajos, etc.
@@ -15,7 +15,7 @@ class Servicio:
     def __init__(self, db):
         self.coleccion = db.servicios
 
-    # ── Creacion ──────────────────────────────────────────────────────────────
+    # ── Creación ──────────────────────────────────────────────────────────────
 
     def crear(self, datos, user_id, nombre_usuario):
         """Construye y persiste el documento de un nuevo anuncio. Devuelve su ObjectId."""
@@ -51,7 +51,7 @@ class Servicio:
         """Devuelve los servicios publicados por un usuario especifico."""
         return list(self.coleccion.find({"usuario_id": user_id}).sort("fecha_creacion", -1))
 
-    # ── Actualizacion y borrado ───────────────────────────────────────────────
+    # ── Actualización y borrado ───────────────────────────────────────────────
 
     def actualizar(self, anuncio_id, datos):
         """Actualiza campos con $set y renueva la fecha de modificacion."""
@@ -77,7 +77,7 @@ class Servicio:
             query["categoria"] = form_data["categoria"]
         if form_data.get("modalidad"):
             query["modalidad"] = form_data["modalidad"]
-        # Busqueda parcial insensible a mayusculas para texto libre
+        # Búsqueda parcial insensible a mayúsculas para texto libre
         if form_data.get("ciudad"):
             query["ciudad"] = {"$regex": form_data["ciudad"], "$options": "i"}
         if form_data.get("titulo"):

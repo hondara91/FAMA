@@ -8,7 +8,7 @@
 
 {% block content %}
 
-{# ── Cabecera con navegacion y acciones ──────────────────────────────────── #}
+{# ── Cabecera con navegación y acciones ──────────────────────────────────── #}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-calendar3 text-info me-2"></i>Calendario de Eventos</h2>
     <div>
@@ -51,15 +51,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const cal = new FullCalendar.Calendar(document.getElementById('calendario'), {
         initialView: 'dayGridMonth',  // Vista por defecto: mes en cuadricula
-        locale: 'es',                 // Localizacion en espanol (cabecera y navegacion)
+        locale: 'es',                 // Localizacion en espanol (cabecera y navegación)
         headerToolbar: {
-            left:   'prev,next today',            // Navegacion temporal
-            center: 'title',                       // Titulo del mes/semana actual
+            left:   'prev,next today',            // Navegación temporal
+            center: 'title',                       // Título del mes/semana actual
             right:  'dayGridMonth,timeGridWeek,listWeek'  // Cambio de vista
         },
         events: eventos,  // Array de objetos {id, title, start, color}
 
-        // Al hacer clic en un evento, navegar a su pagina de detalle
+        // Al hacer clic en un evento, navegar a su página de detalle
         eventClick: function(info) {
             window.location.href = '/ocio/detalle/' + info.event.id;
         },

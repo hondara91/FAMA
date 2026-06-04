@@ -21,8 +21,8 @@
             </div>
             <div class="col-md-3">
                 <select name="categoria" class="form-select form-select-sm">
-                    <option value="">Categoria</option>
-                    {% for c in ['Viajes compartidos', 'Clases de apoyo', 'Trabajos', 'Ninera', 'Consultoria', 'Otros'] %}
+                    <option value="">Categoría</option>
+                    {% for c in ['Viajes compartidos', 'Clases de apoyo', 'Trabajos', 'Consultoría', 'Otros'] %}
                     <option value="{{ c }}" {% if filtros.get('categoria')==c %}selected{% endif %}>{{ c }}</option>
                     {% endfor %}
                 </select>

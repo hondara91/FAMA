@@ -10,11 +10,11 @@
     </a>
 </div>
 
-{# ── Publicacion principal ────────────────────────────────────────────────── #}
+{# ── Publicación principal ────────────────────────────────────────────────── #}
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-4">
 
-        {# Cabecera: avatar, titulo y acciones del propietario #}
+        {# Cabecera: avatar, título y acciones del propietario #}
         <div class="d-flex justify-content-between align-items-start mb-3">
             <div class="d-flex align-items-start gap-3">
                 {% if post.foto_autor %}
@@ -31,7 +31,7 @@
                     <div class="small text-muted">{{ post.nombre_usuario }}</div>
                 </div>
             </div>
-            {# Botones de edicion/borrado: solo propietario o privilegiado #}
+            {# Botones de edición/borrado: solo propietario o privilegiado #}
             <div class="d-flex gap-1 ms-3 flex-shrink-0">
                 {# Editar: admin edita todos; usuario solo el suyo #}
                 {% if session.user_id and (session.rol == 'admin' or session.user_id == post.usuario_id) %}
@@ -57,7 +57,7 @@
             <span><i class="bi bi-clock me-1"></i>
                 {{ post.fecha_creacion.strftime('%d/%m/%Y %H:%M') if post.fecha_creacion else '' }}
             </span>
-            {# Indicador de edicion si la fecha de modificacion es posterior a la de creacion #}
+            {# Indicador de edición si la fecha de modificacion es posterior a la de creación #}
             {% if post.fecha_modificacion and post.fecha_modificacion != post.fecha_creacion %}
             <span class="text-secondary"><i class="bi bi-pencil-square me-1"></i>
                 Editado {{ post.fecha_modificacion.strftime('%d/%m/%Y %H:%M') }}
@@ -155,7 +155,7 @@
     {% endfor %}
 </div>
 {% else %}
-<p class="text-muted small mb-4">Todavia no hay respuestas. Se el primero en responder.</p>
+<p class="text-muted small mb-4">Todavía no hay respuestas. Sé el primero en responder.</p>
 {% endif %}
 
 {# ── Formulario de respuesta ──────────────────────────────────────────────── #}

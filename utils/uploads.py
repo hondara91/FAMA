@@ -29,7 +29,7 @@ def guardar_imagenes(archivos, subcarpeta: str) -> list:
         ext = archivo.filename.rsplit(".", 1)[-1].lower() if "." in archivo.filename else ""
         if ext not in _EXTENSIONES:
             continue
-        # Nombre unico: timestamp_microsegundos + nombre seguro para evitar colisiones
+        # Nombre único: timestamp_microsegundos + nombre seguro para evitar colisiones
         nombre = f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}_{secure_filename(archivo.filename)}"
         carpeta = os.path.join(current_app.static_folder, "uploads", subcarpeta)
         os.makedirs(carpeta, exist_ok=True)

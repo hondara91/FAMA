@@ -24,7 +24,7 @@
                     </div>
                     <div>
                         <h5 class="mb-0">{{ c.nombre }}</h5>
-                        <small class="text-muted">{{ c.num_posts }} publicacion{{ 'es' if c.num_posts != 1 else '' }}</small>
+                        <small class="text-muted">{{ c.num_posts }} publicación{{ 'es' if c.num_posts != 1 else '' }}</small>
                     </div>
                 </div>
                 {% if c.descripcion %}
@@ -38,7 +38,7 @@
                 </a>
                 {% if session.rol in ('admin', 'gestor') %}
                 <form method="POST" action="{{ url_for('foro.eliminar_canal', canal_id=c._id) }}"
-                      onsubmit="return confirm('Eliminar el canal {{ c.nombre }} y todos sus posts?')">
+                      onsubmit="return confirm('¿Eliminar el canal {{ c.nombre }} y todos sus posts?')">
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                         <i class="bi bi-trash"></i>
                     </button>
@@ -52,7 +52,7 @@
 {% else %}
 <div class="text-center py-5 text-muted">
     <i class="bi bi-chat-dots fs-1 d-block mb-3"></i>
-    <p>Todavia no hay canales en el foro.</p>
+    <p>Todavía no hay canales en el foro.</p>
     <a href="{{ url_for('foro.nuevo_canal') }}" class="btn btn-primary">Crear el primer canal</a>
 </div>
 {% endif %}

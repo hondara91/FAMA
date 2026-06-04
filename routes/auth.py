@@ -1,11 +1,11 @@
 """
-routes/auth.py - Rutas de autenticacion de FAMA.
+routes/auth.py - Rutas de autenticación de FAMA.
 
 Gestiona todo el ciclo de identidad del usuario:
   /auth/registro        -> Crear nueva cuenta
-  /auth/login           -> Iniciar sesion
-  /auth/logout          -> Cerrar sesion
-  /auth/cambiar-password-> Cambiar contrasenia (usuario autenticado)
+  /auth/login           -> Iniciar sesión
+  /auth/logout          -> Cerrar sesión
+  /auth/cambiar-password-> Cambiar contraseña (usuario autenticado)
   /auth/recuperar       -> Recuperar cuenta via pregunta de seguridad
 """
 import os
@@ -130,7 +130,7 @@ def registro():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     """Muestra el formulario de login (GET) y autentica al usuario (POST)."""
-    # Si ya tiene sesion activa, redirigir al inicio sin mostrar el formulario
+    # Si ya tiene sesión activa, redirigir al inicio sin mostrar el formulario
     if "user_id" in session:
         return redirect(url_for("main.index"))
 
@@ -152,8 +152,8 @@ def login():
                 flash("Usuario o contraseña incorrectos.", "danger")
             return render_template("auth/login.html")
 
-        # ── Construir la sesion Flask ─────────────────────────────────────────
-        # Solo se guardan los datos necesarios en la cookie de sesion (firmada con SECRET_KEY)
+        # ── Construir la sesión Flask ─────────────────────────────────────────
+        # Solo se guardan los datos necesarios en la cookie de sesión (firmada con SECRET_KEY)
         session["user_id"]    = str(usuario["_id"])
         session["nombre"]     = usuario["nombre"]
         session["rol"]        = usuario["rol"]
@@ -179,19 +179,19 @@ def login():
 
 @auth_bp.route("/logout")
 def logout():
-    """Destruye la sesion activa y redirige al login."""
+    """Destruye la sesión activa y redirige al login."""
     nombre = session.get("nombre", "")
-    session.clear()  # Elimina todos los datos de la cookie de sesion
+    session.clear()  # Elimina todos los datos de la cookie de sesión
     flash(f"Sesion cerrada. Hasta pronto, {nombre}!", "info")
     return redirect(url_for("auth.login"))
 
 
-# ── Cambio de contrasenia (usuario autenticado) ───────────────────────────────
+# ── Cambio de contraseña (usuario autenticado) ───────────────────────────────
 
 @auth_bp.route("/cambiar-password", methods=["GET", "POST"])
-@login_required  # Requiere sesion activa
+@login_required  # Requiere sesión activa
 def cambiar_password():
-    """Permite al usuario autenticado actualizar su propia contrasenia."""
+    """Permite al usuario autenticado actualizar su propia contraseña."""
     if request.method == "POST":
         db = get_db()
         modelo = Usuario(db)
@@ -201,7 +201,7 @@ def cambiar_password():
         confirmar = request.form.get("confirmar_password", "")
 
         if not modelo.autenticar(session["nombre"], password_actual):
-            flash("La contrasenia actual es incorrecta.", "danger")
+            flash("La contraseña actual es incorrecta.", "danger")
             return render_template("auth/cambiar_password.html")
 
         if nueva != confirmar:
@@ -310,7 +310,7 @@ def perfil():
 
     if not usuario:
         session.clear()
-        flash("No se ha encontrado tu usuario. Vuelve a iniciar sesion.", "warning")
+        flash("No se ha encontrado tu usuario. Vuelve a iniciar sesión.", "warning")
         return redirect(url_for("auth.login"))
 
     if request.method == "POST":

@@ -1,5 +1,5 @@
 """
-resetear_passwords.py - Pone la contrasena de todos los usuarios a 'fama1234'.
+resetear_passwords.py - Pone la contraseña de todos los usuarios a 'fama1234'.
 
 Util para entornos de desarrollo y pruebas. No ejecutar en produccion.
 
@@ -33,8 +33,8 @@ def resetear_passwords():
         }},
     )
 
-    print(f"[OK] {resultado.modified_count} usuario(s) actualizados a contrasena '{PASSWORD}'.")
-    print("     Todos deberan cambiarla en su proximo inicio de sesion.")
+    print(f"[OK] {resultado.modified_count} usuario(s) actualizados a contraseña '{PASSWORD}'.")
+    print("     Todos deberán cambiarla en su próximo inicio de sesión.")
     cliente.close()
 
 

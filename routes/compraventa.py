@@ -1,5 +1,5 @@
 """
-routes/compraventa.py - Rutas del modulo de Compra-Venta (CRUD completo).
+routes/compraventa.py - Rutas del módulo de Compra-Venta (CRUD completo).
 
 Incluye la seccion especial de merchandising de unidades de la Armada.
 """
@@ -28,7 +28,7 @@ compraventa_bp = Blueprint("compraventa", __name__, url_prefix="/compraventa")
 
 @compraventa_bp.route("/")
 def listar():
-    """Lista todos los articulos de compraventa (excluye merchandising)."""
+    """Lista todos los artículos de compraventa (excluye merchandising)."""
     db = get_db()
     modelo = Compraventa(db)
     filtros = modelo.construir_filtros(request.args)
@@ -41,8 +41,8 @@ def listar():
 def armada():
     """Seccion especial de merchandising de unidades de la Armada."""
     db = get_db()
-    articulos = Compraventa(db).obtener_merchandising()
-    return render_template("compraventa/armada.html", articulos=articulos)
+    artículos = Compraventa(db).obtener_merchandising()
+    return render_template("compraventa/armada.html", artículos=artículos)
 
 
 @compraventa_bp.route("/nuevo", methods=["GET", "POST"])
