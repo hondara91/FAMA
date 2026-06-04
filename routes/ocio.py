@@ -4,6 +4,7 @@ routes/ocio.py - Rutas del modulo de Ocio (CRUD + inscripciones + calendario).
 Gestiona eventos de ocio y el calendario unificado del personal militar.
 """
 import json
+from datetime import date as date_type
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
@@ -41,10 +42,15 @@ def nuevo():
         db = get_db()
         modelo = Ocio(db)
 
+        fecha_str = request.form.get("fecha", "")
+        if fecha_str < date_type.today().isoformat():
+            flash("No puedes crear un evento con una fecha pasada.", "danger")
+            return render_template("ocio/formulario.html", evento=None, accion="Crear")
+
         datos = {
             "tipo_evento": request.form.get("tipo_evento"),
             "titulo": request.form.get("titulo", "").strip(),
-            "fecha": request.form.get("fecha"),
+            "fecha": fecha_str,
             "hora": request.form.get("hora"),
             "lugar": request.form.get("lugar", "").strip(),
             "aforo_maximo": request.form.get("aforo_maximo", 0),
@@ -81,10 +87,15 @@ def editar(evento_id):
         return redirect(url_for("ocio.listar"))
 
     if request.method == "POST":
+        fecha_str = request.form.get("fecha", "")
+        if fecha_str < date_type.today().isoformat():
+            flash("No puedes establecer una fecha pasada.", "danger")
+            return render_template("ocio/formulario.html", evento=evento, accion="Editar")
+
         datos = {
             "tipo_evento": request.form.get("tipo_evento"),
             "titulo": request.form.get("titulo", "").strip(),
-            "fecha": request.form.get("fecha"),
+            "fecha": fecha_str,
             "hora": request.form.get("hora"),
             "lugar": request.form.get("lugar", "").strip(),
             "aforo_maximo": int(request.form.get("aforo_maximo", 0)),

@@ -9,11 +9,9 @@
             <i class="bi bi-star me-1"></i>Ver Tienda Armada
         </a>
     </div>
-    {% if session.user_id %}
     <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-warning">
         <i class="bi bi-plus-lg me-1"></i>Publicar articulo
     </a>
-    {% endif %}
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
@@ -41,9 +39,12 @@
     <div class="col-md-6 col-lg-3">
         <div class="card h-100 border-0 shadow-sm">
             {% if a.fotos %}
-            <div class="position-relative">
+            <div class="position-relative fama-img-wrap">
                 <img src="{{ url_for('static', filename='uploads/compraventa/' + a.fotos[0]) }}"
-                     class="card-img-top" style="height:160px;object-fit:cover" alt="foto">
+                     class="card-img-top fama-img-zoom fama-lightbox"
+                     style="height:160px;object-fit:cover" alt="foto"
+                     data-fotos='[{% for f in a.fotos %}"{{ url_for('static', filename='uploads/compraventa/' + f) }}"{% if not loop.last %},{% endif %}{% endfor %}]'
+                     data-index="0">
                 {% if a.fotos|length > 1 %}
                 <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark bg-opacity-75">
                     <i class="bi bi-images me-1"></i>{{ a.fotos|length }}
@@ -57,17 +58,24 @@
                 <h5 class="text-warning">{{ a.precio }}€</h5>
                 <p class="text-muted small">{{ a.descripcion|truncate(70) }}</p>
             </div>
-            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
-                <small class="text-muted"><i class="bi bi-person me-1"></i>{{ a.nombre_usuario }}</small>
-                <div class="d-flex gap-1">
-                    <a href="{{ url_for('compraventa.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-warning">Ver</a>
-                    {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
-                    <a href="{{ url_for('compraventa.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                    <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=a._id) }}"
-                          onsubmit="return confirmarEliminacion()">
-                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                    </form>
-                    {% endif %}
+            <div class="card-footer bg-white border-0">
+                {% if a.get('fecha_expiracion') %}
+                <div class="text-warning small mb-1">
+                    <i class="bi bi-clock me-1"></i>Expira {{ a.fecha_expiracion.strftime('%d/%m/%Y') }}
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted"><i class="bi bi-person me-1"></i>{{ a.nombre_usuario }}</small>
+                    <div class="d-flex gap-1">
+                        <a href="{{ url_for('compraventa.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-warning">Ver</a>
+                        {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
+                        <a href="{{ url_for('compraventa.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=a._id) }}"
+                              onsubmit="return confirmarEliminacion()">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -78,9 +86,7 @@
 <div class="text-center py-5 text-muted">
     <i class="bi bi-shop fs-1 d-block mb-3"></i>
     <p>No hay articulos disponibles.</p>
-    {% if session.user_id %}
     <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-warning">Publicar el primero</a>
-    {% endif %}
 </div>
 {% endif %}
 {% endblock %}

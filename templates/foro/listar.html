@@ -5,11 +5,9 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-chat-dots text-primary me-2"></i>Foro</h2>
-    {% if session.user_id %}
     <a href="{{ url_for('foro.nuevo_canal') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i>Nuevo canal
     </a>
-    {% endif %}
 </div>
 
 {% if canales %}
@@ -55,11 +53,7 @@
 <div class="text-center py-5 text-muted">
     <i class="bi bi-chat-dots fs-1 d-block mb-3"></i>
     <p>Todavia no hay canales en el foro.</p>
-    {% if session.user_id %}
     <a href="{{ url_for('foro.nuevo_canal') }}" class="btn btn-primary">Crear el primer canal</a>
-    {% else %}
-    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">Inicia sesion para crear un canal</a>
-    {% endif %}
 </div>
 {% endif %}
 

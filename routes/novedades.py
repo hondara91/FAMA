@@ -19,7 +19,7 @@ Rutas:
   POST /novedades/nueva         -> publicar (admin o gestor)
   POST /novedades/eliminar/<id> -> eliminar (admin o gestor)
 """
-from datetime import datetime
+from datetime import date as date_type, datetime
 
 from bson import ObjectId
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
@@ -67,13 +67,27 @@ def nueva():
         valor = request.form.get(nombre, "").strip()
         return valor if valor else None
 
+    hoy = date_type.today().isoformat()
+    fecha_inicio = campo("fecha_inicio")
+    fecha_fin    = campo("fecha_fin")
+
+    if fecha_inicio and fecha_inicio < hoy:
+        flash("La fecha de inicio no puede ser una fecha pasada.", "danger")
+        return redirect(url_for("novedades.listar"))
+    if fecha_fin and fecha_fin < hoy:
+        flash("La fecha de fin no puede ser una fecha pasada.", "danger")
+        return redirect(url_for("novedades.listar"))
+    if fecha_inicio and fecha_fin and fecha_fin < fecha_inicio:
+        flash("La fecha de fin no puede ser anterior a la fecha de inicio.", "danger")
+        return redirect(url_for("novedades.listar"))
+
     novedad = {
         "tipo":          tipo,
         "destino":       campo("destino"),
         "empleo":        campo("empleo"),
         "localidad":     campo("localidad"),
-        "fecha_inicio":  campo("fecha_inicio"),
-        "fecha_fin":     campo("fecha_fin"),
+        "fecha_inicio":  fecha_inicio,
+        "fecha_fin":     fecha_fin,
         "observaciones": campo("observaciones"),
         "autor":         session["nombre"],
         "fecha_creacion": datetime.now(),

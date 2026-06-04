@@ -3,7 +3,12 @@
 
 {% block content %}
 
-{# ── Breadcrumb ───────────────────────────────────────────────────────────── #}
+<div class="mb-3">
+    <a href="{{ url_for('foro.listar') }}" onclick="history.back(); return false;"
+       class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+</div>
 
 {# ── Publicacion principal ────────────────────────────────────────────────── #}
 <div class="card border-0 shadow-sm mb-4">
@@ -154,7 +159,6 @@
 {% endif %}
 
 {# ── Formulario de respuesta ──────────────────────────────────────────────── #}
-{% if session.user_id %}
 <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
         <h6 class="mb-3"><i class="bi bi-reply me-2"></i>Escribir una respuesta</h6>
@@ -180,13 +184,5 @@
         </form>
     </div>
 </div>
-{% else %}
-{# Si no hay sesion, invitar al login para poder responder #}
-<div class="alert alert-info">
-    <i class="bi bi-info-circle me-2"></i>
-    <a href="{{ url_for('auth.login') }}" class="alert-link">Inicia sesion</a>
-    para poder responder en el foro.
-</div>
-{% endif %}
 
 {% endblock %}

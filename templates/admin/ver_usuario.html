@@ -101,6 +101,13 @@
                         </button>
                     </form>
 
+                    {% if session.rol == 'gestor' %}
+                    <button type="button" class="btn btn-outline-danger"
+                            data-bs-toggle="modal" data-bs-target="#modalReportarUsuario">
+                        <i class="bi bi-flag me-1"></i>Reportar usuario
+                    </button>
+                    {% endif %}
+
                     {% if session.rol == 'admin' and usuario.activo %}
                     <form method="POST" action="{{ url_for('admin.eliminar_usuario', user_id=usuario._id) }}"
                           onsubmit="return confirm('Desactivar a {{ usuario.nombre }}?')">
@@ -149,5 +156,39 @@
 
     </div>
 </div>
+
+{# ── Modal: Reportar usuario (solo gestor) ────────────────────────────────── #}
+{% if session.rol == 'gestor' %}
+<div class="modal fade" id="modalReportarUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-flag me-2 text-danger"></i>Reportar a {{ usuario.nombre }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.reportar_usuario', user_id=usuario._id) }}">
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Este reporte será visible para los administradores.
+                    </p>
+                    <div>
+                        <label class="form-label">Motivo del reporte <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="motivo" rows="4"
+                                  placeholder="Describe el motivo del reporte..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-flag me-1"></i>Enviar reporte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}

@@ -10,6 +10,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     {# Bootstrap Icons: iconos vectoriales usados en botones, nav y badges #}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    {# Favicon: logohead.png — múltiples tamaños para mejor calidad en distintos contextos #}
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='img/logohead.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32"   href="{{ url_for('static', filename='img/logohead.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180"      href="{{ url_for('static', filename='img/logohead.png') }}">
     {# Estilos propios de FAMA: navbar naval, hero, tarjetas, footer... #}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 
@@ -71,7 +75,7 @@
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('servicios') %}active{% endif %}"
                        href="{{ url_for('servicios.listar') }}">
-                        <i class="bi bi-gear me-1"></i>Servicios
+                        <i class="bi bi-car-front me-1"></i>Servicios
                     </a>
                 </li>
 
@@ -112,8 +116,16 @@
                     {# Acceso al panel de admin: solo visible para gestores y admins #}
                     {% if session.rol in ('admin', 'gestor') %}
                     <li class="nav-item">
-                        <a class="nav-link text-warning" href="{{ url_for('admin.panel') }}">
+                        <a class="nav-link text-warning position-relative" href="{{ url_for('admin.panel') }}">
                             <i class="bi bi-shield-lock me-1"></i>Panel Admin
+                            {% if alertas_admin_total > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                  style="font-size:0.65rem"
+                                  title="{% if alertas_admin.pendientes %}{{ alertas_admin.pendientes }} usuario(s) pendiente(s){% endif %}{% if alertas_admin.pendientes and alertas_admin.reportes %} · {% endif %}{% if alertas_admin.reportes %}{{ alertas_admin.reportes }} reporte(s) sin resolver{% endif %}">
+                                {{ alertas_admin_total }}
+                                <span class="visually-hidden">alertas pendientes</span>
+                            </span>
+                            {% endif %}
                         </a>
                     </li>
                     {% endif %}
@@ -138,13 +150,15 @@
                             <li><a class="dropdown-item" href="{{ url_for('auth.cambiar_password') }}">
                                 <i class="bi bi-key me-1"></i>Cambiar contraseña</a></li>
 
-                            {# Simulación de rol: solo visible para el admin real #}
-                            {% if session.get('rol_real') == 'admin' or session.rol == 'admin' %}
+                            {# Selector de rol: visible para admin y gestor #}
+                            {% set _rol_base = session.get('rol_real') or session.rol %}
+                            {% if _rol_base in ('admin', 'gestor') %}
+                            {% set _roles_disp = ['admin', 'gestor', 'usuario'] if _rol_base == 'admin' else ['gestor', 'usuario'] %}
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">
-                                <i class="bi bi-mask me-1"></i>Simular rol
+                                <i class="bi bi-person-gear me-1"></i>Elegir rol
                             </h6></li>
-                            {% for rol_sim in ['admin', 'gestor', 'usuario'] %}
+                            {% for rol_sim in _roles_disp %}
                             <li>
                                 <a class="dropdown-item d-flex align-items-center gap-2
                                           {{ 'fw-bold' if session.rol == rol_sim else '' }}"
@@ -183,18 +197,6 @@
     </div>
 </nav>
 
-{# ── Banner de simulación de rol ─────────────────────────────────────────────
-   Visible solo cuando el admin está simulando un rol diferente al suyo.
-#}
-{% if session.get('rol_real') and session.rol != session.rol_real %}
-<div class="bg-warning text-dark text-center py-1 px-3 small fw-semibold">
-    <i class="bi bi-mask me-1"></i>
-    Simulando rol <strong>{{ session.rol|capitalize }}</strong> —
-    <a href="{{ url_for('auth.simular_rol', rol='admin') }}" class="text-dark">
-        Volver a admin
-    </a>
-</div>
-{% endif %}
 
 {# ── Mensajes Flash ──────────────────────────────────────────────────────────
    Flask envia mensajes de una sola vez con flash(); aqui se renderizan.
@@ -237,6 +239,24 @@
         </div>
     </div>
 </footer>
+
+{# ── Lightbox global ──────────────────────────────────────────────────────── #}
+<div class="modal fade" id="famaLightbox" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content position-relative">
+            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2"
+                    data-bs-dismiss="modal" style="z-index:20" aria-label="Cerrar"></button>
+            <button class="lb-btn-nav lb-prev" id="lbPrev" aria-label="Anterior">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="lb-btn-nav lb-next" id="lbNext" aria-label="Siguiente">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            <img id="lbImg" src="" alt="Imagen ampliada" class="lb-img">
+            <div class="lb-counter" id="lbCounter"></div>
+        </div>
+    </div>
+</div>
 
 {# Bootstrap 5 JS Bundle (incluye Popper para dropdowns y collapses) #}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

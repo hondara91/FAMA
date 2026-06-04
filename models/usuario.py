@@ -25,7 +25,8 @@ class Usuario:
 
     # ── Creacion ──────────────────────────────────────────────────────────────
 
-    def crear(self, nombre, email, rol="usuario", validado=False):
+    def crear(self, nombre, email, password=None, nombre_real="", apellidos="",
+              pregunta_seguridad=None, respuesta_seguridad=None, rol="usuario", validado=False):
         """
         Crea un nuevo usuario. Devuelve el ObjectId insertado, None si el email
         ya existe, o 'nombre_duplicado' si el nombre ya está en uso.
@@ -35,15 +36,18 @@ class Usuario:
         if self.coleccion.find_one({"nombre": {"$regex": f"^{nombre}$", "$options": "i"}}):
             return "nombre_duplicado"
 
+        password_hash = generate_password_hash(password) if password else generate_password_hash(secrets.token_hex(16))
+
         usuario = {
             "nombre": nombre,
+            "nombre_real": nombre_real,
+            "apellidos": apellidos,
             "email": email,
-            # Contrasena bloqueada hasta que el admin apruebe la cuenta y se asigne fama1234
-            "password": generate_password_hash(secrets.token_hex(16)),
+            "password": password_hash,
             "rol": rol,
             "foto_perfil": None,
-            "pregunta_seguridad": None,
-            "respuesta_seguridad": None,
+            "pregunta_seguridad": pregunta_seguridad,
+            "respuesta_seguridad": generate_password_hash(respuesta_seguridad.lower()) if respuesta_seguridad else None,
             "debe_cambiar_password": False,
             "activo": True,
             "validado": validado,
@@ -57,12 +61,12 @@ class Usuario:
 
     def autenticar(self, nombre, password):
         """
-        Verifica nombre de usuario y contrasena.
+        Verifica nombre de usuario y contrasena (case-insensitive).
         Devuelve el documento completo del usuario o None si falla.
         Solo permite el acceso a cuentas activas Y validadas por el admin.
         """
         usuario = self.coleccion.find_one({
-            "nombre": nombre,
+            "nombre": {"$regex": f"^{nombre}$", "$options": "i"},
             "activo": True,
             "validado": True,
         })
@@ -134,6 +138,16 @@ class Usuario:
             {"$set": {
                 "password": generate_password_hash(password_temporal),
                 "debe_cambiar_password": True,
+            }},
+        )
+
+    def configurar_seguridad(self, user_id, pregunta, respuesta):
+        """Establece la pregunta y respuesta de seguridad (primer acceso)."""
+        self.coleccion.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {
+                "pregunta_seguridad":  pregunta,
+                "respuesta_seguridad": generate_password_hash(respuesta.lower()),
             }},
         )
 

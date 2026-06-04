@@ -2,10 +2,11 @@
 {% block title %}FAMA - Mi Perfil{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
+<div class="row g-4">
 
-        {# ── Datos del usuario ─────────────────────────────────────────── #}
+    {# ── Columna izquierda: datos + foto ─────────────────────────────────── #}
+    <div class="col-md-4">
+
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body p-4 text-center">
                 {% if usuario.foto_perfil %}
@@ -44,7 +45,6 @@
             </div>
         </div>
 
-        {# ── Foto de perfil ────────────────────────────────────────────── #}
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <h5 class="mb-3"><i class="bi bi-camera me-2 text-primary"></i>Foto de perfil</h5>
@@ -69,5 +69,117 @@
         </div>
 
     </div>
+
+    {# ── Columna derecha: mis anuncios ───────────────────────────────────── #}
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="mb-4"><i class="bi bi-megaphone me-2 text-primary"></i>Mis anuncios</h5>
+
+                {% set total_anuncios = mis_anuncios.viviendas|length + mis_anuncios.servicios|length + mis_anuncios.compraventa|length + mis_anuncios.ocio|length %}
+
+                {% if total_anuncios == 0 %}
+                <p class="text-muted">Todavía no has publicado ningún anuncio.</p>
+
+                {% else %}
+
+                {# ── Viviendas ── #}
+                {% if mis_anuncios.viviendas %}
+                <h6 class="text-muted border-bottom pb-1 mb-2">
+                    <i class="bi bi-house-door me-1"></i>Viviendas ({{ mis_anuncios.viviendas|length }})
+                </h6>
+                <div class="d-flex flex-column gap-2 mb-4">
+                    {% for a in mis_anuncios.viviendas %}
+                    <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                        <div>
+                            <span class="badge bg-primary me-1">{{ a.tipo_oferta }}</span>
+                            <span class="small">{{ a.tipo_inmueble }} en {{ a.ciudad }}</span>
+                            {% if a.get('fecha_expiracion') %}
+                            <span class="text-warning small ms-2"><i class="bi bi-clock me-1"></i>{{ a.fecha_expiracion.strftime('%d/%m/%Y') }}</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('viviendas.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye me-1"></i>Ver
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# ── Servicios ── #}
+                {% if mis_anuncios.servicios %}
+                <h6 class="text-muted border-bottom pb-1 mb-2">
+                    <i class="bi bi-car-front me-1"></i>Servicios ({{ mis_anuncios.servicios|length }})
+                </h6>
+                <div class="d-flex flex-column gap-2 mb-4">
+                    {% for a in mis_anuncios.servicios %}
+                    <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                        <div>
+                            <span class="badge bg-success me-1">{{ a.tipo }}</span>
+                            <span class="small">{{ a.titulo }}</span>
+                            {% if a.get('fecha_expiracion') %}
+                            <span class="text-warning small ms-2"><i class="bi bi-clock me-1"></i>{{ a.fecha_expiracion.strftime('%d/%m/%Y') }}</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('servicios.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-eye me-1"></i>Ver
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# ── Compraventa ── #}
+                {% if mis_anuncios.compraventa %}
+                <h6 class="text-muted border-bottom pb-1 mb-2">
+                    <i class="bi bi-shop me-1"></i>Compra-Venta ({{ mis_anuncios.compraventa|length }})
+                </h6>
+                <div class="d-flex flex-column gap-2 mb-4">
+                    {% for a in mis_anuncios.compraventa %}
+                    <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                        <div>
+                            {% if a.es_merchandising %}
+                            <span class="badge bg-primary me-1">Armada</span>
+                            {% endif %}
+                            <span class="small">{{ a.nombre_articulo }}</span>
+                            <span class="text-warning small ms-1">{{ a.precio }}€</span>
+                            {% if a.get('fecha_expiracion') %}
+                            <span class="text-warning small ms-2"><i class="bi bi-clock me-1"></i>{{ a.fecha_expiracion.strftime('%d/%m/%Y') }}</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('compraventa.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-eye me-1"></i>Ver
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# ── Ocio ── #}
+                {% if mis_anuncios.ocio %}
+                <h6 class="text-muted border-bottom pb-1 mb-2">
+                    <i class="bi bi-calendar-event me-1"></i>Ocio ({{ mis_anuncios.ocio|length }})
+                </h6>
+                <div class="d-flex flex-column gap-2">
+                    {% for e in mis_anuncios.ocio %}
+                    <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                        <div>
+                            <span class="badge bg-info text-dark me-1">{{ e.tipo_evento }}</span>
+                            <span class="small">{{ e.titulo }}</span>
+                            <span class="text-muted small ms-2">{{ e.fecha }}</span>
+                        </div>
+                        <a href="{{ url_for('ocio.detalle', evento_id=e._id) }}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-eye me-1"></i>Ver
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

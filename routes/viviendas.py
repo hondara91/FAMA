@@ -6,6 +6,8 @@ Patron de permisos usado en editar y eliminar:
   - Los roles 'gestor' y 'admin' pueden modificar cualquier anuncio.
   - Un usuario sin relacion con el anuncio recibe un error 403 implicito.
 """
+from datetime import datetime
+
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from models.vivienda import Vivienda
@@ -17,6 +19,17 @@ from utils.uploads import eliminar_imagenes, guardar_imagenes
 
 def validar_telefono(telefono):
     return telefono == "" or (telefono.isdigit() and len(telefono) == 9)
+
+
+def _parsear_fecha_exp(fecha_str):
+    """Convierte 'YYYY-MM-DD' a datetime al final del día, o None si está vacío."""
+    if not fecha_str or not fecha_str.strip():
+        return None
+    try:
+        d = datetime.strptime(fecha_str.strip(), "%Y-%m-%d")
+        return d.replace(hour=23, minute=59, second=59)
+    except ValueError:
+        return None
 
 
 viviendas_bp = Blueprint("viviendas", __name__, url_prefix="/viviendas")
@@ -47,6 +60,11 @@ def nuevo():
         modelo = Vivienda(db)
 
         # Recoger y limpiar todos los campos del formulario
+        precio = request.form.get("precio", "").strip()
+        if not precio:
+            flash("El precio es obligatorio.", "danger")
+            return render_template("viviendas/formulario.html", anuncio=None, accion="Crear")
+
         telefono = request.form.get("telefono", "").strip()
         if not validar_telefono(telefono):
             flash("El teléfono debe contener exactamente 9 dígitos numéricos.", "danger")
@@ -66,18 +84,18 @@ def nuevo():
             return render_template("viviendas/formulario.html", anuncio=datos, accion="Crear")
 
         datos = {
-            "tipo_oferta":   request.form.get("tipo_oferta"),
-            "tipo_inmueble": request.form.get("tipo_inmueble"),
-            "ciudad":        request.form.get("ciudad", "").strip(),
-            "zona":          request.form.get("zona", "").strip(),
-            "habitaciones":  request.form.get("habitaciones"),
-            "banos":         request.form.get("banos"),
-            "planta":        request.form.get("planta", "").strip(),
-            "precio":        request.form.get("precio", "").strip(),
-            # getlist() recoge multiples valores del mismo nombre (checkboxes de extras)
-            "extras":        request.form.getlist("extras"),
-            "telefono":      telefono,
-            "descripcion":   request.form.get("descripcion", "").strip(),
+            "tipo_oferta":    request.form.get("tipo_oferta"),
+            "tipo_inmueble":  request.form.get("tipo_inmueble"),
+            "ciudad":         request.form.get("ciudad", "").strip(),
+            "zona":           request.form.get("zona", "").strip(),
+            "habitaciones":   request.form.get("habitaciones"),
+            "banos":          request.form.get("banos"),
+            "planta":         request.form.get("planta", "").strip(),
+            "precio":         request.form.get("precio", "").strip(),
+            "extras":         request.form.getlist("extras"),
+            "telefono":       telefono,
+            "descripcion":    request.form.get("descripcion", "").strip(),
+            "fecha_expiracion": _parsear_fecha_exp(request.form.get("fecha_expiracion")),
         }
 
         datos["fotos"] = guardar_imagenes(request.files.getlist("fotos"), "viviendas")
@@ -116,6 +134,11 @@ def editar(anuncio_id):
         return redirect(url_for("viviendas.listar"))
 
     if request.method == "POST":
+        precio_edit = request.form.get("precio", "").strip()
+        if not precio_edit:
+            flash("El precio es obligatorio.", "danger")
+            return render_template("viviendas/formulario.html", anuncio=anuncio, accion="Editar")
+
         telefono = request.form.get("telefono", "").strip()
         if not validar_telefono(telefono):
             flash("El teléfono debe contener exactamente 9 dígitos numéricos.", "danger")
@@ -136,17 +159,18 @@ def editar(anuncio_id):
             return render_template("viviendas/formulario.html", anuncio=datos, accion="Editar")
 
         datos = {
-            "tipo_oferta":   request.form.get("tipo_oferta"),
-            "tipo_inmueble": request.form.get("tipo_inmueble"),
-            "ciudad":        request.form.get("ciudad", "").strip(),
-            "zona":          request.form.get("zona", "").strip(),
-            "habitaciones":  request.form.get("habitaciones"),
-            "banos":         request.form.get("banos"),
-            "planta":        request.form.get("planta", "").strip(),
-            "precio":        request.form.get("precio", "").strip(),
-            "extras":        request.form.getlist("extras"),
-            "telefono":      telefono,
-            "descripcion":   request.form.get("descripcion", "").strip(),
+            "tipo_oferta":    request.form.get("tipo_oferta"),
+            "tipo_inmueble":  request.form.get("tipo_inmueble"),
+            "ciudad":         request.form.get("ciudad", "").strip(),
+            "zona":           request.form.get("zona", "").strip(),
+            "habitaciones":   request.form.get("habitaciones"),
+            "banos":          request.form.get("banos"),
+            "planta":         request.form.get("planta", "").strip(),
+            "precio":         request.form.get("precio", "").strip(),
+            "extras":         request.form.getlist("extras"),
+            "telefono":       telefono,
+            "descripcion":    request.form.get("descripcion", "").strip(),
+            "fecha_expiracion": _parsear_fecha_exp(request.form.get("fecha_expiracion")),
         }
         fotos = list(anuncio.get("fotos") or [])
         a_borrar = request.form.getlist("borrar_fotos")

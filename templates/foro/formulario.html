@@ -72,12 +72,15 @@
                         </button>
                         {% if post %}
                         <a href="{{ url_for('foro.detalle', post_id=post._id) }}"
+                           onclick="history.back(); return false;"
                            class="btn btn-outline-secondary">Cancelar</a>
                         {% elif canal %}
                         <a href="{{ url_for('foro.ver_canal', canal_id=canal._id) }}"
+                           onclick="history.back(); return false;"
                            class="btn btn-outline-secondary">Cancelar</a>
                         {% else %}
                         <a href="{{ url_for('foro.listar') }}"
+                           onclick="history.back(); return false;"
                            class="btn btn-outline-secondary">Cancelar</a>
                         {% endif %}
                     </div>

@@ -16,12 +16,9 @@
         <a href="{{ url_for('ocio.listar') }}" class="btn btn-sm btn-outline-info me-2">
             <i class="bi bi-list-ul me-1"></i>Ver lista
         </a>
-        {# Boton de crear evento: solo visible para usuarios autenticados #}
-        {% if session.user_id %}
         <a href="{{ url_for('ocio.nuevo') }}" class="btn btn-sm btn-info text-white">
             <i class="bi bi-plus-lg me-1"></i>Crear evento
         </a>
-        {% endif %}
     </div>
 </div>
 

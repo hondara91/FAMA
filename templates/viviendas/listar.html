@@ -6,12 +6,9 @@
 {# ── Cabecera de pagina ───────────────────────────────────────────────────── #}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-house-door text-primary me-2"></i>Viviendas</h2>
-    {# Boton de publicar: solo visible para usuarios autenticados #}
-    {% if session.user_id %}
     <a href="{{ url_for('viviendas.nuevo') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i>Publicar anuncio
     </a>
-    {% endif %}
 </div>
 
 {# ── Buscador con filtros ─────────────────────────────────────────────────── #}
@@ -69,9 +66,12 @@
     <div class="col-md-6 col-lg-4">
         <div class="card h-100 border-0 shadow-sm">
             {% if a.fotos %}
-            <div class="position-relative">
+            <div class="position-relative fama-img-wrap">
                 <img src="{{ url_for('static', filename='uploads/viviendas/' + a.fotos[0]) }}"
-                     class="card-img-top" style="height:160px;object-fit:cover" alt="foto">
+                     class="card-img-top fama-img-zoom fama-lightbox"
+                     style="height:160px;object-fit:cover" alt="foto"
+                     data-fotos='[{% for f in a.fotos %}"{{ url_for('static', filename='uploads/viviendas/' + f) }}"{% if not loop.last %},{% endif %}{% endfor %}]'
+                     data-index="0">
                 {% if a.fotos|length > 1 %}
                 <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark bg-opacity-75">
                     <i class="bi bi-images me-1"></i>{{ a.fotos|length }}
@@ -94,7 +94,13 @@
                 {# truncate(80): limitar descripcion para que las tarjetas tengan altura uniforme #}
                 <p class="text-muted small">{{ a.descripcion|truncate(80) }}</p>
             </div>
-            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+            <div class="card-footer bg-white border-0">
+                {% if a.get('fecha_expiracion') %}
+                <div class="text-warning small mb-1">
+                    <i class="bi bi-clock me-1"></i>Expira {{ a.fecha_expiracion.strftime('%d/%m/%Y') }}
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted"><i class="bi bi-person me-1"></i>{{ a.nombre_usuario }}</small>
                 <div class="d-flex gap-1">
                     <a href="{{ url_for('viviendas.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
@@ -110,6 +116,7 @@
                     </form>
                     {% endif %}
                 </div>
+                </div>
             </div>
         </div>
     </div>
@@ -120,9 +127,7 @@
 <div class="text-center py-5 text-muted">
     <i class="bi bi-house-door fs-1 d-block mb-3"></i>
     <p>No hay anuncios de vivienda disponibles.</p>
-    {% if session.user_id %}
     <a href="{{ url_for('viviendas.nuevo') }}" class="btn btn-primary">Publicar el primero</a>
-    {% endif %}
 </div>
 {% endif %}
 

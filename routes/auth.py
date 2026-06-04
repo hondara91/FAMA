@@ -18,9 +18,17 @@ from models.usuario import Usuario
 from utils.db import get_db
 from utils.decorators import login_required
 from utils.logs import actualizar_contadores, registrar_log
+from utils.validators import validar_password_fuerte
 
 # Prefijo /auth para todas las rutas de este blueprint
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+PREGUNTAS_SEGURIDAD = [
+    "¿Cuál es el nombre de tu primera mascota?",
+    "¿En qué ciudad naciste?",
+    "¿Cuál es el nombre de tu madre?",
+    "¿Cuál es tu película favorita?",
+]
 
 _EXTENSIONES_IMAGEN = {"png", "jpg", "jpeg", "gif", "webp"}
 
@@ -60,26 +68,51 @@ def registro():
         db = get_db()
         modelo = Usuario(db)
 
-        nombre = request.form.get("nombre", "").strip()
-        email  = request.form.get("email", "").strip().lower()
+        nombre_usuario      = request.form.get("nombre_usuario", "").strip()
+        nombre_real         = request.form.get("nombre", "").strip()
+        apellidos           = request.form.get("apellidos", "").strip()
+        email               = request.form.get("email", "").strip().lower()
+        password            = request.form.get("password", "")
+        confirmar_password  = request.form.get("confirmar_password", "")
+        pregunta_seguridad  = request.form.get("pregunta_seguridad", "").strip()
+        respuesta_seguridad = request.form.get("respuesta_seguridad", "").strip()
 
-        if not all([nombre, email]):
-            flash("El nombre y el email son obligatorios.", "danger")
-            return render_template("auth/registro.html")
+        def _render_registro():
+            return render_template("auth/registro.html", preguntas=PREGUNTAS_SEGURIDAD)
+
+        if not all([nombre_usuario, nombre_real, apellidos, email, password,
+                    confirmar_password, pregunta_seguridad, respuesta_seguridad]):
+            flash("Todos los campos son obligatorios.", "danger")
+            return _render_registro()
 
         if "@" not in email:
             flash("Introduce un email válido.", "danger")
-            return render_template("auth/registro.html")
+            return _render_registro()
 
-        resultado = modelo.crear(nombre, email)
+        if password != confirmar_password:
+            flash("Las contraseñas no coinciden.", "danger")
+            return _render_registro()
+
+        error_pwd = validar_password_fuerte(password)
+        if error_pwd:
+            flash(error_pwd, "danger")
+            return _render_registro()
+
+        resultado = modelo.crear(
+            nombre_usuario, email, password,
+            nombre_real=nombre_real,
+            apellidos=apellidos,
+            pregunta_seguridad=pregunta_seguridad,
+            respuesta_seguridad=respuesta_seguridad,
+        )
         if resultado is None:
             flash("El email ya está registrado.", "danger")
-            return render_template("auth/registro.html")
+            return _render_registro()
         if resultado == "nombre_duplicado":
             flash("Ese nombre de usuario ya está en uso. Elige otro.", "danger")
-            return render_template("auth/registro.html")
+            return _render_registro()
 
-        registrar_log(db, "registro", "crear_usuario", nombre, f"Email: {email}")
+        registrar_log(db, "registro", "crear_usuario", nombre_usuario, f"Email: {email}")
         actualizar_contadores(db)
 
         flash(
@@ -89,8 +122,7 @@ def registro():
         )
         return redirect(url_for("auth.login"))
 
-    # GET: mostrar el formulario vacio
-    return render_template("auth/registro.html")
+    return render_template("auth/registro.html", preguntas=PREGUNTAS_SEGURIDAD)
 
 
 # ── Login ─────────────────────────────────────────────────────────────────────
@@ -111,7 +143,9 @@ def login():
 
         usuario = modelo.autenticar(nombre_login, password)
         if not usuario:
-            candidato = db.usuarios.find_one({"nombre": nombre_login})
+            candidato = db.usuarios.find_one({
+                "nombre": {"$regex": f"^{nombre_login}$", "$options": "i"}
+            })
             if candidato and candidato.get("activo") and not candidato.get("validado"):
                 flash("Tu cuenta está pendiente de validación por el administrador.", "warning")
             else:
@@ -125,9 +159,14 @@ def login():
         session["rol"]        = usuario["rol"]
         session["foto_perfil"] = usuario.get("foto_perfil")
 
-        # Si el admin reseteo la contrasenia, obligar al usuario a cambiarla ahora
+        # Primer acceso: cuenta creada por admin sin pregunta de seguridad
+        if usuario.get("debe_cambiar_password") and not usuario.get("pregunta_seguridad"):
+            flash("Completa la configuración inicial de tu cuenta.", "info")
+            return redirect(url_for("auth.primer_acceso"))
+
+        # Contraseña reseteada: solo cambiar contraseña (ya tiene pregunta de seguridad)
         if usuario.get("debe_cambiar_password"):
-            flash("Tu contrasenia fue restablecida. Cambiala antes de continuar.", "warning")
+            flash("Tu contraseña fue restablecida. Cámbiala antes de continuar.", "warning")
             return redirect(url_for("auth.cambiar_password"))
 
         flash(f"Bienvenido, {usuario['nombre']}!", "success")
@@ -166,11 +205,12 @@ def cambiar_password():
             return render_template("auth/cambiar_password.html")
 
         if nueva != confirmar:
-            flash("Las contrasenias nuevas no coinciden.", "danger")
+            flash("Las contraseñas nuevas no coinciden.", "danger")
             return render_template("auth/cambiar_password.html")
 
-        if len(nueva) < 6:
-            flash("La nueva contrasenia debe tener al menos 6 caracteres.", "danger")
+        error_pwd = validar_password_fuerte(nueva)
+        if error_pwd:
+            flash(error_pwd, "danger")
             return render_template("auth/cambiar_password.html")
 
         # Persistir el nuevo hash y desactivar el flag de cambio obligatorio
@@ -182,18 +222,68 @@ def cambiar_password():
     return render_template("auth/cambiar_password.html")
 
 
+# ── Primer acceso (cuenta creada por admin) ──────────────────────────────────
+
+@auth_bp.route("/primer-acceso", methods=["GET", "POST"])
+@login_required
+def primer_acceso():
+    """
+    Flujo de primer acceso para cuentas creadas por el administrador.
+    El usuario debe: 1) elegir una contraseña segura  2) configurar pregunta de seguridad.
+    """
+    db     = get_db()
+    modelo = Usuario(db)
+
+    # Si ya completó la configuración, no debe volver aquí
+    usuario = modelo.obtener_por_id(session["user_id"])
+    if not usuario or (not usuario.get("debe_cambiar_password") and usuario.get("pregunta_seguridad")):
+        return redirect(url_for("main.index"))
+
+    if request.method == "POST":
+        nueva              = request.form.get("nueva_password", "")
+        confirmar          = request.form.get("confirmar_password", "")
+        pregunta_seguridad = request.form.get("pregunta_seguridad", "").strip()
+        respuesta_seguridad = request.form.get("respuesta_seguridad", "").strip()
+
+        if nueva != confirmar:
+            flash("Las contraseñas no coinciden.", "danger")
+            return render_template("auth/primer_acceso.html", preguntas=PREGUNTAS_SEGURIDAD)
+
+        error_pwd = validar_password_fuerte(nueva)
+        if error_pwd:
+            flash(error_pwd, "danger")
+            return render_template("auth/primer_acceso.html", preguntas=PREGUNTAS_SEGURIDAD)
+
+        if not pregunta_seguridad or not respuesta_seguridad:
+            flash("La pregunta y la respuesta de seguridad son obligatorias.", "danger")
+            return render_template("auth/primer_acceso.html", preguntas=PREGUNTAS_SEGURIDAD)
+
+        modelo.cambiar_password(session["user_id"], nueva)
+        modelo.configurar_seguridad(session["user_id"], pregunta_seguridad, respuesta_seguridad)
+        registrar_log(db, "registro", "primer_acceso", session["nombre"])
+
+        flash(f"¡Bienvenido, {session['nombre']}! Tu cuenta está lista.", "success")
+        return redirect(url_for("main.index"))
+
+    return render_template("auth/primer_acceso.html", preguntas=PREGUNTAS_SEGURIDAD)
+
+
 # ── Simulación de rol ────────────────────────────────────────────────────────
 
 @auth_bp.route("/simular-rol/<rol>")
 @login_required
 def simular_rol(rol):
-    """Permite al admin simular temporalmente otro rol para probar la interfaz."""
+    """Permite al admin o gestor elegir temporalmente otro rol."""
     roles_validos = ("admin", "gestor", "usuario")
 
-    # Solo el admin real puede activar la simulación
     rol_real = session.get("rol_real") or session.get("rol")
-    if rol_real != "admin":
-        flash("Solo el administrador puede simular roles.", "danger")
+    if rol_real not in ("admin", "gestor"):
+        flash("No tienes permiso para cambiar de rol.", "danger")
+        return redirect(url_for("main.index"))
+
+    # El gestor solo puede moverse entre gestor y usuario
+    if rol_real == "gestor" and rol not in ("gestor", "usuario"):
+        flash("Solo puedes cambiar al rol de usuario.", "danger")
         return redirect(url_for("main.index"))
 
     if rol not in roles_validos:
@@ -245,7 +335,14 @@ def perfil():
         flash("Foto de perfil actualizada.", "success")
         return redirect(url_for("auth.perfil"))
 
-    return render_template("auth/perfil.html", usuario=usuario)
+    user_id = session["user_id"]
+    mis_anuncios = {
+        "viviendas":   list(db.viviendas.find({"usuario_id": user_id}).sort("fecha_creacion", -1)),
+        "servicios":   list(db.servicios.find({"usuario_id": user_id}).sort("fecha_creacion", -1)),
+        "compraventa": list(db.compraventa.find({"usuario_id": user_id}).sort("fecha_creacion", -1)),
+        "ocio":        list(db.ocio.find({"usuario_id": user_id}).sort("fecha_creacion", -1)),
+    }
+    return render_template("auth/perfil.html", usuario=usuario, mis_anuncios=mis_anuncios)
 
 
 # ── Recuperacion de cuenta ────────────────────────────────────────────────────
@@ -253,30 +350,60 @@ def perfil():
 @auth_bp.route("/recuperar", methods=["GET", "POST"])
 def recuperar_password():
     """
-    Permite recuperar el acceso respondiendo la pregunta de seguridad.
-    No requiere sesion activa (el usuario no puede hacer login).
+    Recuperacion de cuenta en tres pasos:
+      1. Introduce el ID de usuario
+      2. Se muestra la pregunta de seguridad y se pide la respuesta
+      3. Si la respuesta es correcta, se permite cambiar la contraseña
     """
-    if request.method == "POST":
-        db = get_db()
-        modelo = Usuario(db)
+    if request.method == "GET":
+        session.pop("rec_nombre", None)
+        session.pop("rec_verificado", None)
+        return render_template("auth/recuperar.html", paso=1)
 
+    db    = get_db()
+    modelo = Usuario(db)
+    paso   = request.form.get("paso", "1")
+
+    if paso == "1":
         nombre_rec = request.form.get("nombre", "").strip()
-        respuesta  = request.form.get("respuesta_seguridad", "").strip()
-        nueva      = request.form.get("nueva_password", "")
-        confirmar  = request.form.get("confirmar_password", "")
+        usuario = db.usuarios.find_one({"nombre": nombre_rec})
+        if not usuario or not usuario.get("pregunta_seguridad"):
+            flash("ID de usuario no encontrado o sin pregunta de seguridad configurada.", "danger")
+            return render_template("auth/recuperar.html", paso=1)
+        session["rec_nombre"] = nombre_rec
+        return render_template("auth/recuperar.html", paso=2, pregunta=usuario["pregunta_seguridad"])
 
+    if paso == "2":
+        nombre_rec = session.get("rec_nombre")
+        if not nombre_rec:
+            return redirect(url_for("auth.recuperar_password"))
+        respuesta = request.form.get("respuesta_seguridad", "").strip()
         if not modelo.verificar_respuesta_seguridad(nombre_rec, respuesta):
-            flash("Usuario o respuesta de seguridad incorrectos.", "danger")
-            return render_template("auth/recuperar.html")
+            flash("Respuesta de seguridad incorrecta.", "danger")
+            usuario = db.usuarios.find_one({"nombre": nombre_rec})
+            return render_template("auth/recuperar.html", paso=2, pregunta=usuario["pregunta_seguridad"])
+        session["rec_verificado"] = True
+        return render_template("auth/recuperar.html", paso=3)
 
+    if paso == "3":
+        nombre_rec = session.get("rec_nombre")
+        if not nombre_rec or not session.get("rec_verificado"):
+            return redirect(url_for("auth.recuperar_password"))
+        nueva     = request.form.get("nueva_password", "")
+        confirmar = request.form.get("confirmar_password", "")
         if nueva != confirmar:
             flash("Las contraseñas no coinciden.", "danger")
-            return render_template("auth/recuperar.html")
-
+            return render_template("auth/recuperar.html", paso=3)
+        error_pwd = validar_password_fuerte(nueva)
+        if error_pwd:
+            flash(error_pwd, "danger")
+            return render_template("auth/recuperar.html", paso=3)
         usuario = db.usuarios.find_one({"nombre": nombre_rec})
         if usuario:
             modelo.cambiar_password(str(usuario["_id"]), nueva)
+            session.pop("rec_nombre", None)
+            session.pop("rec_verificado", None)
             flash("Contraseña recuperada correctamente. Ya puedes iniciar sesión.", "success")
             return redirect(url_for("auth.login"))
 
-    return render_template("auth/recuperar.html")
+    return redirect(url_for("auth.recuperar_password"))

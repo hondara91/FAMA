@@ -2,6 +2,14 @@
 {% block title %}FAMA - Ocio{% endblock %}
 
 {% block content %}
+
+<div class="mb-3">
+    <a href="{{ url_for('ocio.listar') }}" onclick="history.back(); return false;"
+       class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+</div>
+
 <div class="row">
     {# ── Columna principal: datos del evento ─────────────────────────────── #}
     <div class="col-lg-8">
@@ -60,30 +68,23 @@
                 </p>
 
                 {# ── Logica de inscripcion (3 estados posibles) ───────────── #}
-                {% if session.user_id %}
-                    {% if user_inscrito %}
-                    {# Estado 1: el usuario ya esta inscrito → ofrecer desinscripcion #}
-                    <form method="POST" action="{{ url_for('ocio.desinscribir', evento_id=evento._id) }}">
-                        <button type="submit" class="btn btn-outline-danger w-100">
-                            <i class="bi bi-x-circle me-1"></i>Cancelar inscripcion
-                        </button>
-                    </form>
-                    {% elif plazas_libres > 0 %}
-                    {# Estado 2: hay plazas libres → ofrecer inscripcion #}
-                    <form method="POST" action="{{ url_for('ocio.inscribir', evento_id=evento._id) }}">
-                        <button type="submit" class="btn btn-info text-white w-100">
-                            <i class="bi bi-person-plus me-1"></i>Inscribirme
-                        </button>
-                    </form>
-                    {% else %}
-                    {# Estado 3: aforo completo → boton desactivado #}
-                    <button class="btn btn-secondary w-100" disabled>Aforo completo</button>
-                    {% endif %}
+                {% if session.user_id and user_inscrito %}
+                {# Estado 1: el usuario ya esta inscrito → ofrecer desinscripcion #}
+                <form method="POST" action="{{ url_for('ocio.desinscribir', evento_id=evento._id) }}">
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar inscripcion
+                    </button>
+                </form>
+                {% elif plazas_libres > 0 %}
+                {# Estado 2: hay plazas libres → ofrecer inscripcion (login requerido al pulsar) #}
+                <form method="POST" action="{{ url_for('ocio.inscribir', evento_id=evento._id) }}">
+                    <button type="submit" class="btn btn-info text-white w-100">
+                        <i class="bi bi-person-plus me-1"></i>Inscribirme
+                    </button>
+                </form>
                 {% else %}
-                {# Usuario anonimo: no puede inscribirse, se le invita a hacer login #}
-                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-info w-100">
-                    Inicia sesion para inscribirte
-                </a>
+                {# Estado 3: aforo completo → boton desactivado #}
+                <button class="btn btn-secondary w-100" disabled>Aforo completo</button>
                 {% endif %}
             </div>
         </div>

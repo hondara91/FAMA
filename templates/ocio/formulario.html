@@ -31,6 +31,7 @@
                         <div class="col-md-4">
                             <label class="form-label">Fecha *</label>
                             <input type="date" class="form-control" name="fecha" required
+                                   min="{{ now.strftime('%Y-%m-%d') }}"
                                    value="{{ evento.fecha if evento else '' }}">
                         </div>
                         <div class="col-md-4">
@@ -52,7 +53,8 @@
                         <button type="submit" class="btn btn-info text-white">
                             <i class="bi bi-check-lg me-1"></i>{{ accion }} evento
                         </button>
-                        <a href="{{ url_for('ocio.listar') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        <a href="{{ url_for('ocio.listar') }}" onclick="history.back(); return false;"
+                           class="btn btn-outline-secondary">Cancelar</a>
                     </div>
                 </form>
             </div>

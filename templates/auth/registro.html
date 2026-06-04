@@ -3,26 +3,71 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-5">
+    <div class="col-md-7">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <h3 class="card-title text-center mb-1">
                     <i class="bi bi-person-plus me-2 text-primary"></i>Solicitar acceso
                 </h3>
                 <p class="text-center text-muted small mb-4">
-                    Tras la aprobación del administrador recibirás tus credenciales de acceso.
+                    Tras la aprobación del administrador podrás iniciar sesión con tus credenciales.
                 </p>
 
                 <form method="POST" action="{{ url_for('auth.registro') }}">
 
                     <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre completo</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" required autofocus>
+                        <label for="nombre_usuario" class="form-label">ID de usuario</label>
+                        <input type="text" class="form-control" id="nombre_usuario" name="nombre_usuario" required autofocus>
+                        <div class="form-text">Con este ID iniciarás sesión.</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="apellidos" class="form-label">Apellidos</label>
+                            <input type="text" class="form-control" id="apellidos" name="apellidos" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="text" class="form-control" id="email" name="email" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password"
+                                       required minlength="8" data-pwd-indicator="icn-reg-pwd">
+                                <span class="input-group-text px-2" id="icn-reg-pwd" style="cursor:help">
+                                    <i class="bi bi-exclamation-circle text-warning"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmar_password" class="form-label">Confirmar contraseña</label>
+                            <input type="password" class="form-control" id="confirmar_password" name="confirmar_password" required minlength="8">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="pregunta_seguridad" class="form-label">Pregunta de seguridad</label>
+                        <select class="form-select" id="pregunta_seguridad" name="pregunta_seguridad" required>
+                            <option value="" disabled selected>Selecciona una pregunta...</option>
+                            {% for p in preguntas %}
+                            <option value="{{ p }}">{{ p }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <div class="mb-4">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="text" class="form-control" id="email" name="email" required>
+                        <label for="respuesta_seguridad" class="form-label">Respuesta</label>
+                        <input type="text" class="form-control" id="respuesta_seguridad" name="respuesta_seguridad" required>
+                        <div class="form-text">Se usará para recuperar tu contraseña si la olvidas.</div>
                     </div>
 
                     <div class="d-grid">
@@ -33,7 +78,7 @@
                 </form>
 
                 <div class="text-center mt-3">
-                    <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Ya tienes cuenta? Inicia sesion</a>
+                    <a href="{{ url_for('auth.login') }}" class="text-decoration-none">¿Ya tienes cuenta? Inicia sesión</a>
                 </div>
             </div>
         </div>

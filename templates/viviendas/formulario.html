@@ -73,8 +73,8 @@
                                    placeholder="Ej: 3a" value="{{ anuncio.planta if anuncio else '' }}">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Precio alquiler (€/mes)</label>
-                            <input type="number" class="form-control" name="precio" min="0" step="10"
+                            <label class="form-label">Precio alquiler (€/mes) *</label>
+                            <input type="number" class="form-control" name="precio" min="0" step="10" required
                                    value="{{ anuncio.precio if anuncio else '' }}">
                         </div>
 
@@ -131,13 +131,25 @@
                         </div>
                     </div>
 
+                    {# ── Fecha límite (opcional) ──────────────────────────── #}
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Fecha límite <small class="text-muted">(opcional)</small>
+                        </label>
+                        <input type="date" class="form-control" name="fecha_expiracion"
+                               min="{{ now.strftime('%Y-%m-%d') }}"
+                               value="{{ anuncio.fecha_expiracion.strftime('%Y-%m-%d') if anuncio and anuncio.get('fecha_expiracion') else '' }}">
+                        <div class="form-text">El anuncio se eliminará automáticamente al finalizar ese día.</div>
+                    </div>
+
                     {# ── Botones de accion ─────────────────────────────────── #}
                     <div class="mt-4 d-flex gap-2">
                         {# El texto del boton refleja si estamos creando o editando #}
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-1"></i>{{ accion }} anuncio
                         </button>
-                        <a href="{{ url_for('viviendas.listar') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        <a href="{{ url_for('viviendas.listar') }}" onclick="history.back(); return false;"
+                           class="btn btn-outline-secondary">Cancelar</a>
                     </div>
                 </form>
             </div>

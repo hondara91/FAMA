@@ -67,11 +67,22 @@
                             <div class="form-text">JPG, PNG, GIF, WEBP. Puedes seleccionar varias fotos a la vez.</div>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Fecha límite <small class="text-muted">(opcional)</small>
+                        </label>
+                        <input type="date" class="form-control" name="fecha_expiracion"
+                               min="{{ now.strftime('%Y-%m-%d') }}"
+                               value="{{ anuncio.fecha_expiracion.strftime('%Y-%m-%d') if anuncio and anuncio.get('fecha_expiracion') else '' }}">
+                        <div class="form-text">El artículo se eliminará automáticamente al finalizar ese día.</div>
+                    </div>
+
                     <div class="mt-4 d-flex gap-2">
                         <button type="submit" class="btn btn-warning">
                             <i class="bi bi-check-lg me-1"></i>{{ accion }} articulo
                         </button>
-                        <a href="{{ url_for('compraventa.listar') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        <a href="{{ url_for('compraventa.listar') }}" onclick="history.back(); return false;"
+                           class="btn btn-outline-secondary">Cancelar</a>
                     </div>
                 </form>
             </div>

@@ -5,12 +5,13 @@
 <div class="fama-armada-hero rounded-3 mb-4 p-4 text-white text-center">
     <h2><i class="bi bi-star-fill me-2"></i>Tienda Armada</h2>
     <p class="mb-2">Merchandising oficial de las unidades de la Armada Espanola</p>
-    <a href="{{ url_for('compraventa.listar') }}" class="btn btn-outline-light btn-sm me-2">Volver a Compra-Venta</a>
-    {% if session.user_id %}
+    <a href="{{ url_for('compraventa.listar') }}" onclick="history.back(); return false;"
+       class="btn btn-outline-light btn-sm me-2">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
     <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-light btn-sm">
         <i class="bi bi-plus-lg me-1"></i>Publicar merchandising
     </a>
-    {% endif %}
 </div>
 
 {% if articulos %}
@@ -47,9 +48,7 @@
 <div class="text-center py-5 text-muted">
     <i class="bi bi-star fs-1 d-block mb-3"></i>
     <p>Aun no hay merchandising disponible.</p>
-    {% if session.user_id %}
     <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-primary">Publicar el primero</a>
-    {% endif %}
 </div>
 {% endif %}
 {% endblock %}

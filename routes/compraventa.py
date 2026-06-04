@@ -3,9 +3,21 @@ routes/compraventa.py - Rutas del modulo de Compra-Venta (CRUD completo).
 
 Incluye la seccion especial de merchandising de unidades de la Armada.
 """
+from datetime import datetime
+
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from models.compraventa import Compraventa
+
+
+def _parsear_fecha_exp(fecha_str):
+    if not fecha_str or not fecha_str.strip():
+        return None
+    try:
+        d = datetime.strptime(fecha_str.strip(), "%Y-%m-%d")
+        return d.replace(hour=23, minute=59, second=59)
+    except ValueError:
+        return None
 from utils.db import get_db
 from utils.decorators import login_required
 from utils.logs import actualizar_contadores, registrar_log
@@ -42,13 +54,19 @@ def nuevo():
         modelo = Compraventa(db)
 
         es_merch = request.form.get("es_merchandising") == "on"
+        precio = request.form.get("precio", "").strip()
+        if not precio:
+            flash("El precio es obligatorio.", "danger")
+            return render_template("compraventa/formulario.html", anuncio=None, accion="Crear")
+
         datos = {
-            "nombre_articulo": request.form.get("nombre_articulo", "").strip(),
-            "uco": request.form.get("uco", "").strip(),
-            "precio": request.form.get("precio", "").strip(),
-            "descripcion": request.form.get("descripcion", "").strip(),
+            "nombre_articulo":  request.form.get("nombre_articulo", "").strip(),
+            "uco":              request.form.get("uco", "").strip(),
+            "precio":           precio,
+            "descripcion":      request.form.get("descripcion", "").strip(),
             "es_merchandising": es_merch,
-            "unidad_armada": request.form.get("unidad_armada", "").strip() if es_merch else "",
+            "unidad_armada":    request.form.get("unidad_armada", "").strip() if es_merch else "",
+            "fecha_expiracion": _parsear_fecha_exp(request.form.get("fecha_expiracion")),
         }
 
         datos["fotos"] = guardar_imagenes(request.files.getlist("fotos"), "compraventa")
@@ -83,13 +101,19 @@ def editar(anuncio_id):
 
     if request.method == "POST":
         es_merch = request.form.get("es_merchandising") == "on"
+        precio_edit = request.form.get("precio", "").strip()
+        if not precio_edit:
+            flash("El precio es obligatorio.", "danger")
+            return render_template("compraventa/formulario.html", anuncio=anuncio, accion="Editar")
+
         datos = {
-            "nombre_articulo": request.form.get("nombre_articulo", "").strip(),
-            "uco": request.form.get("uco", "").strip(),
-            "precio": request.form.get("precio", "").strip(),
-            "descripcion": request.form.get("descripcion", "").strip(),
+            "nombre_articulo":  request.form.get("nombre_articulo", "").strip(),
+            "uco":              request.form.get("uco", "").strip(),
+            "precio":           precio_edit,
+            "descripcion":      request.form.get("descripcion", "").strip(),
             "es_merchandising": es_merch,
-            "unidad_armada": request.form.get("unidad_armada", "").strip() if es_merch else "",
+            "unidad_armada":    request.form.get("unidad_armada", "").strip() if es_merch else "",
+            "fecha_expiracion": _parsear_fecha_exp(request.form.get("fecha_expiracion")),
         }
         fotos = list(anuncio.get("fotos") or [])
         a_borrar = request.form.getlist("borrar_fotos")

@@ -5,6 +5,13 @@
 
 {# ── Cabecera del canal ───────────────────────────────────────────────────── #}
 
+<div class="mb-3">
+    <a href="{{ url_for('foro.listar') }}" onclick="history.back(); return false;"
+       class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Volver al foro
+    </a>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-3">
         <div class="rounded-circle d-flex align-items-center justify-content-center
@@ -19,11 +26,9 @@
             {% endif %}
         </div>
     </div>
-    {% if session.user_id %}
     <a href="{{ url_for('foro.nuevo', canal_id=canal._id) }}" class="btn btn-{{ canal.color }}">
         <i class="bi bi-plus-lg me-1"></i>Nueva publicacion
     </a>
-    {% endif %}
 </div>
 
 {# ── Buscador ─────────────────────────────────────────────────────────────── #}
@@ -132,13 +137,9 @@
 <div class="text-center py-5 text-muted">
     <i class="bi bi-chat-dots fs-1 d-block mb-3"></i>
     <p>Todavia no hay publicaciones en este canal.</p>
-    {% if session.user_id %}
     <a href="{{ url_for('foro.nuevo', canal_id=canal._id) }}" class="btn btn-{{ canal.color }}">
         Ser el primero en publicar
     </a>
-    {% else %}
-    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">Inicia sesion para publicar</a>
-    {% endif %}
 </div>
 {% endif %}
 

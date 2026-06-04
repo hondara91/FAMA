@@ -16,6 +16,7 @@ from models.usuario import Usuario
 from utils.db import get_db
 from utils.decorators import admin_required, gestor_required, login_required
 from utils.logs import exportar_logs_pdf, registrar_log
+from utils.validators import validar_password_fuerte
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -64,11 +65,13 @@ def panel():
 @login_required
 @gestor_required
 def listar_usuarios():
-    """Lista usuarios con buscador y paginacion de 10 en 10."""
+    """Lista usuarios con buscador y paginacion configurable."""
     db        = get_db()
     q         = request.args.get("q", "").strip()
     pagina    = max(1, int(request.args.get("pagina", 1)))
-    por_pagina = 10
+    por_pagina = int(request.args.get("por_pagina", 10))
+    if por_pagina not in (10, 25, 50, 100):
+        por_pagina = 10
 
     filtro = {}
     if q:
@@ -95,7 +98,96 @@ def listar_usuarios():
         pagina=pagina,
         total_paginas=total_paginas,
         total=total,
+        por_pagina=por_pagina,
     )
+
+
+@admin_bp.route("/usuarios/crear", methods=["POST"])
+@login_required
+@admin_required
+def crear_usuario():
+    """Crea un usuario directamente desde el panel admin (ya validado)."""
+    db = get_db()
+    modelo = Usuario(db)
+
+    nombre_usuario     = request.form.get("nombre_usuario", "").strip()
+    nombre_real        = request.form.get("nombre", "").strip()
+    apellidos          = request.form.get("apellidos", "").strip()
+    email              = request.form.get("email", "").strip().lower()
+    password           = request.form.get("password", "")
+    confirmar_password = request.form.get("confirmar_password", "")
+
+    if not all([nombre_usuario, nombre_real, apellidos, email, password, confirmar_password]):
+        flash("Todos los campos son obligatorios.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+
+    if "@" not in email:
+        flash("Introduce un email válido.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+
+    if password != confirmar_password:
+        flash("Las contraseñas no coinciden.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+
+    error_pwd = validar_password_fuerte(password)
+    if error_pwd:
+        flash(error_pwd, "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+
+    resultado = modelo.crear(
+        nombre_usuario, email, password,
+        nombre_real=nombre_real,
+        apellidos=apellidos,
+        validado=True,
+    )
+
+    if resultado is None:
+        flash("El email ya está registrado.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+    if resultado == "nombre_duplicado":
+        flash("Ese ID de usuario ya está en uso.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+
+    # Forzar cambio de contraseña en el primer inicio de sesión
+    modelo.actualizar(str(resultado), {"debe_cambiar_password": True})
+
+    registrar_log(db, "registro", "crear_usuario_admin", session["nombre"],
+                  f"Usuario creado por admin: {nombre_usuario}")
+    flash(f"Usuario {nombre_usuario} creado. Se le pedirá cambiar la contraseña al entrar.", "success")
+    return redirect(url_for("admin.listar_usuarios"))
+
+
+@admin_bp.route("/usuarios/reportar/<user_id>", methods=["POST"])
+@login_required
+@gestor_required
+def reportar_usuario(user_id):
+    """El gestor reporta a un usuario al administrador."""
+    db = get_db()
+    usuario = Usuario(db).obtener_por_id(user_id)
+
+    if not usuario:
+        flash("Usuario no encontrado.", "danger")
+        return redirect(url_for("admin.listar_usuarios"))
+
+    motivo = request.form.get("motivo", "").strip()
+    if not motivo:
+        flash("Debes indicar el motivo del reporte.", "danger")
+        return redirect(url_for("admin.ver_usuario", user_id=user_id))
+
+    db.reportes.insert_one({
+        "tipo_reporte":    "usuario",
+        "usuario_id":      user_id,
+        "usuario_nombre":  usuario["nombre"],
+        "motivo":          motivo,
+        "gestor_id":       session["user_id"],
+        "gestor_nombre":   session["nombre"],
+        "fecha":           datetime.now(),
+        "resuelto":        False,
+    })
+    registrar_log(db, "registro", "reportar_usuario", session["nombre"],
+                  f"Usuario reportado: {usuario['nombre']}")
+    flash("Usuario reportado al administrador.", "warning")
+    return redirect(url_for("admin.ver_usuario", user_id=user_id))
 
 
 @admin_bp.route("/usuarios/ver/<user_id>")
@@ -196,10 +288,9 @@ def validar_usuario(user_id):
         return redirect(url_for("admin.listar_usuarios"))
 
     modelo.validar_usuario(user_id)
-    modelo.establecer_password_temporal(user_id, "fama1234")
     registrar_log(db, "registro", "validar_usuario", session["nombre"],
                   f"Cuenta validada: {usuario['nombre']}")
-    flash(f"Cuenta de {usuario['nombre']} aprobada. Contraseña inicial: fama1234.", "success")
+    flash(f"Cuenta de {usuario['nombre']} aprobada.", "success")
     return redirect(url_for("admin.listar_usuarios"))
 
 
@@ -307,12 +398,33 @@ def ver_logs():
     Muestra la tabla de logs con filtrado opcional por tipo ('registro' o 'control').
     El parametro GET 'tipo' viene del selector de pestanas en la vista.
     """
-    db   = get_db()
-    tipo  = request.args.get("tipo", "")
-    # Si se especifica tipo, filtrar; si no, mostrar todos los logs
+    db        = get_db()
+    tipo      = request.args.get("tipo", "")
+    pagina    = max(1, int(request.args.get("pagina", 1)))
+    por_pagina = int(request.args.get("por_pagina", 10))
+    if por_pagina not in (10, 25, 50, 100):
+        por_pagina = 10
+
     query = {"tipo": tipo} if tipo else {}
-    logs  = list(db.logs.find(query).sort("fecha", -1))  # Mas recientes primero
-    return render_template("admin/logs.html", logs=logs, tipo_filtro=tipo)
+    total        = db.logs.count_documents(query)
+    total_paginas = max(1, (total + por_pagina - 1) // por_pagina)
+    pagina        = min(pagina, total_paginas)
+
+    logs = list(
+        db.logs.find(query)
+        .sort("fecha", -1)
+        .skip((pagina - 1) * por_pagina)
+        .limit(por_pagina)
+    )
+    return render_template(
+        "admin/logs.html",
+        logs=logs,
+        tipo_filtro=tipo,
+        pagina=pagina,
+        total_paginas=total_paginas,
+        total=total,
+        por_pagina=por_pagina,
+    )
 
 
 @admin_bp.route("/logs/eliminar", methods=["POST"])
@@ -368,10 +480,31 @@ def exportar_logs():
 @login_required
 @gestor_required
 def ver_reportes():
-    """Lista todos los reportes pendientes, más recientes primero."""
-    db = get_db()
-    reportes = list(db.reportes.find().sort("fecha", -1))
-    return render_template("admin/reportes.html", reportes=reportes)
+    """Lista reportes con paginacion configurable."""
+    db        = get_db()
+    pagina    = max(1, int(request.args.get("pagina", 1)))
+    por_pagina = int(request.args.get("por_pagina", 10))
+    if por_pagina not in (10, 25, 50, 100):
+        por_pagina = 10
+
+    total        = db.reportes.count_documents({})
+    total_paginas = max(1, (total + por_pagina - 1) // por_pagina)
+    pagina        = min(pagina, total_paginas)
+
+    reportes = list(
+        db.reportes.find()
+        .sort("fecha", -1)
+        .skip((pagina - 1) * por_pagina)
+        .limit(por_pagina)
+    )
+    return render_template(
+        "admin/reportes.html",
+        reportes=reportes,
+        pagina=pagina,
+        total_paginas=total_paginas,
+        total=total,
+        por_pagina=por_pagina,
+    )
 
 
 @admin_bp.route("/reportes/nuevo", methods=["POST"])

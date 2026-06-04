@@ -200,3 +200,66 @@ main {
     .fama-hero h1 { font-size: 1.8rem; }
     .fama-modulo-card .card-body { padding: 1rem; }
 }
+
+/* ── Zoom en hover sobre fotos de anuncio ────────────────── */
+.fama-img-wrap {
+    overflow: hidden;
+    cursor: zoom-in;
+}
+
+.fama-img-wrap .fama-img-zoom {
+    transition: transform 0.35s ease;
+    display: block;
+    width: 100%;
+}
+
+.fama-img-wrap:hover .fama-img-zoom {
+    transform: scale(1.08);
+}
+
+/* ── Lightbox ────────────────────────────────────────────── */
+#famaLightbox .modal-content {
+    background: #000;
+    border: none;
+}
+
+#famaLightbox .lb-img {
+    max-height: 82vh;
+    width: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+#famaLightbox .lb-btn-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#famaLightbox .lb-btn-nav:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+#famaLightbox .lb-prev { left: 0.6rem; }
+#famaLightbox .lb-next { right: 0.6rem; }
+
+#famaLightbox .lb-counter {
+    position: absolute;
+    bottom: 0.6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.82rem;
+    pointer-events: none;
+    white-space: nowrap;
+}

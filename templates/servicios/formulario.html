@@ -6,7 +6,7 @@
     <div class="col-lg-7">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
-                <h3 class="mb-4"><i class="bi bi-gear text-success me-2"></i>{{ accion }} servicio</h3>
+                <h3 class="mb-4"><i class="bi bi-car-front text-success me-2"></i>{{ accion }} servicio</h3>
                 <form method="POST" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -80,11 +80,22 @@
                             <div class="form-text">JPG, PNG, GIF, WEBP. Puedes seleccionar varias fotos a la vez.</div>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Fecha límite <small class="text-muted">(opcional)</small>
+                        </label>
+                        <input type="date" class="form-control" name="fecha_expiracion"
+                               min="{{ now.strftime('%Y-%m-%d') }}"
+                               value="{{ anuncio.fecha_expiracion.strftime('%Y-%m-%d') if anuncio and anuncio.get('fecha_expiracion') else '' }}">
+                        <div class="form-text">El anuncio se eliminará automáticamente al finalizar ese día.</div>
+                    </div>
+
                     <div class="mt-4 d-flex gap-2">
                         <button type="submit" class="btn btn-success">
                             <i class="bi bi-check-lg me-1"></i>{{ accion }} servicio
                         </button>
-                        <a href="{{ url_for('servicios.listar') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        <a href="{{ url_for('servicios.listar') }}" onclick="history.back(); return false;"
+                           class="btn btn-outline-secondary">Cancelar</a>
                     </div>
                 </form>
             </div>

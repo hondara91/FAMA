@@ -5,9 +5,35 @@ Crea la aplicacion Flask mediante el patron factoria (create_app),
 registra todos los blueprints de cada modulo y configura el
 contexto global de plantillas.
 """
+import time
 from datetime import datetime
 
 from flask import Flask, redirect, session, url_for
+
+# Timestamp (epoch) de la última limpieza de anuncios expirados.
+# Uso de lista mutable para que la closure del before_request pueda mutarlo.
+_ts_limpieza = [0.0]
+
+
+def _limpiar_expirados(db, static_folder):
+    """Elimina anuncios cuya fecha_expiracion ya ha pasado, incluyendo sus fotos."""
+    from utils.uploads import eliminar_imagenes
+    ahora = datetime.now()
+    modulos = [
+        (db.viviendas,    "viviendas"),
+        (db.servicios,    "servicios"),
+        (db.compraventa,  "compraventa"),
+    ]
+    for coleccion, subcarpeta in modulos:
+        expirados = list(coleccion.find({
+            "fecha_expiracion": {"$exists": True, "$ne": None, "$lte": ahora},
+        }))
+        for doc in expirados:
+            try:
+                eliminar_imagenes(doc.get("fotos", []), subcarpeta)
+                coleccion.delete_one({"_id": doc["_id"]})
+            except Exception:
+                pass
 
 # Clase de configuracion que lee variables de entorno
 from utils.config import Config
@@ -50,11 +76,12 @@ def create_app():
     app.register_blueprint(foro_bp)
     app.register_blueprint(novedades_bp)
 
-    # ── Protección global: toda la app requiere login ────────────────────────
-    # Las rutas del blueprint 'auth' (login, registro, etc.) quedan libres.
-    # Los ficheros estáticos tampoco requieren sesión.
+    # ── Verificación de sesión activa ────────────────────────────────────────
+    # Las páginas públicas (listados, detalles, foro, etc.) son accesibles sin
+    # login. Las rutas interactivas llevan @login_required individualmente.
+    # Aquí solo verificamos que los usuarios ya autenticados siguen activos.
     @app.before_request
-    def requiere_login():
+    def verificar_sesion():
         from bson import ObjectId
         from flask import request, flash
         if request.endpoint and (
@@ -62,11 +89,23 @@ def create_app():
             or request.endpoint == "static"
         ):
             return None
+
+        # Sin sesión: dejar pasar; @login_required en cada ruta protegida
+        # redirigirá al login si hace falta.
         if not session.get("user_id"):
-            return redirect(url_for("auth.login"))
+            return None
 
         from utils.db import get_db
         db = get_db()
+
+        # Limpiar anuncios expirados como máximo una vez por hora.
+        ahora_ts = time.time()
+        if ahora_ts - _ts_limpieza[0] > 3600:
+            _ts_limpieza[0] = ahora_ts
+            try:
+                _limpiar_expirados(db, app.static_folder)
+            except Exception:
+                pass
         usuario = db.usuarios.find_one(
             {"_id": ObjectId(session["user_id"])},
             {"activo": 1, "validado": 1},
@@ -88,23 +127,44 @@ def create_app():
         from utils.db import get_db
         from flask import session as current_session
 
-        hay_novedades = False
+        hay_novedades       = False
+        alertas_admin_total = 0
+        alertas_admin       = {}
+
         try:
             db = get_db()
+
+            # Badge de novedades no vistas
             ultima_visita = current_session.get("novedades_vistas_hasta")
             if ultima_visita:
-                # Comparar fecha de la novedad mas reciente con la ultima visita del usuario
                 desde = datetime.fromisoformat(ultima_visita)
                 hay_novedades = db.novedades.count_documents(
                     {"fecha_creacion": {"$gt": desde}}
                 ) > 0
             else:
-                # Primera visita o sesion nueva: amarillo si existe al menos una novedad
                 hay_novedades = db.novedades.count_documents({}) > 0
-        except Exception:
-            pass  # Si MongoDB no esta disponible, el boton permanece sin color especial
 
-        return {"now": datetime.now(), "hay_novedades": hay_novedades}
+            # Alertas para admin/gestor en el navbar
+            rol = current_session.get("rol_real") or current_session.get("rol")
+            if rol in ("admin", "gestor"):
+                pendientes = db.usuarios.count_documents(
+                    {"activo": True, "validado": False}
+                )
+                reportes = db.reportes.count_documents({"resuelto": False})
+                alertas_admin = {
+                    "pendientes": pendientes,
+                    "reportes":   reportes,
+                }
+                alertas_admin_total = pendientes + reportes
+        except Exception:
+            pass
+
+        return {
+            "now":                datetime.now(),
+            "hay_novedades":      hay_novedades,
+            "alertas_admin":      alertas_admin,
+            "alertas_admin_total": alertas_admin_total,
+        }
 
     return app
 

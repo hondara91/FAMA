@@ -7,24 +7,45 @@
     <h2><i class="bi bi-people text-primary me-2"></i>Gestion de Usuarios
         <small class="text-muted fs-6 ms-2">{{ total }} en total</small>
     </h2>
-    <a href="{{ url_for('admin.panel') }}" class="btn btn-outline-secondary btn-sm">Panel</a>
+    <div class="d-flex gap-2">
+        {% if session.rol == 'admin' %}
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario">
+            <i class="bi bi-person-plus me-1"></i>Crear usuario
+        </button>
+        {% endif %}
+        <a href="{{ url_for('admin.panel') }}" class="btn btn-outline-secondary btn-sm">Panel</a>
+    </div>
 </div>
 
-{# ── Buscador ──────────────────────────────────────────────────────────────── #}
+{# ── Buscador + selector de entradas ───────────────────────────────────────── #}
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-body py-2">
-        <form method="GET" class="d-flex gap-2">
-            <input type="text" name="q" class="form-control form-control-sm"
-                   placeholder="Buscar por nombre o email..." value="{{ q }}">
-            <button type="submit" class="btn btn-primary btn-sm px-3">
-                <i class="bi bi-search"></i>
-            </button>
-            {% if q %}
-            <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-x"></i>
-            </a>
-            {% endif %}
-        </form>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <form method="GET" class="d-flex gap-2 flex-grow-1">
+                <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+                <input type="text" name="q" class="form-control form-control-sm"
+                       placeholder="Buscar por nombre o email..." value="{{ q }}">
+                <button type="submit" class="btn btn-primary btn-sm px-3">
+                    <i class="bi bi-search"></i>
+                </button>
+                {% if q %}
+                <a href="{{ url_for('admin.listar_usuarios', por_pagina=por_pagina) }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-x"></i>
+                </a>
+                {% endif %}
+            </form>
+            <form method="GET" class="d-flex align-items-center gap-2">
+                {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                <label class="form-label mb-0 small text-muted text-nowrap">Mostrar</label>
+                <select name="por_pagina" onchange="this.form.submit()"
+                        class="form-select form-select-sm" style="width:auto">
+                    {% for n in [10, 25, 50, 100] %}
+                    <option value="{{ n }}" {% if por_pagina == n %}selected{% endif %}>{{ n }}</option>
+                    {% endfor %}
+                </select>
+                <span class="small text-muted text-nowrap">por página</span>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -113,6 +134,19 @@
                                 </button>
                             </form>
 
+                            {# Reportar usuario: solo gestor #}
+                            {% if session.rol == 'gestor' %}
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    title="Reportar usuario"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalReportarTabla"
+                                    data-url="{{ url_for('admin.reportar_usuario', user_id=u._id) }}"
+                                    data-nombre="{{ u.nombre }}">
+                                <i class="bi bi-flag"></i>
+                            </button>
+                            {% endif %}
+
                             {% if session.rol == 'admin' %}
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-info dropdown-toggle"
@@ -178,7 +212,7 @@
 <nav class="mt-3 d-flex justify-content-center">
     <ul class="pagination pagination-sm mb-0">
         <li class="page-item {% if pagina == 1 %}disabled{% endif %}">
-            <a class="page-link" href="{{ url_for('admin.listar_usuarios', q=q, pagina=pagina-1) }}">
+            <a class="page-link" href="{{ url_for('admin.listar_usuarios', q=q, pagina=pagina-1, por_pagina=por_pagina) }}">
                 <i class="bi bi-chevron-left"></i>
             </a>
         </li>
@@ -186,7 +220,7 @@
         {% for p in range(1, total_paginas + 1) %}
         {% if p == 1 or p == total_paginas or (p >= pagina - 2 and p <= pagina + 2) %}
         <li class="page-item {% if p == pagina %}active{% endif %}">
-            <a class="page-link" href="{{ url_for('admin.listar_usuarios', q=q, pagina=p) }}">{{ p }}</a>
+            <a class="page-link" href="{{ url_for('admin.listar_usuarios', q=q, pagina=p, por_pagina=por_pagina) }}">{{ p }}</a>
         </li>
         {% elif p == pagina - 3 or p == pagina + 3 %}
         <li class="page-item disabled"><span class="page-link">…</span></li>
@@ -194,7 +228,7 @@
         {% endfor %}
 
         <li class="page-item {% if pagina == total_paginas %}disabled{% endif %}">
-            <a class="page-link" href="{{ url_for('admin.listar_usuarios', q=q, pagina=pagina+1) }}">
+            <a class="page-link" href="{{ url_for('admin.listar_usuarios', q=q, pagina=pagina+1, por_pagina=por_pagina) }}">
                 <i class="bi bi-chevron-right"></i>
             </a>
         </li>
@@ -202,4 +236,127 @@
 </nav>
 {% endif %}
 
+{# ── Modal: Crear usuario (solo admin) ────────────────────────────────────── #}
+{% if session.rol == 'admin' %}
+{% set preguntas_seg = [
+    '¿Cuál es el nombre de tu primera mascota?',
+    '¿En qué ciudad naciste?',
+    '¿Cuál es el nombre de tu madre?',
+    '¿Cuál es tu película favorita?'
+] %}
+<div class="modal fade" id="modalCrearUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus me-2 text-primary"></i>Crear usuario
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.crear_usuario') }}">
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">ID de usuario</label>
+                        <input type="text" class="form-control" name="nombre_usuario" required>
+                        <div class="form-text">Con este ID iniciará sesión.</div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" name="nombre" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Apellidos</label>
+                            <input type="text" class="form-control" name="apellidos" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="text" class="form-control" name="email" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="password"
+                                       required minlength="8" data-pwd-indicator="icn-admin-pwd">
+                                <span class="input-group-text px-2" id="icn-admin-pwd" style="cursor:help">
+                                    <i class="bi bi-exclamation-circle text-warning"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Confirmar contraseña</label>
+                            <input type="password" class="form-control" name="confirmar_password" required minlength="8">
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 mt-3 small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        La cuenta se creará <strong>activa y validada</strong>.
+                        En el primer inicio de sesión el usuario deberá <strong>cambiar su contraseña</strong>
+                        y <strong>configurar su pregunta de seguridad</strong>.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-person-plus me-1"></i>Crear usuario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── Modal: Reportar usuario (solo gestor) ────────────────────────────────── #}
+{% if session.rol == 'gestor' %}
+<div class="modal fade" id="modalReportarTabla" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-flag me-2 text-danger"></i>Reportar a <span id="reportarNombreTabla"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="formReportarTabla" action="">
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Este reporte será visible para los administradores.</p>
+                    <div>
+                        <label class="form-label">Motivo del reporte <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="motivo" rows="4"
+                                  placeholder="Describe el motivo del reporte..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-flag me-1"></i>Enviar reporte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts_extra %}
+{% if session.rol == 'gestor' %}
+<script>
+document.getElementById('modalReportarTabla').addEventListener('show.bs.modal', function (e) {
+    var btn = e.relatedTarget;
+    document.getElementById('reportarNombreTabla').textContent = btn.dataset.nombre;
+    document.getElementById('formReportarTabla').action = btn.dataset.url;
+    this.querySelector('textarea[name="motivo"]').value = '';
+});
+</script>
+{% endif %}
 {% endblock %}

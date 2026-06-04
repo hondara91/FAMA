@@ -12,7 +12,7 @@
                 <form method="POST" action="{{ url_for('auth.login') }}">
                     {% set nuevo_admin = request.args.get('nuevo_admin', '') %}
                     <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre de usuario</label>
+                        <label for="nombre" class="form-label">ID de usuario</label>
                         {% if nuevo_admin %}
                         <input type="text" class="form-control bg-warning-subtle fw-bold"
                                id="nombre" name="nombre"

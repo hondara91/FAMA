@@ -33,7 +33,8 @@ class Compraventa:
             "fotos":            datos.get("fotos", []),
             "usuario_id":       user_id,
             "nombre_usuario":   nombre_usuario,
-            "fecha_creacion":   datetime.now(),
+            "fecha_expiracion":   datos.get("fecha_expiracion"),
+            "fecha_creacion":     datetime.now(),
             "fecha_modificacion": datetime.now(),
         }
         return self.coleccion.insert_one(anuncio).inserted_id

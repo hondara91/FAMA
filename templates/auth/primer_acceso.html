@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Configuración inicial{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center mb-1">
+                    <i class="bi bi-person-check me-2 text-primary"></i>Configura tu cuenta
+                </h3>
+                <p class="text-center text-muted small mb-4">
+                    Antes de continuar elige una contraseña segura y configura tu pregunta de seguridad.
+                </p>
+
+                <form method="POST">
+
+                    <h6 class="text-muted mb-3 border-bottom pb-2">
+                        <i class="bi bi-key me-1"></i>Nueva contraseña
+                    </h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" name="nueva_password"
+                                   id="nueva_password_pa" required minlength="8"
+                                   data-pwd-indicator="icn-pa-pwd" autofocus>
+                            <span class="input-group-text px-2" id="icn-pa-pwd" style="cursor:help">
+                                <i class="bi bi-exclamation-circle text-warning"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Confirmar contraseña</label>
+                        <input type="password" class="form-control" name="confirmar_password"
+                               required minlength="8">
+                    </div>
+
+                    <h6 class="text-muted mb-3 border-bottom pb-2">
+                        <i class="bi bi-shield-lock me-1"></i>Pregunta de seguridad
+                    </h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Pregunta</label>
+                        <select class="form-select" name="pregunta_seguridad" required>
+                            <option value="" disabled selected>Selecciona una pregunta...</option>
+                            {% for p in preguntas %}
+                            <option value="{{ p }}">{{ p }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Respuesta</label>
+                        <input type="text" class="form-control" name="respuesta_seguridad" required>
+                        <div class="form-text">Se usará para recuperar tu contraseña si la olvidas.</div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>Guardar y entrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -9,11 +9,9 @@
             <i class="bi bi-calendar3 me-1"></i>Ver calendario
         </a>
     </div>
-    {% if session.user_id %}
     <a href="{{ url_for('ocio.nuevo') }}" class="btn btn-info text-white">
         <i class="bi bi-plus-lg me-1"></i>Crear evento
     </a>
-    {% endif %}
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
@@ -89,9 +87,7 @@
 <div class="text-center py-5 text-muted">
     <i class="bi bi-calendar-event fs-1 d-block mb-3"></i>
     <p>No hay eventos disponibles.</p>
-    {% if session.user_id %}
     <a href="{{ url_for('ocio.nuevo') }}" class="btn btn-info text-white">Crear el primero</a>
-    {% endif %}
 </div>
 {% endif %}
 {% endblock %}

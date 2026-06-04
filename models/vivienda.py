@@ -35,7 +35,8 @@ class Vivienda:
             "fotos":         datos.get("fotos", []),
             "usuario_id":       user_id,         # Usado para comprobar permisos de edicion
             "nombre_usuario":   nombre_usuario,  # Mostrado en la tarjeta sin consulta extra
-            "fecha_creacion":   datetime.now(),
+            "fecha_expiracion":   datos.get("fecha_expiracion"),
+            "fecha_creacion":     datetime.now(),
             "fecha_modificacion": datetime.now(),
         }
         return self.coleccion.insert_one(anuncio).inserted_id

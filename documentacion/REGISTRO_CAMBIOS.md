@@ -1176,3 +1176,194 @@ Se revisa todo el código en busca de inconsistencias y se aplican las siguiente
 | 3 | `routes/auth.py` | `session["email"]` se guardaba en sesión pero ninguna ruta ni template lo usaba | Eliminado |
 | 4 | `templates/admin/ver_usuario.html` | Badge "Sin verificar" y condición de validación usaban `email_verificado` (rama muerta) | Eliminadas ambas referencias |
 | 5 | `scripts/crear_admin.py` | Docstring listaba credenciales antiguas (`admin@fama.es` / `Admin1234`) | Actualizado a `admin@appfama.es` / `admin1234` |
+
+## 2026-06-04 CEST
+
+### Rediseño del formulario de registro
+
+- El formulario de registro pasa de 2 campos (nombre + email) a 8 campos completos.
+- Campos nuevos: **ID de usuario** (login), **nombre**, **apellidos**, **contraseña**, **confirmar contraseña**, **pregunta de seguridad** (desplegable), **respuesta**.
+- El usuario establece su propia contraseña al registrarse; ya no se genera una contraseña temporal.
+- La validación por admin sigue siendo obligatoria antes de poder iniciar sesión, pero al aprobar ya no se sobreescribe la contraseña.
+- Archivos modificados: `templates/auth/registro.html`, `routes/auth.py`, `models/usuario.py`, `routes/admin.py`.
+
+### Preguntas de seguridad predeterminadas
+
+- Se definen 4 preguntas de seguridad fijas en `routes/auth.py` como constante `PREGUNTAS_SEGURIDAD`:
+  - ¿Cuál es el nombre de tu primera mascota?
+  - ¿En qué ciudad naciste?
+  - ¿Cuál es el nombre de tu madre?
+  - ¿Cuál es tu película favorita?
+- El campo de pregunta de seguridad en el registro pasa a ser un `<select>` con esas 4 opciones.
+- La respuesta se almacena hasheada en MongoDB.
+
+### Recuperación de contraseña por pasos
+
+- El flujo de recuperación se divide en 3 pasos con indicador visual:
+  1. Introducir ID de usuario.
+  2. Responder la pregunta de seguridad (se muestra la pregunta guardada).
+  3. Solo si la respuesta es correcta, introducir y confirmar la nueva contraseña.
+- Se usan claves de sesión (`rec_nombre`, `rec_verificado`) para mantener el estado entre pasos de forma segura.
+- Archivos modificados: `routes/auth.py` (`recuperar_password()`), `templates/auth/recuperar.html`.
+
+### Cambio de etiqueta: "Nombre de usuario" → "ID de usuario"
+
+- La etiqueta del campo de login pasa a llamarse **ID de usuario** en `templates/auth/login.html` y `templates/auth/registro.html` para mayor claridad.
+
+### Selector de roles: renombrado y ampliado al gestor
+
+- La sección **Simular rol** del navbar pasa a llamarse **Elegir rol** (icono `person-gear`).
+- Se elimina el banner amarillo de "Simulando rol X" que aparecía en la parte superior.
+- Los gestores pueden ahora cambiar entre su rol (`gestor`) y `usuario` sin necesidad de ser admin.
+- El admin sigue pudiendo elegir entre los tres roles (`admin`, `gestor`, `usuario`).
+- Archivos modificados: `templates/base.html`, `routes/auth.py` (`simular_rol()`).
+
+### Acceso público sin login obligatorio
+
+- Se elimina la redirección global a login para usuarios no autenticados.
+- Los listados, detalles, foro y calendario son accesibles libremente.
+- Las rutas interactivas (crear, editar, eliminar, inscribirse, responder) siguen protegidas por `@login_required` individualmente y redirigen al login al intentar usarlas.
+- El `before_request` pasa a llamarse `verificar_sesion` y solo comprueba que los usuarios ya autenticados siguen activos y validados.
+- Archivos modificados: `app.py`.
+
+### Botones de acción visibles para usuarios no autenticados
+
+- Los botones de **Publicar**, **Crear evento**, **Nueva publicación**, **Inscribirme** y el formulario de respuesta del foro son ahora visibles para todos los visitantes.
+- Al interactuar con ellos sin sesión, la ruta protegida redirige automáticamente al login.
+- Los botones de **Editar** y **Eliminar** siguen ocultos para quien no sea propietario o admin/gestor.
+- Los estados vacíos ("Publica el primero", "Ser el primero en publicar") también muestran el botón a todos.
+- Archivos modificados: `templates/viviendas/listar.html`, `templates/servicios/listar.html`, `templates/compraventa/listar.html`, `templates/compraventa/armada.html`, `templates/ocio/listar.html`, `templates/ocio/calendario.html`, `templates/ocio/detalle.html`, `templates/foro/listar.html`, `templates/foro/canal.html`, `templates/foro/detalle.html`.
+
+### Creación de usuarios desde el panel admin
+
+- El admin dispone de un botón **Crear usuario** en la cabecera del listado de usuarios.
+- Al pulsarlo se abre un modal Bootstrap `modal-lg` con el mismo formulario de 8 campos que el registro público.
+- La cuenta se crea directamente como **activa y validada** (sin paso de aprobación).
+- Nueva ruta `POST /admin/usuarios/crear` con `@admin_required`.
+- Archivos modificados: `routes/admin.py`, `templates/admin/usuarios.html`.
+
+### Reporte de usuarios por el gestor
+
+- Los gestores disponen de un botón **Reportar usuario** en la ficha de cada usuario (`/admin/usuarios/ver/<id>`).
+- Al pulsarlo se abre un modal pequeño centrado con un campo de texto para el motivo.
+- Los reportes se almacenan en la colección `reportes` con `tipo_reporte: "usuario"` (separado de los reportes de anuncios).
+- Nueva ruta `POST /admin/usuarios/reportar/<user_id>` con `@gestor_required`.
+- Archivos modificados: `routes/admin.py`, `templates/admin/ver_usuario.html`.
+
+### Bloqueo de fechas pasadas en eventos de ocio
+
+- El campo de fecha del formulario de eventos incluye `min="{{ now.strftime('%Y-%m-%d') }}"` para bloquear la selección de fechas pasadas en el navegador.
+- Validación adicional en servidor en `routes/ocio.py` (rutas `nuevo` y `editar`) para rechazar fechas anteriores a la fecha actual aunque se manipule el HTML.
+- Archivos modificados: `templates/ocio/formulario.html`, `routes/ocio.py`.
+
+### Icono de Bootstrap actualizado en el módulo Servicios
+
+- Se sustituye el icono `bi-gear` / `bi-tools` por `bi-car-front` en todos los puntos donde aparecía el módulo Servicios.
+- Archivos modificados: `templates/servicios/listar.html`, `templates/servicios/formulario.html`, `templates/base.html` (navbar), `templates/index.html` (tarjeta del módulo).
+
+### Lightbox y zoom en fotos de anuncios
+
+- Al pasar el ratón sobre la foto de un anuncio en los listados, la imagen se amplía suavemente (`scale(1.08)`) gracias a las clases CSS `.fama-img-wrap` (con `overflow:hidden`) y `.fama-img-zoom` (con `transition`).
+- Al hacer clic en la foto se abre un modal Bootstrap a pantalla completa con la imagen ampliada sobre fondo negro.
+- Si el anuncio tiene varias fotos, aparecen flechas izquierda/derecha para navegar entre ellas y un contador `N / Total` en la esquina inferior.
+- La navegación también funciona con las teclas ← → del teclado.
+- El modal `#famaLightbox` se declara una sola vez en `templates/base.html` y es reutilizable en toda la aplicación.
+- Las imágenes reciben los atributos `data-fotos` (array JSON de URLs absolutas de todas las fotos del anuncio) y `data-index="0"`.
+- Archivos modificados: `static/css/estilos.css`, `static/js/scripts.js`, `templates/base.html`, `templates/viviendas/listar.html`, `templates/servicios/listar.html`, `templates/compraventa/listar.html`.
+
+### Fecha límite y eliminación automática de anuncios
+
+- Los formularios de creación y edición de Viviendas, Servicios y Compraventa incluyen un campo opcional **Fecha límite**.
+- El campo tiene `min="{{ now.strftime('%Y-%m-%d') }}"` para impedir seleccionar fechas pasadas.
+- La fecha se almacena en MongoDB como `datetime(año, mes, día, 23, 59, 59)` (fin del día seleccionado), de modo que el anuncio es visible durante todo el día elegido.
+- En `app.py` se define la función `_limpiar_expirados()` que consulta las colecciones `viviendas`, `servicios` y `compraventa` buscando documentos con `fecha_expiracion <= ahora`, elimina sus fotos del disco con `eliminar_imagenes()` y borra los documentos de MongoDB.
+- La limpieza se invoca desde el `before_request` (`verificar_sesion`) como máximo **una vez por hora**, controlada por la variable global `_ts_limpieza`.
+- Las tarjetas de los listados muestran un indicador naranja `⏰ Expira DD/MM/AAAA` si el anuncio tiene fecha límite.
+- Archivos modificados: `app.py`, `models/vivienda.py`, `models/servicio.py`, `models/compraventa.py`, `routes/viviendas.py`, `routes/servicios.py`, `routes/compraventa.py`, `templates/viviendas/formulario.html`, `templates/servicios/formulario.html`, `templates/compraventa/formulario.html`, `templates/viviendas/listar.html`, `templates/servicios/listar.html`, `templates/compraventa/listar.html`.
+
+### Bloqueo de fechas pasadas extendido a Novedades
+
+- Los campos `fecha_inicio` y `fecha_fin` del formulario de publicación de novedades incluyen `min="{{ now.strftime('%Y-%m-%d') }}"`.
+- Validación en servidor en `routes/novedades.py`: rechaza fechas pasadas en ambos campos y verifica que `fecha_fin >= fecha_inicio`.
+- Archivos modificados: `templates/novedades/listar.html`, `routes/novedades.py`.
+
+### Favicon FAMA
+
+- Añadida línea `<link rel="icon" type="image/png" href=".../famalogo.png">` en el `<head>` de `templates/base.html`.
+- El logo de FAMA aparece ahora en la pestaña del navegador en todas las páginas.
+- Archivo modificado: `templates/base.html`.
+
+### Alertas de administrador en el navbar
+
+- El enlace **Panel Admin** del navbar muestra un badge rojo con el total de alertas pendientes cuando hay usuarios sin validar o reportes sin resolver.
+- Al pasar el ratón sobre el badge se muestra el desglose: "N usuario(s) pendiente(s) · N reporte(s) sin resolver".
+- Los contadores se calculan en el `context_processor` de `app.py` para admin y gestor; se usan `rol_real` o `rol` de sesión para detectar el rol incluso durante simulación.
+- Archivos modificados: `app.py`, `templates/base.html`.
+
+### Botón "Reportar usuario" en la tabla de usuarios
+
+- Los gestores disponen del botón `bi-flag` (reportar) en cada fila de la tabla de usuarios (`/admin/usuarios`), al lado de los botones de resetear contraseña y ver ficha.
+- Se usa un único modal dinámico `#modalReportarTabla` cuyos datos (nombre del usuario y URL de la acción) se actualizan via el evento `show.bs.modal` de Bootstrap al hacer clic.
+- El modal de la ficha individual (`ver_usuario.html`) se mantiene independiente.
+- Archivos modificados: `templates/admin/usuarios.html`.
+
+### Enlace al objeto reportado en la tabla de reportes
+
+- La columna **Objeto reportado** en `templates/admin/reportes.html` muestra un enlace clicable hacia el anuncio o usuario reportado en lugar del ID crudo.
+- Para reportes de usuario: enlaza a la ficha del usuario en el panel admin (mismo tab).
+- Para reportes de anuncio: enlaza al detalle del anuncio en pestaña nueva (`target="_blank"`) con icono de enlace externo.
+- La lógica usa `mod = tipo_modulo | lower` y comparaciones con `in mod` para tolerar variaciones de capitalización y forma singular/plural: `'viviend'`, `'servicio'`, `'compra'`, `'ocio'`.
+- El badge de tipo usa colores diferenciados por módulo: azul (vivienda), verde (servicio), amarillo (compraventa), cian (ocio), amarillo oscuro (usuario).
+- Título de la página actualizado de "Reportes de anuncios" a "Reportes".
+- Archivos modificados: `templates/admin/reportes.html`.
+
+### Paginación configurable en paneles admin (10 / 25 / 50 / 100)
+
+- Los tres listados del panel admin disponen de un selector "Mostrar N por página" (valores: 10, 25, 50, 100; por defecto 10).
+- El selector se envía por GET con `onchange`, preservando el resto de filtros activos (búsqueda en usuarios, tipo en logs).
+- **Usuarios**: la paginación ya existía fija en 10; ahora lee `por_pagina` del parámetro GET y lo propaga a todos los enlaces de paginación y al formulario de búsqueda.
+- **Logs**: se añade paginación completa (antes cargaba todos); el contador total aparece en el título; la exportación PDF sigue exportando todos los logs del filtro activo.
+- **Reportes**: se añade paginación completa (antes cargaba todos); el contador total aparece en el título.
+- Archivos modificados: `routes/admin.py`, `templates/admin/usuarios.html`, `templates/admin/logs.html`, `templates/admin/reportes.html`.
+
+### Creación de usuarios por admin — forzar cambio de contraseña
+
+- Al crear un usuario desde el panel admin se activa `debe_cambiar_password = True` justo después de insertar el documento.
+- El usuario creado por el admin iniciará sesión con la contraseña asignada y será redirigido a `/auth/cambiar-password` antes de poder continuar.
+- El aviso del modal se actualiza para informar de este comportamiento.
+- Archivo modificado: `routes/admin.py`, `templates/admin/usuarios.html`.
+
+### Requisitos de contraseña segura e indicador visual
+
+- Las contraseñas deben cumplir: mínimo 8 caracteres, al menos 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial.
+- Nueva función `validar_password_fuerte()` en `utils/validators.py` usada en todas las rutas que aceptan contraseñas nuevas: registro, cambiar contraseña, recuperación y creación de usuario por admin.
+- Indicador visual rediseñado: icono `!` amarillo (`bi-exclamation-circle`) a la derecha del campo de contraseña (dentro de un `input-group`). Al pasar el ratón encima aparece un **popover Bootstrap** titulado "Requisitos de contraseña" con los 5 puntos en tiempo real (gris/verde según se cumplan). Cuando todos los requisitos están cubiertos el icono cambia a `✓` verde (`bi-check-circle-fill`). Implementado en `static/js/scripts.js` usando `bootstrap.Popover` con `setContent()` dinámico; se auto-descubre via `data-pwd-indicator` y funciona dentro de modales (evento `shown.bs.modal`).
+- El atributo `minlength` de todos los campos de contraseña nueva actualizado de 6 a 8.
+- Archivos modificados/creados: `utils/validators.py` (nuevo), `routes/auth.py`, `routes/admin.py`, `static/js/scripts.js`, `templates/auth/registro.html`, `templates/auth/cambiar_password.html`, `templates/auth/recuperar.html`, `templates/admin/usuarios.html`.
+
+### Flujo de primer acceso para usuarios creados por admin
+
+- El admin crea usuarios **sin pregunta de seguridad** (se elimina ese campo del modal de creación).
+- Al primer inicio de sesión, si la cuenta tiene `debe_cambiar_password=True` y `pregunta_seguridad=None`, el login redirige a `/auth/primer-acceso` en lugar de `/auth/cambiar-password`.
+- La página de primer acceso (`templates/auth/primer_acceso.html`) pide en un único formulario: nueva contraseña (con indicador visual) + pregunta de seguridad + respuesta.
+- Tras completar el formulario se actualiza la contraseña (`cambiar_password`), se guarda la pregunta/respuesta (`configurar_seguridad` en modelo) y se elimina el flag.
+- Nuevo método `configurar_seguridad()` añadido a `models/usuario.py`.
+- Archivos modificados/creados: `models/usuario.py`, `routes/auth.py`, `routes/admin.py`, `templates/admin/usuarios.html`, `templates/auth/primer_acceso.html` (nuevo).
+
+### Búsquedas de usuario e email sin distinción de mayúsculas/minúsculas
+
+- `autenticar()` en `models/usuario.py` usa `$regex ... $options: "i"` para que el login funcione independientemente de la capitalización del ID de usuario.
+- La búsqueda del candidato "pendiente de validación" en el login también usa regex case-insensitive.
+- El email siempre se normaliza a minúsculas con `.strip().lower()` en las rutas antes de guardarse.
+- La respuesta de seguridad se normaliza con `.lower()` tanto al guardar (hash) como al verificar.
+- Archivos modificados: `models/usuario.py`, `routes/auth.py`.
+
+### Sección "Mis anuncios" en el perfil de usuario
+
+- La página de perfil (`/auth/perfil`) muestra ahora en la columna derecha todos los anuncios publicados por el usuario, agrupados por módulo: Viviendas, Servicios, Compra-Venta y Ocio.
+- Cada anuncio muestra su tipo/título principal, precio o fecha según módulo, y un botón **Ver** que redirige al detalle del anuncio.
+- Si el anuncio tiene fecha límite se muestra el icono de reloj con la fecha.
+- Si el usuario no tiene anuncios en ningún módulo se muestra un mensaje informativo.
+- La ruta `perfil()` consulta los 4 colecciones de MongoDB filtrando por `usuario_id` y las pasa al template como `mis_anuncios`.
+- La página se reestructura en layout de dos columnas (col-md-4 / col-md-8).
+- Archivos modificados: `routes/auth.py`, `templates/auth/perfil.html`.
