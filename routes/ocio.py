@@ -19,11 +19,22 @@ ocio_bp = Blueprint("ocio", __name__, url_prefix="/ocio")
 @ocio_bp.route("/")
 def listar():
     """Lista todos los eventos con buscador."""
+    import math
+    PER_PAGE = 12
     db = get_db()
     modelo = Ocio(db)
-    filtros = modelo.construir_filtros(request.args)
-    eventos = modelo.obtener_todos(filtros)
-    return render_template("ocio/listar.html", eventos=eventos, filtros=request.args)
+    filtros_q = modelo.construir_filtros(request.args)
+    total = modelo.contar(filtros_q)
+    try:
+        page = max(1, int(request.args.get('page', 1)))
+    except (ValueError, TypeError):
+        page = 1
+    total_paginas = max(1, math.ceil(total / PER_PAGE))
+    page = min(page, total_paginas)
+    eventos = modelo.obtener_todos(filtros_q, skip=(page - 1) * PER_PAGE, limit=PER_PAGE)
+    filtros_form = {k: v for k, v in request.args.items() if k != 'page'}
+    return render_template("ocio/listar.html", eventos=eventos, filtros=filtros_form,
+                           page=page, total_paginas=total_paginas)
 
 
 @ocio_bp.route("/calendario")

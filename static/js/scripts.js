@@ -90,6 +90,35 @@ document.addEventListener('DOMContentLoaded', function () {
 }());
 
 /**
+ * Toggle lista / cuadrícula en los listados de anuncios.
+ * Guarda la preferencia en localStorage con la clave 'fama_vista_<key>'.
+ * Por defecto muestra la vista lista.
+ */
+function initVistaToggle(key) {
+    var grid    = document.getElementById('vista-grid');
+    var lista   = document.getElementById('vista-lista');
+    var btnGrid = document.getElementById('btn-vista-grid');
+    var btnList = document.getElementById('btn-vista-lista');
+    if (!grid || !lista) return;
+
+    function setVista(v) {
+        var esGrid = (v === 'grid');
+        grid.classList.toggle('d-none', !esGrid);
+        lista.classList.toggle('d-none',  esGrid);
+        if (btnGrid) btnGrid.classList.toggle('active', esGrid);
+        if (btnList) btnList.classList.toggle('active', !esGrid);
+        try { localStorage.setItem('fama_vista_' + key, v); } catch (e) {}
+    }
+
+    var guardada = 'lista';
+    try { guardada = localStorage.getItem('fama_vista_' + key) || 'lista'; } catch (e) {}
+    setVista(guardada);
+
+    if (btnGrid) btnGrid.addEventListener('click', function () { setVista('grid'); });
+    if (btnList) btnList.addEventListener('click', function () { setVista('lista'); });
+}
+
+/**
  * Lightbox: abre las fotos de un anuncio ampliadas con navegación prev/next.
  * Las imágenes deben tener la clase .fama-lightbox y los atributos:
  *   data-fotos  -> JSON array de URLs absolutas de todas las fotos del anuncio

@@ -9,9 +9,19 @@
             <i class="bi bi-star me-1"></i>Ver Tienda Armada
         </a>
     </div>
-    <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-warning">
-        <i class="bi bi-plus-lg me-1"></i>Publicar articulo
-    </a>
+    <div class="d-flex align-items-center gap-2">
+        <div class="btn-group btn-group-sm" role="group" aria-label="Cambiar vista">
+            <button id="btn-vista-lista" type="button" class="btn btn-outline-secondary" title="Vista lista">
+                <i class="bi bi-list-ul"></i>
+            </button>
+            <button id="btn-vista-grid" type="button" class="btn btn-outline-secondary" title="Vista cuadrícula">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+        </div>
+        <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-warning">
+            <i class="bi bi-plus-lg me-1"></i>Publicar articulo
+        </a>
+    </div>
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
@@ -34,7 +44,9 @@
 </div>
 
 {% if anuncios %}
-<div class="row g-3">
+
+{# ── Vista cuadrícula ─────────────────────────────────────────────────────── #}
+<div id="vista-grid" class="row g-3">
     {% for a in anuncios %}
     <div class="col-md-6 col-lg-3">
         <div class="card h-100 border-0 shadow-sm">
@@ -70,8 +82,7 @@
                         <a href="{{ url_for('compraventa.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-warning">Ver</a>
                         {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
                         <a href="{{ url_for('compraventa.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                        <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=a._id) }}"
-                              onsubmit="return confirmarEliminacion()">
+                        <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=a._id) }}" onsubmit="return confirmarEliminacion()">
                             <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </form>
                         {% endif %}
@@ -82,6 +93,57 @@
     </div>
     {% endfor %}
 </div>
+
+{# ── Vista lista ──────────────────────────────────────────────────────────── #}
+<div id="vista-lista" class="d-flex flex-column gap-3">
+    {% for a in anuncios %}
+    <div class="card border-0 shadow-sm">
+        <div class="row g-0">
+            {% if a.fotos %}
+            <div class="col-12 col-md-auto fama-list-thumb-wrap">
+                <div class="position-relative fama-img-wrap h-100">
+                    <img src="{{ url_for('static', filename='uploads/compraventa/' + a.fotos[0]) }}"
+                         class="fama-list-thumb fama-img-zoom fama-lightbox rounded-start"
+                         alt="foto"
+                         data-fotos='[{% for f in a.fotos %}"{{ url_for('static', filename='uploads/compraventa/' + f) }}"{% if not loop.last %},{% endif %}{% endfor %}]'
+                         data-index="0">
+                    {% if a.fotos|length > 1 %}
+                    <span class="position-absolute bottom-0 end-0 m-1 badge bg-dark bg-opacity-75" style="font-size:.7rem">
+                        <i class="bi bi-images me-1"></i>{{ a.fotos|length }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            <div class="col">
+                <div class="card-body py-2 px-3 d-flex flex-column h-100">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h6 class="card-title mb-0 flex-grow-1">{{ a.nombre_articulo }}</h6>
+                        <span class="fw-bold text-warning fs-5">{{ a.precio }}€</span>
+                    </div>
+                    {% if a.uco %}<p class="text-muted small mb-1"><i class="bi bi-building me-1"></i>{{ a.uco }}</p>{% endif %}
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <small class="text-muted"><i class="bi bi-person me-1"></i>{{ a.nombre_usuario }}</small>
+                        {% if a.get('fecha_expiracion') %}
+                        <span class="text-warning small"><i class="bi bi-clock me-1"></i>Expira {{ a.fecha_expiracion.strftime('%d/%m/%Y') }}</span>
+                        {% endif %}
+                        <div class="d-flex gap-1 ms-auto">
+                            <a href="{{ url_for('compraventa.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-warning">Ver</a>
+                            {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
+                            <a href="{{ url_for('compraventa.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                            <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=a._id) }}" onsubmit="return confirmarEliminacion()">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
 {% else %}
 <div class="text-center py-5 text-muted">
     <i class="bi bi-shop fs-1 d-block mb-3"></i>
@@ -89,4 +151,28 @@
     <a href="{{ url_for('compraventa.nuevo') }}" class="btn btn-warning">Publicar el primero</a>
 </div>
 {% endif %}
+
+{% if total_paginas > 1 %}
+<nav class="mt-4 d-flex justify-content-center align-items-center gap-2" aria-label="Paginación">
+    <a href="{{ url_for('compraventa.listar', page=page-1, **filtros) }}"
+       class="btn btn-outline-secondary btn-sm {% if page <= 1 %}disabled{% endif %}">
+        <i class="bi bi-chevron-left"></i>
+    </a>
+    {% for p in range(1, total_paginas + 1) %}
+    <a href="{{ url_for('compraventa.listar', page=p, **filtros) }}"
+       class="btn btn-sm {% if p == page %}btn-warning{% else %}btn-outline-secondary{% endif %}">
+        {{ p }}
+    </a>
+    {% endfor %}
+    <a href="{{ url_for('compraventa.listar', page=page+1, **filtros) }}"
+       class="btn btn-outline-secondary btn-sm {% if page >= total_paginas %}disabled{% endif %}">
+        <i class="bi bi-chevron-right"></i>
+    </a>
+</nav>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>initVistaToggle('compraventa');</script>
 {% endblock %}

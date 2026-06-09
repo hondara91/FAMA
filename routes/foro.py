@@ -54,17 +54,25 @@ def _anotar_fotos_autor(db, documentos):
 # ── Lista de canales ──────────────────────────────────────────────────────────
 
 @foro_bp.route("/")
+@login_required
 def listar():
     """Página principal del foro: muestra todos los canales disponibles."""
+    import math
+    PER_PAGE = 12
     db     = get_db()
     modelo = ForoCanal(db)
     posts  = ForoPost(db)
-
-    canales = modelo.obtener_todos()
+    total  = modelo.contar()
+    try:
+        page = max(1, int(request.args.get('page', 1)))
+    except (ValueError, TypeError):
+        page = 1
+    total_paginas = max(1, math.ceil(total / PER_PAGE))
+    page = min(page, total_paginas)
+    canales = modelo.obtener_todos(skip=(page - 1) * PER_PAGE, limit=PER_PAGE)
     for c in canales:
         c["num_posts"] = posts.contar_por_canal(str(c["_id"]))
-
-    return render_template("foro/listar.html", canales=canales)
+    return render_template("foro/listar.html", canales=canales, page=page, total_paginas=total_paginas)
 
 
 # ── Crear canal ───────────────────────────────────────────────────────────────
@@ -132,6 +140,7 @@ def eliminar_canal(canal_id):
 # ── Posts de un canal ─────────────────────────────────────────────────────────
 
 @foro_bp.route("/canal/<canal_id>")
+@login_required
 def ver_canal(canal_id):
     """Muestra los posts de un canal con buscador."""
     db        = get_db()
@@ -157,6 +166,7 @@ def ver_canal(canal_id):
 # ── Detalle + responder ───────────────────────────────────────────────────────
 
 @foro_bp.route("/detalle/<post_id>", methods=["GET", "POST"])
+@login_required
 def detalle(post_id):
     """
     GET:  muestra el post completo con todas sus respuestas.

@@ -11,6 +11,58 @@
     --fama-gris: #f8f9fa;
 }
 
+/* Iconos automaticos de servicios */
+.fama-service-icon-hero {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f4fbf7;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+}
+
+.fama-service-icon-circle {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e6f4ee;
+    color: #198754;
+}
+
+.fama-service-icon-circle i {
+    font-size: 2.1rem;
+    line-height: 1;
+}
+
+.fama-service-detail-hero {
+    min-height: 260px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f4fbf7;
+    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
+}
+
+.fama-service-detail-icon {
+    width: 116px;
+    height: 116px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e6f4ee;
+    color: #198754;
+}
+
+.fama-service-detail-icon i {
+    font-size: 3.4rem;
+    line-height: 1;
+}
+
 /* ── Body ────────────────────────────────────────────────── */
 body {
     min-height: 100vh;
@@ -215,6 +267,42 @@ main {
 
 .fama-img-wrap:hover .fama-img-zoom {
     transform: scale(1.08);
+}
+
+/* ── Vista lista: altura uniforme + miniatura ────────────── */
+
+/* Todos los bloques en vista lista tienen la misma altura en desktop */
+@media (min-width: 768px) {
+    #vista-lista > .card {
+        height: 130px;
+        overflow: hidden;
+    }
+}
+
+/* Miniatura: tamaño fijo para que la foto se adapte al bloque y no al revés */
+.fama-list-thumb-wrap {
+    flex-shrink: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 160px;  /* móvil: imagen encima, altura fija */
+}
+
+.fama-list-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .fama-list-thumb-wrap {
+        width: 200px;
+        height: 130px;  /* desktop: exactamente la altura del bloque */
+    }
+    .fama-list-thumb {
+        width: 200px;
+        height: 130px;
+    }
 }
 
 /* ── Lightbox ────────────────────────────────────────────── */

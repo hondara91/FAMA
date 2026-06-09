@@ -45,8 +45,14 @@ class ForoCanal:
         }
         return self.coleccion.insert_one(canal).inserted_id
 
-    def obtener_todos(self):
-        return list(self.coleccion.find().sort("fecha_creacion", 1))
+    def obtener_todos(self, skip=0, limit=0):
+        cursor = self.coleccion.find().sort("fecha_creacion", 1)
+        if limit:
+            cursor = cursor.skip(skip).limit(limit)
+        return list(cursor)
+
+    def contar(self):
+        return self.coleccion.count_documents({})
 
     def obtener_por_id(self, canal_id):
         return self.coleccion.find_one({"_id": ObjectId(canal_id)})

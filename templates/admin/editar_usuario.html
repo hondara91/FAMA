@@ -7,6 +7,21 @@
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <h3 class="mb-4"><i class="bi bi-person-gear me-2 text-primary"></i>Editar Usuario</h3>
+                {% if usuario.foto_perfil %}
+                <form method="POST" class="mb-3">
+                    <label class="form-label">Foto de perfil actual</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ url_for('static', filename='uploads/perfiles/' + usuario.foto_perfil) }}"
+                             class="rounded-circle" style="width:64px;height:64px;object-fit:cover;"
+                             alt="Foto de perfil">
+                        <button type="submit" name="borrar_foto" value="1"
+                                class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('¿Eliminar la foto de perfil de este usuario?')">
+                            <i class="bi bi-trash me-1"></i>Eliminar foto
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
                 <form method="POST">
                     <div class="mb-3">
                         <label class="form-label">Nombre completo</label>

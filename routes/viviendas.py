@@ -40,13 +40,22 @@ viviendas_bp = Blueprint("viviendas", __name__, url_prefix="/viviendas")
 @viviendas_bp.route("/")
 def listar():
     """Muestra todos los anuncios con buscador. Accesible sin autenticación."""
+    import math
+    PER_PAGE = 12
     db     = get_db()
     modelo = Vivienda(db)
-    # construir_filtros() traduce los parametros GET a una query MongoDB
-    filtros  = modelo.construir_filtros(request.args)
-    anuncios = modelo.obtener_todos(filtros)
-    # Se pasa 'filtros' para que el formulario del buscador recuerde los valores
-    return render_template("viviendas/listar.html", anuncios=anuncios, filtros=request.args)
+    filtros_q  = modelo.construir_filtros(request.args)
+    total      = modelo.contar(filtros_q)
+    try:
+        page = max(1, int(request.args.get('page', 1)))
+    except (ValueError, TypeError):
+        page = 1
+    total_paginas = max(1, math.ceil(total / PER_PAGE))
+    page = min(page, total_paginas)
+    anuncios = modelo.obtener_todos(filtros_q, skip=(page - 1) * PER_PAGE, limit=PER_PAGE)
+    filtros_form = {k: v for k, v in request.args.items() if k != 'page'}
+    return render_template("viviendas/listar.html", anuncios=anuncios, filtros=filtros_form,
+                           page=page, total_paginas=total_paginas)
 
 
 # ── Creación ──────────────────────────────────────────────────────────────────

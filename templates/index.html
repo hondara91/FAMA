@@ -97,24 +97,29 @@
 
 <div class="row g-4 justify-content-center">
 
-    {# Sección: últimas 4 viviendas publicadas (ordenadas por fecha_creacion desc) #}
+    {# Últimas Viviendas #}
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Últimas Viviendas', 'house-door', 'primary') }}
         {% for v in viviendas %}
         <div class="card mb-2 border-0 shadow-sm">
-            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center gap-2">
+            <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
                 {% if v.fotos %}
                 <img src="{{ url_for('static', filename='uploads/viviendas/' + v.fotos[0]) }}"
                      style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0" alt="">
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded bg-primary bg-opacity-10"
+                     style="width:44px;height:44px"><i class="bi bi-house-door text-primary"></i></div>
                 {% endif %}
-                <div class="text-start flex-grow-1">
-                    <span class="badge bg-primary me-1">{{ v.tipo_oferta }}</span>
-                    <strong>{{ v.tipo_inmueble }}</strong> en {{ v.ciudad }}
+                <div class="flex-grow-1 overflow-hidden text-start">
+                    <div class="d-flex align-items-center gap-1 overflow-hidden">
+                        <span class="badge bg-primary flex-shrink-0">{{ v.tipo_oferta }}</span>
+                        <strong class="text-truncate">{{ v.tipo_inmueble }} en {{ v.ciudad }}</strong>
+                    </div>
                 </div>
-                <div class="text-end text-nowrap">
-                    <small class="text-muted">{{ v.precio }}€/mes</small>
+                <div class="text-end text-nowrap flex-shrink-0">
+                    {% if v.precio %}<small class="text-muted d-block">{{ v.precio }}€/mes</small>{% endif %}
                     <a href="{{ url_for('viviendas.detalle', anuncio_id=v._id) }}"
-                       class="btn btn-sm btn-outline-primary ms-2">Ver</a>
+                       class="btn btn-sm btn-outline-primary">Ver</a>
                 </div>
             </div>
         </div>
@@ -124,24 +129,29 @@
         <a href="{{ url_for('viviendas.listar') }}" class="btn btn-sm btn-primary mt-1">Ver todos</a>
     </div>
 
-    {# Sección: últimos 4 servicios publicados #}
+    {# Últimos Servicios #}
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Últimos Servicios', 'gear', 'success') }}
         {% for s in servicios %}
         <div class="card mb-2 border-0 shadow-sm">
-            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center gap-2">
+            <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
                 {% if s.fotos %}
                 <img src="{{ url_for('static', filename='uploads/servicios/' + s.fotos[0]) }}"
                      style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0" alt="">
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded bg-success bg-opacity-10"
+                     style="width:44px;height:44px"><i class="bi bi-car-front text-success"></i></div>
                 {% endif %}
-                <div class="text-start flex-grow-1">
-                    <span class="badge bg-success me-1">{{ s.tipo }}</span>
-                    <strong>{{ s.titulo }}</strong>
+                <div class="flex-grow-1 overflow-hidden text-start">
+                    <div class="d-flex align-items-center gap-1 overflow-hidden">
+                        <span class="badge bg-success flex-shrink-0">{{ s.tipo }}</span>
+                        <strong class="text-truncate">{{ s.titulo }}</strong>
+                    </div>
                 </div>
-                <div class="text-end text-nowrap">
-                    <small class="text-muted">{{ s.ciudad }}</small>
+                <div class="text-end text-nowrap flex-shrink-0">
+                    <small class="text-muted d-block">{{ s.ciudad }}</small>
                     <a href="{{ url_for('servicios.detalle', anuncio_id=s._id) }}"
-                       class="btn btn-sm btn-outline-success ms-2">Ver</a>
+                       class="btn btn-sm btn-outline-success">Ver</a>
                 </div>
             </div>
         </div>
@@ -151,24 +161,27 @@
         <a href="{{ url_for('servicios.listar') }}" class="btn btn-sm btn-success mt-1">Ver todos</a>
     </div>
 
-    {# Sección: últimos 4 artículos de segunda mano (sin merchandising) #}
+    {# Últimos Artículos compraventa #}
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Últimos Artículos', 'shop', 'warning') }}
         {% for c in compraventa %}
         <div class="card mb-2 border-0 shadow-sm">
-            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center gap-2">
+            <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
                 {% if c.fotos %}
                 <img src="{{ url_for('static', filename='uploads/compraventa/' + c.fotos[0]) }}"
                      style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0" alt="">
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded bg-warning bg-opacity-10"
+                     style="width:44px;height:44px"><i class="bi bi-shop text-warning"></i></div>
                 {% endif %}
-                <div class="flex-grow-1 text-start">
-                    <strong>{{ c.nombre_articulo }}</strong>
-                    <small class="text-muted ms-2">{{ c.uco }}</small>
+                <div class="flex-grow-1 overflow-hidden text-start">
+                    <strong class="text-truncate d-block">{{ c.nombre_articulo }}</strong>
+                    {% if c.uco %}<small class="text-muted text-truncate d-block">{{ c.uco }}</small>{% endif %}
                 </div>
-                <div class="text-end text-nowrap">
-                    <span class="text-warning fw-bold">{{ c.precio }}€</span>
+                <div class="text-end text-nowrap flex-shrink-0">
+                    <span class="text-warning fw-bold d-block">{{ c.precio }}€</span>
                     <a href="{{ url_for('compraventa.detalle', anuncio_id=c._id) }}"
-                       class="btn btn-sm btn-outline-warning ms-2">Ver</a>
+                       class="btn btn-sm btn-outline-warning">Ver</a>
                 </div>
             </div>
         </div>
@@ -178,27 +191,30 @@
         <a href="{{ url_for('compraventa.listar') }}" class="btn btn-sm btn-warning mt-1">Ver todos</a>
     </div>
 
-    {# Sección: próximos 4 eventos de ocio (ordenados por fecha asc) #}
+    {# Próximos Eventos #}
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Próximos Eventos', 'calendar-event', 'info') }}
         {% for e in eventos %}
         <div class="card mb-2 border-0 shadow-sm">
-            <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
-                <div class="text-start">
-                    <span class="badge bg-info text-dark me-2">{{ e.tipo_evento }}</span>
-                    <strong>{{ e.titulo }}</strong>
+            <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded bg-info bg-opacity-10"
+                     style="width:44px;height:44px"><i class="bi bi-calendar-event text-info"></i></div>
+                <div class="flex-grow-1 overflow-hidden text-start">
+                    <div class="d-flex align-items-center gap-1 overflow-hidden">
+                        <span class="badge bg-info text-dark flex-shrink-0">{{ e.tipo_evento }}</span>
+                        <strong class="text-truncate">{{ e.titulo }}</strong>
+                    </div>
                 </div>
-                <div class="text-end">
-                    <small class="text-muted">{{ e.fecha }}</small>
+                <div class="text-end text-nowrap flex-shrink-0">
+                    <small class="text-muted d-block">{{ e.fecha }}</small>
                     <a href="{{ url_for('ocio.detalle', evento_id=e._id) }}"
-                       class="btn btn-sm btn-outline-info ms-2">Ver</a>
+                       class="btn btn-sm btn-outline-info">Ver</a>
                 </div>
             </div>
         </div>
         {% else %}
             <p class="text-muted small">Sin eventos todavía.</p>
         {% endfor %}
-        {# Enlace al calendario en lugar de al listado para los eventos de ocio #}
         <a href="{{ url_for('ocio.calendario') }}" class="btn btn-sm btn-info mt-1">
             <i class="bi bi-calendar3 me-1"></i>Calendario
         </a>

@@ -29,12 +29,23 @@ compraventa_bp = Blueprint("compraventa", __name__, url_prefix="/compraventa")
 @compraventa_bp.route("/")
 def listar():
     """Lista todos los artículos de compraventa (excluye merchandising)."""
+    import math
+    PER_PAGE = 12
     db = get_db()
     modelo = Compraventa(db)
-    filtros = modelo.construir_filtros(request.args)
-    filtros["es_merchandising"] = False
-    anuncios = modelo.obtener_todos(filtros)
-    return render_template("compraventa/listar.html", anuncios=anuncios, filtros=request.args)
+    filtros_q = modelo.construir_filtros(request.args)
+    filtros_q["es_merchandising"] = False
+    total = modelo.contar(filtros_q)
+    try:
+        page = max(1, int(request.args.get('page', 1)))
+    except (ValueError, TypeError):
+        page = 1
+    total_paginas = max(1, math.ceil(total / PER_PAGE))
+    page = min(page, total_paginas)
+    anuncios = modelo.obtener_todos(filtros_q, skip=(page - 1) * PER_PAGE, limit=PER_PAGE)
+    filtros_form = {k: v for k, v in request.args.items() if k != 'page'}
+    return render_template("compraventa/listar.html", anuncios=anuncios, filtros=filtros_form,
+                           page=page, total_paginas=total_paginas)
 
 
 @compraventa_bp.route("/armada")

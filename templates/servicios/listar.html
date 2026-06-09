@@ -4,9 +4,19 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-car-front text-success me-2"></i>Servicios</h2>
-    <a href="{{ url_for('servicios.nuevo') }}" class="btn btn-success">
-        <i class="bi bi-plus-lg me-1"></i>Publicar servicio
-    </a>
+    <div class="d-flex align-items-center gap-2">
+        <div class="btn-group btn-group-sm" role="group" aria-label="Cambiar vista">
+            <button id="btn-vista-lista" type="button" class="btn btn-outline-secondary" title="Vista lista">
+                <i class="bi bi-list-ul"></i>
+            </button>
+            <button id="btn-vista-grid" type="button" class="btn btn-outline-secondary" title="Vista cuadrícula">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+        </div>
+        <a href="{{ url_for('servicios.nuevo') }}" class="btn btn-success">
+            <i class="bi bi-plus-lg me-1"></i>Publicar servicio
+        </a>
+    </div>
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
@@ -16,7 +26,7 @@
                 <select name="tipo" class="form-select form-select-sm">
                     <option value="">Ofrecer/Buscar</option>
                     <option value="ofrecer" {% if filtros.get('tipo')=='ofrecer' %}selected{% endif %}>Ofrecer</option>
-                    <option value="buscar" {% if filtros.get('tipo')=='buscar' %}selected{% endif %}>Buscar</option>
+                    <option value="buscar"  {% if filtros.get('tipo')=='buscar'  %}selected{% endif %}>Buscar</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -31,7 +41,7 @@
                 <select name="modalidad" class="form-select form-select-sm">
                     <option value="">Modalidad</option>
                     <option value="presencial" {% if filtros.get('modalidad')=='presencial' %}selected{% endif %}>Presencial</option>
-                    <option value="online" {% if filtros.get('modalidad')=='online' %}selected{% endif %}>Online</option>
+                    <option value="online"     {% if filtros.get('modalidad')=='online'     %}selected{% endif %}>Online</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -47,24 +57,24 @@
 </div>
 
 {% if anuncios %}
-<div class="row g-3">
+
+{# ── Vista cuadrícula ─────────────────────────────────────────────────────── #}
+<div id="vista-grid" class="row g-3">
     {% for a in anuncios %}
-    <div class="col-md-6 col-lg-4">
+    {% set service_icon = 'car-front' if a.categoria == 'Viajes compartidos' else 'briefcase' if a.categoria in ('Trabajos', 'Consultoría') else 'people' %}
+    {% if a.tipo == 'buscar' %}{% set icon_hex = '#dc3545' %}
+    {% elif a.categoria == 'Viajes compartidos' %}{% set icon_hex = '#ffc107' %}
+    {% elif a.categoria == 'Trabajos' %}{% set icon_hex = '#198754' %}
+    {% elif a.categoria == 'Clases de apoyo' %}{% set icon_hex = '#0d6efd' %}
+    {% elif a.categoria == 'Consultoría' %}{% set icon_hex = '#6f42c1' %}
+    {% else %}{% set icon_hex = '#6c757d' %}{% endif %}
+    <div class="col-md-6 col-lg-3">
         <div class="card h-100 border-0 shadow-sm">
-            {% if a.fotos %}
-            <div class="position-relative fama-img-wrap">
-                <img src="{{ url_for('static', filename='uploads/servicios/' + a.fotos[0]) }}"
-                     class="card-img-top fama-img-zoom fama-lightbox"
-                     style="height:160px;object-fit:cover" alt="foto"
-                     data-fotos='[{% for f in a.fotos %}"{{ url_for('static', filename='uploads/servicios/' + f) }}"{% if not loop.last %},{% endif %}{% endfor %}]'
-                     data-index="0">
-                {% if a.fotos|length > 1 %}
-                <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark bg-opacity-75">
-                    <i class="bi bi-images me-1"></i>{{ a.fotos|length }}
-                </span>
-                {% endif %}
+            <div class="fama-service-icon-hero" style="background:{{ icon_hex }}0d">
+                <div class="fama-service-icon-circle" style="color:{{ icon_hex }};background:{{ icon_hex }}1a">
+                    <i class="bi bi-{{ service_icon }}"></i>
+                </div>
             </div>
-            {% endif %}
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="badge bg-{{ 'success' if a.tipo == 'ofrecer' else 'info' }} text-{{ '' if a.tipo == 'ofrecer' else 'dark' }}">{{ a.tipo|capitalize }}</span>
@@ -90,8 +100,7 @@
                         <a href="{{ url_for('servicios.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-success">Ver</a>
                         {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
                         <a href="{{ url_for('servicios.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                        <form method="POST" action="{{ url_for('servicios.eliminar', anuncio_id=a._id) }}"
-                              onsubmit="return confirmarEliminacion()">
+                        <form method="POST" action="{{ url_for('servicios.eliminar', anuncio_id=a._id) }}" onsubmit="return confirmarEliminacion()">
                             <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </form>
                         {% endif %}
@@ -102,6 +111,66 @@
     </div>
     {% endfor %}
 </div>
+
+{# ── Vista lista ──────────────────────────────────────────────────────────── #}
+<div id="vista-lista" class="d-flex flex-column gap-3">
+    {% for a in anuncios %}
+    {% set color = 'success' if a.tipo == 'ofrecer' else 'info' %}
+    {% set service_icon = 'car-front' if a.categoria == 'Viajes compartidos' else 'briefcase' if a.categoria in ('Trabajos', 'Consultoría') else 'people' %}
+    {% if a.tipo == 'buscar' %}{% set icon_hex = '#dc3545' %}
+    {% elif a.categoria == 'Viajes compartidos' %}{% set icon_hex = '#ffc107' %}
+    {% elif a.categoria == 'Trabajos' %}{% set icon_hex = '#198754' %}
+    {% elif a.categoria == 'Clases de apoyo' %}{% set icon_hex = '#0d6efd' %}
+    {% elif a.categoria == 'Consultoría' %}{% set icon_hex = '#6f42c1' %}
+    {% else %}{% set icon_hex = '#6c757d' %}{% endif %}
+    <div class="card border-0 shadow-sm">
+        <div class="row g-0">
+            <div class="col-auto d-flex align-items-center justify-content-center px-3"
+                 style="min-width:72px; border-right:1px solid rgba(0,0,0,.06)">
+                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                     style="width:48px;height:48px;flex-shrink:0;background:{{ icon_hex }}1a">
+                    <i class="bi bi-{{ service_icon }} fs-4" style="color:{{ icon_hex }}"></i>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card-body py-2 px-3 d-flex flex-column h-100">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <span class="badge bg-{{ color }} {% if color == 'info' %}text-dark{% endif %}">{{ a.tipo|capitalize }}</span>
+                        <span class="badge bg-light text-dark border">{{ a.categoria }}</span>
+                        <span class="ms-auto text-muted small"><i class="bi bi-person me-1"></i>{{ a.nombre_usuario }}</span>
+                    </div>
+                    <h6 class="card-title mb-1">{{ a.titulo }}</h6>
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-geo-alt me-1"></i>{{ a.ciudad }}
+                        &nbsp;&bull;&nbsp;
+                        <i class="bi bi-laptop me-1"></i>{{ a.modalidad }}
+                        {% if a.precio and a.precio != '0' %}
+                        &nbsp;&bull;&nbsp;<strong class="text-success">{{ a.precio }}€</strong>
+                        {% else %}
+                        &nbsp;&bull;&nbsp;<span class="text-success fw-semibold">Gratuito</span>
+                        {% endif %}
+                    </p>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        {% if a.get('fecha_expiracion') %}
+                        <span class="text-warning small"><i class="bi bi-clock me-1"></i>Expira {{ a.fecha_expiracion.strftime('%d/%m/%Y') }}</span>
+                        {% endif %}
+                        <div class="d-flex gap-1 ms-auto">
+                            <a href="{{ url_for('servicios.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-success">Ver</a>
+                            {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
+                            <a href="{{ url_for('servicios.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                            <form method="POST" action="{{ url_for('servicios.eliminar', anuncio_id=a._id) }}" onsubmit="return confirmarEliminacion()">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
 {% else %}
 <div class="text-center py-5 text-muted">
     <i class="bi bi-car-front fs-1 d-block mb-3"></i>
@@ -109,4 +178,28 @@
     <a href="{{ url_for('servicios.nuevo') }}" class="btn btn-success">Publicar el primero</a>
 </div>
 {% endif %}
+
+{% if total_paginas > 1 %}
+<nav class="mt-4 d-flex justify-content-center align-items-center gap-2" aria-label="Paginación">
+    <a href="{{ url_for('servicios.listar', page=page-1, **filtros) }}"
+       class="btn btn-outline-secondary btn-sm {% if page <= 1 %}disabled{% endif %}">
+        <i class="bi bi-chevron-left"></i>
+    </a>
+    {% for p in range(1, total_paginas + 1) %}
+    <a href="{{ url_for('servicios.listar', page=p, **filtros) }}"
+       class="btn btn-sm {% if p == page %}btn-success{% else %}btn-outline-secondary{% endif %}">
+        {{ p }}
+    </a>
+    {% endfor %}
+    <a href="{{ url_for('servicios.listar', page=page+1, **filtros) }}"
+       class="btn btn-outline-secondary btn-sm {% if page >= total_paginas %}disabled{% endif %}">
+        <i class="bi bi-chevron-right"></i>
+    </a>
+</nav>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>initVistaToggle('servicios');</script>
 {% endblock %}

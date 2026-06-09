@@ -46,9 +46,15 @@ class Ocio:
 
     # ── Consultas ─────────────────────────────────────────────────────────────
 
-    def obtener_todos(self, filtros=None):
+    def obtener_todos(self, filtros=None, skip=0, limit=0):
         """Devuelve todos los eventos, ordenados por fecha ascendente (próximos primero)."""
-        return list(self.coleccion.find(filtros or {}).sort("fecha", 1))
+        cursor = self.coleccion.find(filtros or {}).sort("fecha", 1)
+        if limit:
+            cursor = cursor.skip(skip).limit(limit)
+        return list(cursor)
+
+    def contar(self, filtros=None):
+        return self.coleccion.count_documents(filtros or {})
 
     def obtener_por_id(self, evento_id):
         """Busca un evento por su ObjectId."""

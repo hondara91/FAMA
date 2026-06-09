@@ -7,10 +7,11 @@ Rutas protegidas por rol:
 
 Jerarquia de roles: admin > gestor > usuario
 """
+import os
 from datetime import datetime
 
 from bson import ObjectId
-from flask import Blueprint, flash, redirect, render_template, request, send_file, session, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, send_file, session, url_for
 
 from models.usuario import Usuario
 from utils.db import get_db
@@ -218,6 +219,17 @@ def editar_usuario(user_id):
         return redirect(url_for("admin.listar_usuarios"))
 
     if request.method == "POST":
+        # Borrar foto de perfil si se solicitó
+        if "borrar_foto" in request.form and usuario.get("foto_perfil"):
+            ruta = os.path.join(current_app.static_folder, "uploads", "perfiles", usuario["foto_perfil"])
+            if os.path.exists(ruta):
+                os.remove(ruta)
+            modelo.actualizar(user_id, {"foto_perfil": None})
+            registrar_log(db, "registro", "borrar_foto_perfil", session["nombre"],
+                          f"Foto de perfil eliminada del usuario: {usuario['nombre']}")
+            flash("Foto de perfil eliminada.", "success")
+            return redirect(url_for("admin.editar_usuario", user_id=user_id))
+
         # Campos editables por gestor: nombre y email
         datos = {
             "nombre": request.form.get("nombre", "").strip(),

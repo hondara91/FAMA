@@ -9,9 +9,19 @@
             <i class="bi bi-calendar3 me-1"></i>Ver calendario
         </a>
     </div>
-    <a href="{{ url_for('ocio.nuevo') }}" class="btn btn-info text-white">
-        <i class="bi bi-plus-lg me-1"></i>Crear evento
-    </a>
+    <div class="d-flex align-items-center gap-2">
+        <div class="btn-group btn-group-sm" role="group" aria-label="Cambiar vista">
+            <button id="btn-vista-lista" type="button" class="btn btn-outline-secondary" title="Vista lista">
+                <i class="bi bi-list-ul"></i>
+            </button>
+            <button id="btn-vista-grid" type="button" class="btn btn-outline-secondary" title="Vista cuadrícula">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+        </div>
+        <a href="{{ url_for('ocio.nuevo') }}" class="btn btn-info text-white">
+            <i class="bi bi-plus-lg me-1"></i>Crear evento
+        </a>
+    </div>
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
@@ -46,43 +56,97 @@
 </div>
 
 {% if eventos %}
-<div class="row g-3">
+
+{# ── Vista cuadrícula ─────────────────────────────────────────────────────── #}
+<div id="vista-grid" class="row g-3">
     {% for e in eventos %}
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100 border-0 shadow-sm">
-            <div class="card-header border-0 py-2"
-                 style="background: {{ '#198754' if e.tipo_evento=='Deporte' else '#0d6efd' if e.tipo_evento=='Cultural' else '#6c757d' }}20">
-                <span class="badge"
-                      style="background: {{ '#198754' if e.tipo_evento=='Deporte' else '#0d6efd' if e.tipo_evento=='Cultural' else '#6c757d' }}">
-                    {{ e.tipo_evento }}
-                </span>
-            </div>
+    {% set ev_color = '#198754' if e.tipo_evento=='Deporte' else '#0d6efd' if e.tipo_evento=='Cultural' else '#6c757d' %}
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm" style="border-top: 3px solid {{ ev_color }} !important">
             <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge" style="background:{{ ev_color }}">{{ e.tipo_evento }}</span>
+                    <div class="text-center" style="color:{{ ev_color }}">
+                        {% set meses = ['','ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'] %}
+                        <div class="fw-bold lh-1" style="font-size:1.4rem">{{ e.fecha[8:] }}</div>
+                        <div class="small text-uppercase" style="font-size:.7rem;letter-spacing:.05em">{{ meses[e.fecha[5:7]|int] }}</div>
+                    </div>
+                </div>
                 <h6 class="card-title">{{ e.titulo }}</h6>
-                <p class="text-muted small mb-1">
-                    <i class="bi bi-calendar3 me-1"></i>{{ e.fecha }} a las {{ e.hora }}<br>
+                <p class="text-muted small mb-2">
                     <i class="bi bi-geo-alt me-1"></i>{{ e.lugar }}<br>
-                    <i class="bi bi-people me-1"></i>{{ e.inscritos|length }}/{{ e.aforo_maximo }} inscritos
+                    <i class="bi bi-clock me-1"></i>{{ e.hora }}
+                    &nbsp;&bull;&nbsp;
+                    <i class="bi bi-people me-1"></i>{{ e.inscritos|length }}/{{ e.aforo_maximo }}
                 </p>
-                <p class="text-muted small">{{ e.descripcion|truncate(70) }}</p>
+                <p class="text-muted small">{{ e.descripcion|truncate(80) }}</p>
             </div>
-            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
-                <small class="text-muted"><i class="bi bi-person me-1"></i>{{ e.nombre_usuario }}</small>
-                <div class="d-flex gap-1">
-                    <a href="{{ url_for('ocio.detalle', evento_id=e._id) }}" class="btn btn-sm btn-outline-info">Ver</a>
-                    {% if session.user_id and (session.user_id == e.usuario_id or session.rol in ('admin','gestor')) %}
-                    <a href="{{ url_for('ocio.editar', evento_id=e._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
-                    <form method="POST" action="{{ url_for('ocio.eliminar', evento_id=e._id) }}"
-                          onsubmit="return confirmarEliminacion()">
-                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                    </form>
-                    {% endif %}
+            <div class="card-footer bg-white border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted"><i class="bi bi-person me-1"></i>{{ e.nombre_usuario }}</small>
+                    <div class="d-flex gap-1">
+                        <a href="{{ url_for('ocio.detalle', evento_id=e._id) }}" class="btn btn-sm btn-outline-info">Ver</a>
+                        {% if session.user_id and (session.user_id == e.usuario_id or session.rol in ('admin','gestor')) %}
+                        <a href="{{ url_for('ocio.editar', evento_id=e._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        <form method="POST" action="{{ url_for('ocio.eliminar', evento_id=e._id) }}" onsubmit="return confirmarEliminacion()">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
+
+{# ── Vista lista ──────────────────────────────────────────────────────────── #}
+<div id="vista-lista" class="d-flex flex-column gap-3">
+    {% for e in eventos %}
+    {% set ev_color = '#198754' if e.tipo_evento=='Deporte' else '#0d6efd' if e.tipo_evento=='Cultural' else '#6c757d' %}
+    <div class="card border-0 shadow-sm" style="border-left: 4px solid {{ ev_color }} !important">
+        <div class="row g-0">
+            <div class="col-auto d-flex flex-column align-items-center justify-content-center px-3 py-2 text-center"
+                 style="min-width:76px; border-right:1px solid rgba(0,0,0,.06)">
+                <span class="fw-bold lh-1" style="font-size:1.6rem;color:{{ ev_color }}">
+                    {{ e.fecha[8:] }}
+                </span>
+                <span class="text-muted small text-uppercase" style="font-size:.7rem;letter-spacing:.05em">
+                    {% set meses = ['','ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'] %}
+                    {{ meses[e.fecha[5:7]|int] }}
+                </span>
+                <span class="text-muted" style="font-size:.75rem">{{ e.hora }}</span>
+            </div>
+            <div class="col">
+                <div class="card-body py-2 px-3 d-flex flex-column h-100">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <span class="badge" style="background:{{ ev_color }}">{{ e.tipo_evento }}</span>
+                        <span class="text-muted small ms-auto">
+                            <i class="bi bi-person me-1"></i>{{ e.nombre_usuario }}
+                        </span>
+                    </div>
+                    <h6 class="card-title mb-1">{{ e.titulo }}</h6>
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-geo-alt me-1"></i>{{ e.lugar }}
+                        &nbsp;&bull;&nbsp;
+                        <i class="bi bi-people me-1"></i>{{ e.inscritos|length }}/{{ e.aforo_maximo }} inscritos
+                    </p>
+                    <div class="d-flex gap-1 ms-auto">
+                        <a href="{{ url_for('ocio.detalle', evento_id=e._id) }}" class="btn btn-sm btn-outline-info">Ver</a>
+                        {% if session.user_id and (session.user_id == e.usuario_id or session.rol in ('admin','gestor')) %}
+                        <a href="{{ url_for('ocio.editar', evento_id=e._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        <form method="POST" action="{{ url_for('ocio.eliminar', evento_id=e._id) }}" onsubmit="return confirmarEliminacion()">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
 {% else %}
 <div class="text-center py-5 text-muted">
     <i class="bi bi-calendar-event fs-1 d-block mb-3"></i>
@@ -90,4 +154,28 @@
     <a href="{{ url_for('ocio.nuevo') }}" class="btn btn-info text-white">Crear el primero</a>
 </div>
 {% endif %}
+
+{% if total_paginas > 1 %}
+<nav class="mt-4 d-flex justify-content-center align-items-center gap-2" aria-label="Paginación">
+    <a href="{{ url_for('ocio.listar', page=page-1, **filtros) }}"
+       class="btn btn-outline-secondary btn-sm {% if page <= 1 %}disabled{% endif %}">
+        <i class="bi bi-chevron-left"></i>
+    </a>
+    {% for p in range(1, total_paginas + 1) %}
+    <a href="{{ url_for('ocio.listar', page=p, **filtros) }}"
+       class="btn btn-sm {% if p == page %}btn-info text-white{% else %}btn-outline-secondary{% endif %}">
+        {{ p }}
+    </a>
+    {% endfor %}
+    <a href="{{ url_for('ocio.listar', page=page+1, **filtros) }}"
+       class="btn btn-outline-secondary btn-sm {% if page >= total_paginas %}disabled{% endif %}">
+        <i class="bi bi-chevron-right"></i>
+    </a>
+</nav>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>initVistaToggle('ocio');</script>
 {% endblock %}

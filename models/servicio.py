@@ -39,9 +39,15 @@ class Servicio:
 
     # ── Consultas ─────────────────────────────────────────────────────────────
 
-    def obtener_todos(self, filtros=None):
+    def obtener_todos(self, filtros=None, skip=0, limit=0):
         """Devuelve servicios ordenados por fecha de creacion descendente."""
-        return list(self.coleccion.find(filtros or {}).sort("fecha_creacion", -1))
+        cursor = self.coleccion.find(filtros or {}).sort("fecha_creacion", -1)
+        if limit:
+            cursor = cursor.skip(skip).limit(limit)
+        return list(cursor)
+
+    def contar(self, filtros=None):
+        return self.coleccion.count_documents(filtros or {})
 
     def obtener_por_id(self, anuncio_id):
         """Busca un servicio por su ObjectId."""

@@ -47,15 +47,12 @@
             {# ── Menu de módulos (izquierda) ─────────────────────────────── #}
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-                {# Novedades: solo visible para usuarios autenticados #}
-                {% if session.user_id %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('novedades') %}active{% endif %} {{ 'text-warning fw-semibold' if hay_novedades else '' }}"
                        href="{{ url_for('novedades.listar') }}">
                         <i class="bi bi-{{ 'bell-fill' if hay_novedades else 'bell' }} me-1"></i>Novedades
                     </a>
                 </li>
-                {% endif %}
 
                 {# Foro: enlace directo al listado de publicaciones #}
                 <li class="nav-item">
