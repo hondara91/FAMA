@@ -138,7 +138,7 @@ docker compose up --build
 server {
     listen 80;
     listen 443 ssl;
-    server_name tu-dominio.com;
+    server_name 192.168.7.80;
 
     ssl_certificate /ruta/a/certificado.crt;
     ssl_certificate_key /ruta/a/clave.key;
