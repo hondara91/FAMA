@@ -51,9 +51,21 @@ def listar():
 @compraventa_bp.route("/armada")
 def armada():
     """Seccion especial de merchandising de unidades de la Armada."""
+    import math
+    PER_PAGE = 12
     db = get_db()
-    artículos = Compraventa(db).obtener_merchandising()
-    return render_template("compraventa/armada.html", artículos=artículos)
+    modelo = Compraventa(db)
+    filtros_q = {"es_merchandising": True}
+    total = modelo.contar(filtros_q)
+    try:
+        page = max(1, int(request.args.get('page', 1)))
+    except (ValueError, TypeError):
+        page = 1
+    total_paginas = max(1, math.ceil(total / PER_PAGE))
+    page = min(page, total_paginas)
+    artículos = modelo.obtener_todos(filtros_q, skip=(page - 1) * PER_PAGE, limit=PER_PAGE)
+    return render_template("compraventa/armada.html", artículos=artículos,
+                           page=page, total_paginas=total_paginas)
 
 
 @compraventa_bp.route("/nuevo", methods=["GET", "POST"])
@@ -153,7 +165,7 @@ def editar(anuncio_id):
         registrar_log(db, "registro", "editar_compraventa", session["nombre"], f"ID: {anuncio_id}")
 
         flash("Articulo actualizado correctamente.", "success")
-        return redirect(url_for("compraventa.listar"))
+        return redirect(url_for("compraventa.armada" if es_merch else "compraventa.listar"))
 
     return render_template("compraventa/formulario.html", anuncio=anuncio, accion="Editar")
 

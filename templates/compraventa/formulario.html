@@ -1,12 +1,21 @@
 {% extends "base.html" %}
 {% block title %}FAMA - {{ accion }} Artículo{% endblock %}
 
+{% set desde_armada = request.args.get('desde') == 'armada'
+                      or (anuncio and anuncio.es_merchandising)
+                      or request.form.get('es_merchandising') == 'on' %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-7">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
+                {% if desde_armada %}
+                <h3 class="mb-1"><i class="bi bi-star-fill text-primary me-2"></i>{{ accion }} artículo — Tienda Armada</h3>
+                <p class="text-muted small mb-4">Este artículo se publicará directamente en la Tienda Armada.</p>
+                {% else %}
                 <h3 class="mb-4"><i class="bi bi-shop text-warning me-2"></i>{{ accion }} artículo</h3>
+                {% endif %}
                 <form method="POST" enctype="multipart/form-data">
                     <div class="row g-3">
                         <div class="col-12">
@@ -25,6 +34,17 @@
                             <input type="number" class="form-control" name="precio" min="0" step="0.5" required
                                    value="{{ anuncio.precio if anuncio else '' }}">
                         </div>
+                        {% if desde_armada %}
+                        {# En contexto Tienda Armada: merchandising fijo, sin checkbox visible #}
+                        <input type="hidden" name="es_merchandising" value="on">
+                        <div class="col-12">
+                            <label class="form-label"><i class="bi bi-anchor me-1 text-primary"></i>Unidad de la Armada</label>
+                            <input type="text" class="form-control" name="unidad_armada"
+                                   placeholder="Ej: Fragata Álvaro de Bazán, BIM I..."
+                                   value="{{ anuncio.unidad_armada if anuncio else '' }}">
+                        </div>
+                        {% else %}
+                        {# Fuera de Tienda Armada: checkbox opcional con campo dinámico #}
                         <div class="col-12">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="es_merchandising"
@@ -42,6 +62,7 @@
                                    placeholder="Ej: Fragata Alvaro de Bazan, BIM I..."
                                    value="{{ anuncio.unidad_armada if anuncio else '' }}">
                         </div>
+                        {% endif %}
                         <div class="col-md-6">
                             <label class="form-label">Correo de contacto *</label>
                             <input type="email" class="form-control" name="email_contacto" required
