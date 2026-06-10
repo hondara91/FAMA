@@ -12,6 +12,10 @@ La aplicación estará orientada a:
 - Compra-venta.
 - Ocio y eventos.
 
+Adicionalmente y como complemento tendrá:
+- Novedades
+- Foro
+
 ## Stack técnico
 
 - Backend: Python con Flask.
@@ -22,6 +26,8 @@ La aplicación estará orientada a:
 - Despliegue: Docker y Docker Compose.
 - Servidor previsto: Ubuntu Server con Docker Engine.
 - Repositorio: GitHub.
+- Servidor WSGI: Gunicorn.
+- Proxy inverso: Nginx externo al host, reenviando tráfico a `web:5000`.
 
 ## Estructura base del proyecto
 
@@ -53,10 +59,12 @@ La aplicación debe poder ejecutarse con:
 docker compose up --build
 
 Debe levantar:
-- Un contenedor web para Flask.
-- Un contenedor para MongoDB.
+- Un contenedor `web` para la aplicación Flask servida por Gunicorn.
+- Un contenedor `mongo` para MongoDB.
 - Un volumen persistente para MongoDB.
-- La aplicación disponible en http://localhost:5000.
+- La aplicación disponible en http://localhost:5000 cuando se usa directamente en desarrollo.
+
+En el servidor de producción, Nginx debe actuar como proxy inverso en los puertos `80`/`443` y reenviar las solicitudes a `http://127.0.0.1:5000`.
 
 ## Módulos principales
 
@@ -249,4 +257,4 @@ Primero crear una base Docker portable:
 - static/js/scripts.js.
 
 Objetivo inicial:
-Al ejecutar docker compose up --build, Flask debe arrancar correctamente y mostrar una página inicial confirmando conexión con MongoDB.
+Al ejecutar docker compose up --build, Gunicorn debe arrancar correctamente y mostrar una página inicial respondiendo en el puerto `5000`, con MongoDB disponible en el contenedor `mongo`.

@@ -7,7 +7,7 @@ Estas instrucciones deben seguirse **una sola vez** al desplegar la aplicación 
 ## Requisitos previos
 
 - Docker y Docker Compose instalados y en ejecución.
-- Fichero `.env` configurado (copia de `.env.example` con los valores reales).
+- Variables de entorno configuradas en el servidor. En desarrollo local puedes usar `.env.example` como referencia, pero el proyecto no carga `.env` automáticamente en producción.
 
 ---
 
@@ -19,7 +19,7 @@ Estas instrucciones deben seguirse **una sola vez** al desplegar la aplicación 
 docker compose up -d --build
 ```
 
-Espera a que ambos contenedores estén en estado `healthy` / `Up`:
+Espera a que los contenedores estén en estado `healthy` / `Up`:
 
 ```bash
 docker compose ps
@@ -33,7 +33,7 @@ Desde la raíz del proyecto:
 docker compose exec web python scripts/crear_admin.py
 ```
 
-El script es **idempotente**: si el admin ya existe, no hace ningún cambio. Es seguro ejecutarlo varias veces.
+El script es **idempotente**: si el administrador ya existe, no hace ningún cambio. Es seguro ejecutarlo varias veces.
 
 Credenciales creadas:
 
@@ -47,16 +47,19 @@ Credenciales creadas:
 
 ### 3. Iniciar sesión
 
-Accede a la aplicación en `http://<ip-del-servidor>:8000` e inicia sesión con:
+- En desarrollo local, la aplicación responde en `http://localhost:5000`.
+- En producción con Nginx externo, accede mediante el dominio o IP del servidor en `http://192.168.7.80` o `https://192.168.7.80`.
+
+Inicia sesión con:
 
 - **Nombre de usuario:** `admin`
 - **Contraseña:** `admin1234`
 
-### 4. Crear el administrador real
+### 4. Crear el administrador definitivo
 
-Desde el panel de administración, registra o valida al usuario que actuará como administrador definitivo y asígnale el rol `admin`.
+Desde el panel de administración, valida o registra al usuario que actuará como administrador definitivo y asígnale el rol `admin`.
 
-Al hacerlo, **la cuenta `Administrador FAMA` se elimina automáticamente** y quedas desconectado. A partir de ese momento el nuevo administrador es el único con acceso de administración.
+En el flujo actual, la cuenta bootstrap `admin` permanece hasta que existe al menos otro administrador.
 
 ---
 
@@ -75,6 +78,6 @@ El usuario queda obligado a cambiarla en su primer inicio de sesión.
 
 ## Notas
 
-- La cuenta bootstrap (`admin`) desaparece en cuanto se asigna el rol `admin` a otro usuario. Es un mecanismo de seguridad para que no queden cuentas de bootstrap activas en producción.
-- Si necesitas volver a crear el admin bootstrap (por ejemplo, tras un reset de la base de datos), ejecuta de nuevo el script del paso 2.
+- La cuenta bootstrap (`admin`) puede volver a crearse ejecutando de nuevo `docker compose exec web python scripts/crear_admin.py`.
+- El servicio `web` se sirve internamente en el puerto `5000`; el proxy inverso Nginx del servidor debe reenviar tráfico hacia ese puerto.
 - Los datos de la aplicación se almacenan en el volumen Docker `mongo_data`. Para migrar datos entre servidores usa `mongodump` / `mongorestore`.
