@@ -133,15 +133,19 @@
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Últimos Servicios', 'gear', 'success') }}
         {% for s in servicios %}
+        {% set s_icon = 'car-front' if s.categoria == 'Viajes compartidos' else 'briefcase' if s.categoria in ('Trabajos', 'Consultoría') else 'people' %}
+        {% if s.tipo == 'buscar' %}{% set s_color = '#dc3545' %}
+        {% elif s.categoria == 'Viajes compartidos' %}{% set s_color = '#ffc107' %}
+        {% elif s.categoria == 'Trabajos' %}{% set s_color = '#198754' %}
+        {% elif s.categoria == 'Clases de apoyo' %}{% set s_color = '#0d6efd' %}
+        {% elif s.categoria == 'Consultoría' %}{% set s_color = '#6f42c1' %}
+        {% else %}{% set s_color = '#6c757d' %}{% endif %}
         <div class="card mb-2 border-0 shadow-sm">
             <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
-                {% if s.fotos %}
-                <img src="{{ url_for('static', filename='uploads/servicios/' + s.fotos[0]) }}"
-                     style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0" alt="">
-                {% else %}
-                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded bg-success bg-opacity-10"
-                     style="width:44px;height:44px"><i class="bi bi-car-front text-success"></i></div>
-                {% endif %}
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
+                     style="width:44px;height:44px;background:{{ s_color }}1a">
+                    <i class="bi bi-{{ s_icon }}" style="color:{{ s_color }};font-size:1.3rem"></i>
+                </div>
                 <div class="flex-grow-1 overflow-hidden text-start">
                     <div class="d-flex align-items-center gap-1 overflow-hidden">
                         <span class="badge bg-success flex-shrink-0">{{ s.tipo }}</span>
