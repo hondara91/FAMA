@@ -26,6 +26,7 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 
 from utils.db import get_db
 from utils.decorators import gestor_required, login_required
+from utils.uploads import eliminar_imagenes, guardar_adjuntos
 
 novedades_bp = Blueprint("novedades", __name__, url_prefix="/novedades")
 
@@ -82,15 +83,18 @@ def nueva():
         flash("La fecha de fin no puede ser anterior a la fecha de inicio.", "danger")
         return redirect(url_for("novedades.listar"))
 
+    adjuntos = guardar_adjuntos(request.files.getlist("adjuntos"), "novedades")
+
     novedad = {
-        "tipo":          tipo,
-        "destino":       campo("destino"),
-        "empleo":        campo("empleo"),
-        "localidad":     campo("localidad"),
-        "fecha_inicio":  fecha_inicio,
-        "fecha_fin":     fecha_fin,
-        "observaciones": campo("observaciones"),
-        "autor":         session["nombre"],
+        "tipo":           tipo,
+        "destino":        campo("destino"),
+        "empleo":         campo("empleo"),
+        "localidad":      campo("localidad"),
+        "fecha_inicio":   fecha_inicio,
+        "fecha_fin":      fecha_fin,
+        "observaciones":  campo("observaciones"),
+        "adjuntos":       adjuntos,
+        "autor":          session["nombre"],
         "fecha_creacion": datetime.now(),
     }
 
@@ -129,6 +133,18 @@ def editar(novedad_id):
         flash("La fecha de fin no puede ser anterior a la fecha de inicio.", "danger")
         return redirect(url_for("novedades.listar"))
 
+    novedad_actual = db.novedades.find_one({"_id": ObjectId(novedad_id)}) or {}
+    adjuntos = list(novedad_actual.get("adjuntos") or [])
+
+    # Borrar adjuntos marcados para eliminar
+    a_borrar = request.form.getlist("borrar_adjuntos")
+    if a_borrar:
+        eliminar_imagenes(a_borrar, "novedades")
+        adjuntos = [f for f in adjuntos if f not in a_borrar]
+
+    # Añadir nuevos adjuntos
+    adjuntos += guardar_adjuntos(request.files.getlist("adjuntos"), "novedades")
+
     db.novedades.update_one(
         {"_id": ObjectId(novedad_id)},
         {"$set": {
@@ -139,6 +155,7 @@ def editar(novedad_id):
             "fecha_inicio":  fecha_inicio,
             "fecha_fin":     fecha_fin,
             "observaciones": campo("observaciones"),
+            "adjuntos":      adjuntos,
         }},
     )
     flash("Novedad actualizada correctamente.", "success")
@@ -149,8 +166,11 @@ def editar(novedad_id):
 @login_required
 @gestor_required
 def eliminar(novedad_id):
-    """Elimina una novedad por su ObjectId."""
+    """Elimina una novedad y sus adjuntos del disco."""
     db = get_db()
+    novedad = db.novedades.find_one({"_id": ObjectId(novedad_id)})
+    if novedad:
+        eliminar_imagenes(novedad.get("adjuntos") or [], "novedades")
     db.novedades.delete_one({"_id": ObjectId(novedad_id)})
     flash("Novedad eliminada.", "info")
     return redirect(url_for("novedades.listar"))

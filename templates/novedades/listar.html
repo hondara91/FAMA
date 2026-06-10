@@ -13,7 +13,7 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-4">
         <h6 class="mb-3"><i class="bi bi-plus-circle me-2 text-warning"></i>Publicar novedad</h6>
-        <form method="POST" action="{{ url_for('novedades.nueva') }}">
+        <form method="POST" action="{{ url_for('novedades.nueva') }}" enctype="multipart/form-data">
             <div class="row g-3">
 
                 {# Tipo: campo obligatorio, determina la categoria de la novedad #}
@@ -67,6 +67,13 @@
                               placeholder="Información adicional..."></textarea>
                 </div>
 
+                <div class="col-12">
+                    <label class="form-label"><i class="bi bi-paperclip me-1"></i>Adjuntos <small class="text-muted">(imágenes o PDF)</small></label>
+                    <input type="file" class="form-control" name="adjuntos" multiple
+                           accept="image/*,.pdf">
+                    <div class="form-text">JPG, PNG, GIF, WEBP, PDF. Puedes seleccionar varios archivos.</div>
+                </div>
+
             </div>
 
             <div class="mt-3">
@@ -109,6 +116,7 @@
                             data-fecha-inicio="{{ n.fecha_inicio or '' }}"
                             data-fecha-fin="{{ n.fecha_fin or '' }}"
                             data-observaciones="{{ n.observaciones or '' }}"
+                            data-adjuntos='{{ (n.adjuntos or []) | tojson }}'
                             data-bs-toggle="modal" data-bs-target="#modalEditarNovedad">
                         <i class="bi bi-pencil"></i>
                     </button>
@@ -171,6 +179,26 @@
             <p class="mb-3" style="white-space: pre-wrap;">{{ n.observaciones }}</p>
             {% endif %}
 
+            {# Adjuntos: imágenes con lightbox, PDFs como enlace #}
+            {% if n.adjuntos %}
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                {% for adj in n.adjuntos %}
+                {% set es_pdf = adj.lower().endswith('.pdf') %}
+                {% if es_pdf %}
+                <a href="{{ url_for('static', filename='uploads/novedades/' + adj) }}"
+                   target="_blank" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>Ver PDF
+                </a>
+                {% else %}
+                <img src="{{ url_for('static', filename='uploads/novedades/' + adj) }}"
+                     class="fama-lightbox rounded border" style="height:80px;width:80px;object-fit:cover;cursor:pointer"
+                     data-fotos='[{% for a in n.adjuntos if not a.lower().endswith(".pdf") %}"{{ url_for('static', filename='uploads/novedades/' + a) }}"{% if not loop.last %},{% endif %}{% endfor %}]'
+                     data-index="{{ loop.index0 }}" alt="adjunto">
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
             {# Pie: autor y fecha de publicación #}
             <div class="small text-muted">
                 <i class="bi bi-person me-1"></i>{{ n.autor }} &bull;
@@ -197,7 +225,7 @@
                 <h5 class="modal-title"><i class="bi bi-pencil-square me-2 text-warning"></i>Editar novedad</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" id="formEditarNovedad" action="">
+            <form method="POST" id="formEditarNovedad" action="" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -236,6 +264,11 @@
                             <textarea class="form-control" name="observaciones" id="edit_observaciones" rows="3"
                                       placeholder="Información adicional..."></textarea>
                         </div>
+                        <div class="col-12" id="edit_adjuntos_actuales"></div>
+                        <div class="col-12">
+                            <label class="form-label"><i class="bi bi-paperclip me-1"></i>Añadir adjuntos <small class="text-muted">(imágenes o PDF)</small></label>
+                            <input type="file" class="form-control" name="adjuntos" multiple accept="image/*,.pdf">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -267,6 +300,32 @@ document.querySelectorAll('.btn-editar-novedad').forEach(function (btn) {
         document.getElementById('edit_fecha_inicio').value  = d.fechaInicio;
         document.getElementById('edit_fecha_fin').value     = d.fechaFin;
         document.getElementById('edit_observaciones').value = d.observaciones;
+
+        // Adjuntos existentes
+        var adjuntos = JSON.parse(d.adjuntos || '[]');
+        var cont = document.getElementById('edit_adjuntos_actuales');
+        cont.innerHTML = '';
+        if (adjuntos.length) {
+            var label = document.createElement('label');
+            label.className = 'form-label';
+            label.textContent = 'Adjuntos actuales';
+            cont.appendChild(label);
+            var wrap = document.createElement('div');
+            wrap.className = 'd-flex flex-wrap gap-2 mb-2';
+            adjuntos.forEach(function (nombre) {
+                var esPdf = nombre.toLowerCase().endsWith('.pdf');
+                var item = document.createElement('div');
+                item.className = 'text-center';
+                if (esPdf) {
+                    item.innerHTML = '<a href="/static/uploads/novedades/' + nombre + '" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i> ' + nombre.substring(nombre.lastIndexOf('_') + 1) + '</a>';
+                } else {
+                    item.innerHTML = '<img src="/static/uploads/novedades/' + nombre + '" style="height:64px;width:64px;object-fit:cover;border-radius:4px;border:1px solid #dee2e6">';
+                }
+                item.innerHTML += '<div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="borrar_adjuntos" value="' + nombre + '" id="del_' + nombre + '"><label class="form-check-label small text-danger" for="del_' + nombre + '">Borrar</label></div>';
+                wrap.appendChild(item);
+            });
+            cont.appendChild(wrap);
+        }
     });
 });
 </script>
