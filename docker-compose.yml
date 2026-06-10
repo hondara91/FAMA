@@ -19,7 +19,7 @@ services:
       - .:/app
 
   mongo:
-    image: mongo:4.4
+    image: mongo:7.0
     container_name: fama_mongo1
     restart: unless-stopped
     ports:
@@ -27,7 +27,7 @@ services:
     volumes:
       - mongo_data:/data/db
     healthcheck:
-      test: ["CMD", "mongo", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
       retries: 5
