@@ -3,7 +3,7 @@ services:
     build: .
     container_name: fama_web1
     ports:
-      - "8000:5000"
+      - "5000:5000"
     environment:
       FLASK_ENV: development
       FLASK_DEBUG: "1"
@@ -19,7 +19,7 @@ services:
       - .:/app
 
   mongo:
-    image: mongo:7.0
+    image: mongo:4.4
     container_name: fama_mongo1
     restart: unless-stopped
     ports:

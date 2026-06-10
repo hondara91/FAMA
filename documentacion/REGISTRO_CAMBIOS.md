@@ -1443,3 +1443,14 @@ git clone https://github.com/hondara91/FAMA.git
 docker-compose up -d
 python scripts/importar_seed_data.py
 ```
+
+## 2026-06-10 11:00:00 CEST
+
+### Migración a Gunicorn y ajuste de puertos Docker
+
+- `Dockerfile`: se sustituye el servidor de desarrollo Flask (`python app.py`) por Gunicorn como servidor WSGI de producción. Nuevo comando de arranque: `gunicorn 0.0.0.0:5000 app:app`.
+- `requirements.txt`: se añade `gunicorn==23.2.0` como dependencia. Se baja `pymongo` de `4.8.0` a `4.4.0` por compatibilidad con la imagen MongoDB 4.4.
+- `docker-compose.yml`:
+  - Puerto del contenedor web cambiado de `8000:5000` a `5000:5000` (la app queda accesible en `localhost:5000`).
+  - Imagen de MongoDB revertida de `7.0` a `4.4` (ajuste de entorno).
+- Archivos modificados: `Dockerfile`, `requirements.txt`, `docker-compose.yml`.
