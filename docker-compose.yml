@@ -19,7 +19,7 @@ services:
       - .:/app
 
   mongo:
-    image: mongo:4.4
+    image: mongo:7.0
     container_name: fama_mongo1
     restart: unless-stopped
     ports:
