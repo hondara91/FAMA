@@ -1,0 +1,1 @@
+[{"_id":{"$oid":"6a21414d83ba7c6502f4d9e9"},"anuncio_id":"6a21411183ba7c6502f4d9e6","tipo_modulo":"vivienda","motivo":"no me gusta este anuncio","gestor_id":"6a1e7e92a3444386e01f3f69","gestor_nombre":"hondara","fecha":{"$date":"2026-06-04T09:11:41.71Z"},"resuelto":true}]
