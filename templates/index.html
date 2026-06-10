@@ -199,10 +199,22 @@
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Próximos Eventos', 'calendar-event', 'info') }}
         {% for e in eventos %}
+        {% if e.tipo_evento == 'Deporte' %}{% set e_color = '#198754' %}{% set e_icon = 'trophy' %}
+        {% elif e.tipo_evento == 'Cultural' %}{% set e_color = '#0d6efd' %}{% set e_icon = 'palette' %}
+        {% else %}{% set e_color = '#6f42c1' %}{% set e_icon = 'otros' %}{% endif %}
         <div class="card mb-2 border-0 shadow-sm">
             <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
-                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded bg-info bg-opacity-10"
-                     style="width:44px;height:44px"><i class="bi bi-calendar-event text-info"></i></div>
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
+                     style="width:44px;height:44px;background:{{ e_color }}1a">
+                    {% if e_icon == 'otros' %}
+                    <span class="d-flex" style="color:{{ e_color }};font-size:1rem;gap:1px">
+                        <i class="bi bi-person-arms-up"></i>
+                        <i class="bi bi-person-arms-up" style="transform:scaleX(-1);display:inline-block"></i>
+                    </span>
+                    {% else %}
+                    <i class="bi bi-{{ e_icon }}" style="color:{{ e_color }};font-size:1.3rem"></i>
+                    {% endif %}
+                </div>
                 <div class="flex-grow-1 overflow-hidden text-start">
                     <div class="d-flex align-items-center gap-1 overflow-hidden">
                         <span class="badge bg-info text-dark flex-shrink-0">{{ e.tipo_evento }}</span>
