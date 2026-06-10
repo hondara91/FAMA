@@ -74,12 +74,14 @@
                 <a href="{{ url_for('servicios.editar', anuncio_id=anuncio._id) }}" class="btn btn-outline-primary w-100 mb-2">
                     <i class="bi bi-pencil me-1"></i>Editar
                 </a>
+                {% if session.user_id == anuncio.usuario_id or session.rol == 'admin' %}
                 <form method="POST" action="{{ url_for('servicios.eliminar', anuncio_id=anuncio._id) }}"
                       onsubmit="return confirmarEliminacion()">
                     <button type="submit" class="btn btn-outline-danger w-100">
                         <i class="bi bi-trash me-1"></i>Eliminar
                     </button>
                 </form>
+                {% endif %}
             </div>
         </div>
         {% endif %}

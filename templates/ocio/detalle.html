@@ -135,13 +135,14 @@
                 <a href="{{ url_for('ocio.editar', evento_id=evento._id) }}" class="btn btn-outline-primary w-100 mb-2">
                     <i class="bi bi-pencil me-1"></i>Editar
                 </a>
-                {# confirmarEliminacion() muestra un diálogo de confirmación antes de enviar #}
+                {% if session.user_id == evento.usuario_id or session.rol == 'admin' %}
                 <form method="POST" action="{{ url_for('ocio.eliminar', evento_id=evento._id) }}"
                       onsubmit="return confirmarEliminacion()">
                     <button type="submit" class="btn btn-outline-danger w-100">
                         <i class="bi bi-trash me-1"></i>Eliminar
                     </button>
                 </form>
+                {% endif %}
             </div>
         </div>
         {% endif %}
