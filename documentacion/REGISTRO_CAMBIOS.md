@@ -1413,3 +1413,33 @@ Se revisa todo el código en busca de inconsistencias y se aplican las siguiente
 - La tarjeta no se muestra si nadie se ha inscrito todavía.
 - La ruta `ocio.detalle` resuelve los nombres de los inscritos consultando la colección `usuarios` por los `_id` almacenados en el array `inscritos` del evento.
 - Archivos modificados: `routes/ocio.py`, `templates/ocio/detalle.html`.
+
+## 2026-06-10 09:30:00 CEST
+
+### Exportación de datos de MongoDB como seed data versionado en Git
+
+**Contexto:** Los datos creados durante la sesión del 9 de junio (usuarios, anuncios de viviendas, compraventa, servicios, ocio, posts de foro, etc.) estaban almacenados únicamente en el volumen Docker `mongo_data` del equipo local. Al no estar en Git, esos datos no podían trasladarse a otro equipo ni recuperarse si el volumen se perdía.
+
+**Solución implementada:**
+
+- Se exportan con `mongoexport` todas las colecciones de `fama_db` a ficheros JSON individuales en `scripts/seed_data/`:
+  - `usuarios.json` — 25 usuarios (contraseñas hasheadas con scrypt, seguro para Git).
+  - `compraventa.json` — 20 anuncios de compraventa.
+  - `ocio.json` — 21 eventos de ocio.
+  - `viviendas.json` — 23 anuncios de viviendas.
+  - `servicios.json` — 19 anuncios de servicios.
+  - `foro_canales.json` — 5 canales de foro.
+  - `foro_posts.json` — 16 posts de foro.
+  - `foro_respuestas.json`, `novedades.json`, `reportes.json`, `logs.json`.
+- Se crea `scripts/importar_seed_data.py`: script Python que importa todos los ficheros de `seed_data/` en el contenedor Docker (`fama_mongo1`) usando `mongoimport --drop`, sobreescribiendo los datos existentes. Uso: `python scripts/importar_seed_data.py`.
+- Se verifica que las fotos subidas (`static/uploads/`) ya estaban correctamente commiteadas y publicadas en GitHub desde el commit del 9 de junio (`df9435d`).
+- Se hace commit y push a `origin/main` (commit `88519f0`).
+
+**Archivos creados:** `scripts/seed_data/usuarios.json`, `scripts/seed_data/compraventa.json`, `scripts/seed_data/ocio.json`, `scripts/seed_data/viviendas.json`, `scripts/seed_data/servicios.json`, `scripts/seed_data/foro_canales.json`, `scripts/seed_data/foro_posts.json`, `scripts/seed_data/foro_respuestas.json`, `scripts/seed_data/novedades.json`, `scripts/seed_data/reportes.json`, `scripts/seed_data/logs.json`, `scripts/importar_seed_data.py`.
+
+**Para restaurar en otro equipo:**
+```bash
+git clone https://github.com/hondara91/FAMA.git
+docker-compose up -d
+python scripts/importar_seed_data.py
+```
