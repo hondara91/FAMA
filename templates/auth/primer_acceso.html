@@ -68,3 +68,11 @@
     </div>
 </div>
 {% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.querySelector('form').addEventListener('submit', function() {
+    sessionStorage.setItem('fama_auth', '1');
+});
+</script>
+{% endblock %}

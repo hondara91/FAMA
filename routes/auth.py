@@ -182,7 +182,8 @@ def logout():
     """Destruye la sesión activa y redirige al login."""
     nombre = session.get("nombre", "")
     session.clear()
-    flash(f"Sesion cerrada. Hasta pronto, {nombre}!", "info")
+    if not request.args.get("silent"):
+        flash(f"Sesion cerrada. Hasta pronto, {nombre}!", "info")
     return redirect(url_for("auth.login"))
 
 

@@ -20,6 +20,19 @@
     {# Bloque opcional para que las plantillas hijas inyecten CSS o meta adicionales #}
     {# Usado por ejemplo en ocio/calendario.html para cargar FullCalendar CSS #}
     {% block head_extra %}{% endblock %}
+
+    {# Cierre de sesión al cerrar la pestaña: sessionStorage se borra al cerrar la pestaña
+       pero sobrevive a recargas (F5), por lo que distingue los dos casos.
+       Ejecuta en <head> para que el redirect ocurra antes de que el usuario vea la página. #}
+    {% if session.user_id %}
+    <script>
+    if (!sessionStorage.getItem('fama_auth')) {
+        location.replace('{{ url_for("auth.logout") }}?silent=1');
+    } else {
+        sessionStorage.setItem('fama_auth', '1');
+    }
+    </script>
+    {% endif %}
 </head>
 <body>
 
