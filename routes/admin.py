@@ -568,6 +568,60 @@ def eliminar_reporte(reporte_id):
     return redirect(url_for("admin.ver_reportes"))
 
 
+# ── Manual de administrador ───────────────────────────────────────────────────
+
+_CARPETA_MANUAL = None
+
+def _carpeta_manual():
+    carpeta = os.path.join(current_app.static_folder, "uploads", "manual")
+    os.makedirs(carpeta, exist_ok=True)
+    return carpeta
+
+
+@admin_bp.route("/manual")
+@login_required
+@gestor_required
+def manual():
+    """Muestra el manual de administrador con los PDFs subidos."""
+    carpeta = _carpeta_manual()
+    archivos = sorted(
+        f for f in os.listdir(carpeta) if f.lower().endswith(".pdf")
+    )
+    return render_template("admin/manual.html", archivos=archivos)
+
+
+@admin_bp.route("/manual/subir", methods=["POST"])
+@login_required
+@admin_required
+def manual_subir():
+    """Solo el admin puede subir PDFs al manual."""
+    archivo = request.files.get("pdf")
+    if not archivo or archivo.filename == "":
+        flash("Selecciona un archivo PDF.", "danger")
+        return redirect(url_for("admin.manual"))
+    if not archivo.filename.lower().endswith(".pdf"):
+        flash("Solo se permiten archivos PDF.", "danger")
+        return redirect(url_for("admin.manual"))
+    from werkzeug.utils import secure_filename
+    nombre = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secure_filename(archivo.filename)}"
+    archivo.save(os.path.join(_carpeta_manual(), nombre))
+    flash("Documento subido correctamente.", "success")
+    return redirect(url_for("admin.manual"))
+
+
+@admin_bp.route("/manual/eliminar/<nombre>", methods=["POST"])
+@login_required
+@admin_required
+def manual_eliminar(nombre):
+    """Solo el admin puede eliminar PDFs del manual."""
+    from werkzeug.utils import secure_filename
+    ruta = os.path.join(_carpeta_manual(), secure_filename(nombre))
+    if os.path.exists(ruta):
+        os.remove(ruta)
+        flash("Documento eliminado.", "info")
+    return redirect(url_for("admin.manual"))
+
+
 # ── Test de conexión a base de datos ─────────────────────────────────────────
 
 @admin_bp.route("/test-bd")

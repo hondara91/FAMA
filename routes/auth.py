@@ -186,13 +186,6 @@ def logout():
     return redirect(url_for("auth.login"))
 
 
-@auth_bp.route("/logout-tab", methods=["POST"])
-def logout_tab():
-    """Recibe el beacon del navegador al cerrar pestaña y destruye la sesión."""
-    session.clear()
-    return "", 204
-
-
 # ── Cambio de contraseña (usuario autenticado) ───────────────────────────────
 
 @auth_bp.route("/cambiar-password", methods=["GET", "POST"])

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}FAMA - Manual de Administrador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-book text-danger me-2"></i>Manual de Administrador</h2>
+    <a href="{{ url_for('admin.panel') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Volver al panel
+    </a>
+</div>
+
+{# ── Subir PDF: solo admin ──────────────────────────────────────────────────── #}
+{% if session.rol == 'admin' %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h6 class="mb-3"><i class="bi bi-upload me-2 text-danger"></i>Subir documento</h6>
+        <form method="POST" action="{{ url_for('admin.manual_subir') }}" enctype="multipart/form-data">
+            <div class="d-flex gap-2 align-items-center">
+                <input type="file" class="form-control" name="pdf" accept=".pdf" required>
+                <button type="submit" class="btn btn-danger text-nowrap">
+                    <i class="bi bi-cloud-upload me-1"></i>Subir
+                </button>
+            </div>
+            <div class="form-text">Solo archivos PDF.</div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{# ── Listado de documentos ──────────────────────────────────────────────────── #}
+{% if archivos %}
+<div class="row g-3">
+    {% for archivo in archivos %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-start gap-3 p-3">
+                <i class="bi bi-file-earmark-pdf-fill text-danger fs-2 flex-shrink-0"></i>
+                <div class="flex-grow-1 overflow-hidden">
+                    <p class="mb-1 fw-semibold text-truncate" title="{{ archivo }}">
+                        {{ archivo[16:] if archivo[8:9] == '_' else archivo }}
+                    </p>
+                    <a href="{{ url_for('static', filename='uploads/manual/' + archivo) }}"
+                       target="_blank" class="btn btn-sm btn-outline-danger me-1">
+                        <i class="bi bi-eye me-1"></i>Ver
+                    </a>
+                    <a href="{{ url_for('static', filename='uploads/manual/' + archivo) }}"
+                       download class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-download me-1"></i>Descargar
+                    </a>
+                </div>
+                {% if session.rol == 'admin' %}
+                <form method="POST"
+                      action="{{ url_for('admin.manual_eliminar', nombre=archivo) }}"
+                      onsubmit="return confirmarEliminacion()">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-book fs-1 d-block mb-3 text-danger opacity-25"></i>
+    <p>No hay documentos en el manual todavía.</p>
+    {% if session.rol == 'admin' %}
+    <p class="small">Sube el primer PDF usando el formulario de arriba.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

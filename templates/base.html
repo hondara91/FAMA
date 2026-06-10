@@ -262,23 +262,6 @@
 {# Scripts propios: confirmarEliminacion() y autocerrado de alertas #}
 <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 
-{% if session.user_id %}
-<script>
-(function () {
-    var navegando = false;
-    document.addEventListener('click', function (e) {
-        var a = e.target.closest('a[href]');
-        if (a && a.href && a.origin === location.origin) navegando = true;
-    });
-    document.addEventListener('submit', function () { navegando = true; });
-    window.addEventListener('pagehide', function (e) {
-        if (!navegando && !e.persisted) {
-            navigator.sendBeacon('{{ url_for("auth.logout_tab") }}');
-        }
-    });
-}());
-</script>
-{% endif %}
 
 {# Bloque para scripts adicionales especificos de cada plantilla hija #}
 {# Usado por ejemplo en ocio/calendario.html para inicializar FullCalendar #}
