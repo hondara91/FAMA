@@ -82,6 +82,8 @@
                         <a href="{{ url_for('compraventa.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-warning">Ver</a>
                         {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
                         <a href="{{ url_for('compraventa.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        {% endif %}
+                        {% if session.user_id and (session.user_id == a.usuario_id or session.rol == 'admin') %}
                         <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=a._id) }}" onsubmit="return confirmarEliminacion()">
                             <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </form>
@@ -131,6 +133,8 @@
                             <a href="{{ url_for('compraventa.detalle', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-warning">Ver</a>
                             {% if session.user_id and (session.user_id == a.usuario_id or session.rol in ('admin','gestor')) %}
                             <a href="{{ url_for('compraventa.editar', anuncio_id=a._id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                            {% endif %}
+                            {% if session.user_id and (session.user_id == a.usuario_id or session.rol == 'admin') %}
                             <form method="POST" action="{{ url_for('compraventa.eliminar', anuncio_id=a._id) }}" onsubmit="return confirmarEliminacion()">
                                 <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>
