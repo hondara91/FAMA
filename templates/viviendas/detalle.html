@@ -16,14 +16,18 @@
         <div class="mb-3">
             {% if anuncio.fotos | length == 1 %}
             <img src="{{ url_for('static', filename='uploads/viviendas/' + anuncio.fotos[0]) }}"
-                 class="img-fluid rounded shadow-sm w-100" style="max-height:380px;object-fit:cover" alt="foto">
+                 class="img-fluid rounded shadow-sm w-100 fama-lightbox" style="max-height:380px;object-fit:cover;cursor:pointer" alt="foto"
+                 data-fotos='["{{ url_for('static', filename='uploads/viviendas/' + anuncio.fotos[0]) }}"]'
+                 data-index="0">
             {% else %}
             <div id="carouselFotos" class="carousel slide shadow-sm rounded" data-bs-ride="carousel">
                 <div class="carousel-inner rounded">
                     {% for foto in anuncio.fotos %}
                     <div class="carousel-item {% if loop.first %}active{% endif %}">
                         <img src="{{ url_for('static', filename='uploads/viviendas/' + foto) }}"
-                             class="d-block w-100" style="max-height:380px;object-fit:cover" alt="foto {{ loop.index }}">
+                             class="d-block w-100 fama-lightbox" style="max-height:380px;object-fit:cover;cursor:pointer" alt="foto {{ loop.index }}"
+                             data-fotos='[{% for f in anuncio.fotos %}"{{ url_for('static', filename='uploads/viviendas/' + f) }}"{% if not loop.last %},{% endif %}{% endfor %}]'
+                             data-index="{{ loop.index0 }}">
                     </div>
                     {% endfor %}
                 </div>

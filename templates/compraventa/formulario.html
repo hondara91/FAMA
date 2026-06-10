@@ -42,6 +42,18 @@
                                    placeholder="Ej: Fragata Alvaro de Bazan, BIM I..."
                                    value="{{ anuncio.unidad_armada if anuncio else '' }}">
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Correo de contacto *</label>
+                            <input type="email" class="form-control" name="email_contacto" required
+                                   placeholder="correo@ejemplo.com"
+                                   value="{{ anuncio.email_contacto if anuncio else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono de contacto <small class="text-muted">(opcional)</small></label>
+                            <input type="tel" class="form-control" name="telefono_contacto"
+                                   placeholder="Ej: 600 123 456"
+                                   value="{{ anuncio.telefono_contacto if anuncio else '' }}">
+                        </div>
                         <div class="col-12">
                             <label class="form-label">Descripción</label>
                             <textarea class="form-control" name="descripcion" rows="4"

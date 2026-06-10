@@ -66,18 +66,24 @@ def nuevo():
 
         es_merch = request.form.get("es_merchandising") == "on"
         precio = request.form.get("precio", "").strip()
+        email_contacto = request.form.get("email_contacto", "").strip()
         if not precio:
             flash("El precio es obligatorio.", "danger")
             return render_template("compraventa/formulario.html", anuncio=None, accion="Crear")
+        if not email_contacto:
+            flash("El correo de contacto es obligatorio.", "danger")
+            return render_template("compraventa/formulario.html", anuncio=None, accion="Crear")
 
         datos = {
-            "nombre_articulo":  request.form.get("nombre_articulo", "").strip(),
-            "uco":              request.form.get("uco", "").strip(),
-            "precio":           precio,
-            "descripcion":      request.form.get("descripcion", "").strip(),
-            "es_merchandising": es_merch,
-            "unidad_armada":    request.form.get("unidad_armada", "").strip() if es_merch else "",
-            "fecha_expiracion": _parsear_fecha_exp(request.form.get("fecha_expiracion")),
+            "nombre_articulo":   request.form.get("nombre_articulo", "").strip(),
+            "uco":               request.form.get("uco", "").strip(),
+            "precio":            precio,
+            "descripcion":       request.form.get("descripcion", "").strip(),
+            "es_merchandising":  es_merch,
+            "unidad_armada":     request.form.get("unidad_armada", "").strip() if es_merch else "",
+            "fecha_expiracion":  _parsear_fecha_exp(request.form.get("fecha_expiracion")),
+            "email_contacto":    email_contacto,
+            "telefono_contacto": request.form.get("telefono_contacto", "").strip(),
         }
 
         datos["fotos"] = guardar_imagenes(request.files.getlist("fotos"), "compraventa")
@@ -113,18 +119,24 @@ def editar(anuncio_id):
     if request.method == "POST":
         es_merch = request.form.get("es_merchandising") == "on"
         precio_edit = request.form.get("precio", "").strip()
+        email_contacto_edit = request.form.get("email_contacto", "").strip()
         if not precio_edit:
             flash("El precio es obligatorio.", "danger")
             return render_template("compraventa/formulario.html", anuncio=anuncio, accion="Editar")
+        if not email_contacto_edit:
+            flash("El correo de contacto es obligatorio.", "danger")
+            return render_template("compraventa/formulario.html", anuncio=anuncio, accion="Editar")
 
         datos = {
-            "nombre_articulo":  request.form.get("nombre_articulo", "").strip(),
-            "uco":              request.form.get("uco", "").strip(),
-            "precio":           precio_edit,
-            "descripcion":      request.form.get("descripcion", "").strip(),
-            "es_merchandising": es_merch,
-            "unidad_armada":    request.form.get("unidad_armada", "").strip() if es_merch else "",
-            "fecha_expiracion": _parsear_fecha_exp(request.form.get("fecha_expiracion")),
+            "nombre_articulo":   request.form.get("nombre_articulo", "").strip(),
+            "uco":               request.form.get("uco", "").strip(),
+            "precio":            precio_edit,
+            "descripcion":       request.form.get("descripcion", "").strip(),
+            "es_merchandising":  es_merch,
+            "unidad_armada":     request.form.get("unidad_armada", "").strip() if es_merch else "",
+            "fecha_expiracion":  _parsear_fecha_exp(request.form.get("fecha_expiracion")),
+            "email_contacto":    email_contacto_edit,
+            "telefono_contacto": request.form.get("telefono_contacto", "").strip(),
         }
         fotos = list(anuncio.get("fotos") or [])
         a_borrar = request.form.getlist("borrar_fotos")

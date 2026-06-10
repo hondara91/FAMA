@@ -97,15 +97,29 @@
                     {% else %}bg-secondary{% endif %}">
                     {{ n.tipo }}
                 </span>
-                {# Botón de eliminar: visible para admin y gestor #}
+                {# Botones editar / eliminar: visibles para admin y gestor #}
                 {% if session.rol in ('admin', 'gestor') %}
-                <form method="POST"
-                      action="{{ url_for('novedades.eliminar', novedad_id=n._id) }}"
-                      onsubmit="return confirmarEliminacion()">
-                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-trash"></i>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary btn-editar-novedad"
+                            data-id="{{ n._id }}"
+                            data-tipo="{{ n.tipo }}"
+                            data-empleo="{{ n.empleo or '' }}"
+                            data-destino="{{ n.destino or '' }}"
+                            data-localidad="{{ n.localidad or '' }}"
+                            data-fecha-inicio="{{ n.fecha_inicio or '' }}"
+                            data-fecha-fin="{{ n.fecha_fin or '' }}"
+                            data-observaciones="{{ n.observaciones or '' }}"
+                            data-bs-toggle="modal" data-bs-target="#modalEditarNovedad">
+                        <i class="bi bi-pencil"></i>
                     </button>
-                </form>
+                    <form method="POST"
+                          action="{{ url_for('novedades.eliminar', novedad_id=n._id) }}"
+                          onsubmit="return confirmarEliminacion()">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -175,4 +189,86 @@
 </div>
 {% endif %}
 
+{% if session.rol in ('admin', 'gestor') %}
+<div class="modal fade" id="modalEditarNovedad" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2 text-warning"></i>Editar novedad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="formEditarNovedad" action="">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Tipo *</label>
+                            <select class="form-select" name="tipo" id="edit_tipo" required>
+                                {% for t in tipos %}
+                                <option value="{{ t }}">{{ t }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Empleo</label>
+                            <input type="text" class="form-control" name="empleo" id="edit_empleo"
+                                   placeholder="Ej: Cabo 1º, Sargento...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Destino</label>
+                            <input type="text" class="form-control" name="destino" id="edit_destino"
+                                   placeholder="Ej: BIM IV, Estado Mayor...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Localidad</label>
+                            <input type="text" class="form-control" name="localidad" id="edit_localidad"
+                                   placeholder="Ej: Madrid, Cartagena...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fecha inicio</label>
+                            <input type="date" class="form-control" name="fecha_inicio" id="edit_fecha_inicio">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fecha fin</label>
+                            <input type="date" class="form-control" name="fecha_fin" id="edit_fecha_fin">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" name="observaciones" id="edit_observaciones" rows="3"
+                                      placeholder="Información adicional..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-lg me-1"></i>Guardar cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts_extra %}
+{% if session.rol in ('admin', 'gestor') %}
+<script>
+document.querySelectorAll('.btn-editar-novedad').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var d = btn.dataset;
+        document.getElementById('formEditarNovedad').action =
+            '/novedades/editar/' + d.id;
+        document.getElementById('edit_tipo').value          = d.tipo;
+        document.getElementById('edit_empleo').value        = d.empleo;
+        document.getElementById('edit_destino').value       = d.destino;
+        document.getElementById('edit_localidad').value     = d.localidad;
+        document.getElementById('edit_fecha_inicio').value  = d.fechaInicio;
+        document.getElementById('edit_fecha_fin').value     = d.fechaFin;
+        document.getElementById('edit_observaciones').value = d.observaciones;
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

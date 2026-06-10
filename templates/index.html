@@ -111,16 +111,11 @@
                      style="width:44px;height:44px"><i class="bi bi-house-door text-primary"></i></div>
                 {% endif %}
                 <div class="flex-grow-1 overflow-hidden text-start">
-                    <div class="d-flex align-items-center gap-1 overflow-hidden">
-                        <span class="badge bg-primary flex-shrink-0">{{ v.tipo_oferta }}</span>
-                        <strong class="text-truncate">{{ v.tipo_inmueble }} en {{ v.ciudad }}</strong>
-                    </div>
+                    <strong class="text-truncate d-block" style="font-size:.85rem">{{ v.tipo_inmueble }} en {{ v.ciudad }}</strong>
+                    {% if v.precio %}<small class="text-muted">{{ v.precio }}€/mes</small>{% endif %}
                 </div>
-                <div class="text-end text-nowrap flex-shrink-0">
-                    {% if v.precio %}<small class="text-muted d-block">{{ v.precio }}€/mes</small>{% endif %}
-                    <a href="{{ url_for('viviendas.detalle', anuncio_id=v._id) }}"
-                       class="btn btn-sm btn-outline-primary">Ver</a>
-                </div>
+                <a href="{{ url_for('viviendas.detalle', anuncio_id=v._id) }}"
+                   class="btn btn-sm btn-outline-primary flex-shrink-0">Ver</a>
             </div>
         </div>
         {% else %}
@@ -134,29 +129,18 @@
         {{ cabecera_seccion('Últimos Servicios', 'gear', 'success') }}
         {% for s in servicios %}
         {% set s_icon = 'car-front' if s.categoria == 'Viajes compartidos' else 'briefcase' if s.categoria in ('Trabajos', 'Consultoría') else 'people' %}
-        {% if s.tipo == 'buscar' %}{% set s_color = '#dc3545' %}
-        {% elif s.categoria == 'Viajes compartidos' %}{% set s_color = '#ffc107' %}
-        {% elif s.categoria == 'Trabajos' %}{% set s_color = '#198754' %}
-        {% elif s.categoria == 'Clases de apoyo' %}{% set s_color = '#0d6efd' %}
-        {% elif s.categoria == 'Consultoría' %}{% set s_color = '#6f42c1' %}
-        {% else %}{% set s_color = '#6c757d' %}{% endif %}
         <div class="card mb-2 border-0 shadow-sm">
             <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
-                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
-                     style="width:44px;height:44px;background:{{ s_color }}1a">
-                    <i class="bi bi-{{ s_icon }}" style="color:{{ s_color }};font-size:1.3rem"></i>
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded bg-success bg-opacity-10"
+                     style="width:44px;height:44px">
+                    <i class="bi bi-{{ s_icon }} text-success" style="font-size:1.3rem"></i>
                 </div>
                 <div class="flex-grow-1 overflow-hidden text-start">
-                    <div class="d-flex align-items-center gap-1 overflow-hidden">
-                        <span class="badge bg-success flex-shrink-0">{{ s.tipo }}</span>
-                        <strong class="text-truncate">{{ s.titulo }}</strong>
-                    </div>
+                    <strong class="text-truncate d-block" style="font-size:.85rem">{{ s.titulo }}</strong>
+                    <small class="text-muted text-truncate d-block">{{ s.ciudad }}</small>
                 </div>
-                <div class="text-end text-nowrap flex-shrink-0">
-                    <small class="text-muted d-block">{{ s.ciudad }}</small>
-                    <a href="{{ url_for('servicios.detalle', anuncio_id=s._id) }}"
-                       class="btn btn-sm btn-outline-success">Ver</a>
-                </div>
+                <a href="{{ url_for('servicios.detalle', anuncio_id=s._id) }}"
+                   class="btn btn-sm btn-outline-success flex-shrink-0">Ver</a>
             </div>
         </div>
         {% else %}
@@ -179,14 +163,11 @@
                      style="width:44px;height:44px"><i class="bi bi-shop text-warning"></i></div>
                 {% endif %}
                 <div class="flex-grow-1 overflow-hidden text-start">
-                    <strong class="text-truncate d-block">{{ c.nombre_articulo }}</strong>
-                    {% if c.uco %}<small class="text-muted text-truncate d-block">{{ c.uco }}</small>{% endif %}
+                    <strong class="text-truncate d-block" style="font-size:.85rem">{{ c.nombre_articulo }}</strong>
+                    {% if c.precio %}<small class="fw-bold" style="color:#d97706">{{ c.precio }}€</small>{% endif %}
                 </div>
-                <div class="text-end text-nowrap flex-shrink-0">
-                    <span class="text-warning fw-bold d-block">{{ c.precio }}€</span>
-                    <a href="{{ url_for('compraventa.detalle', anuncio_id=c._id) }}"
-                       class="btn btn-sm btn-outline-warning">Ver</a>
-                </div>
+                <a href="{{ url_for('compraventa.detalle', anuncio_id=c._id) }}"
+                   class="btn btn-sm btn-outline-warning flex-shrink-0">Ver</a>
             </div>
         </div>
         {% else %}
@@ -199,33 +180,26 @@
     <div class="col-lg-3 text-center">
         {{ cabecera_seccion('Próximos Eventos', 'calendar-event', 'info') }}
         {% for e in eventos %}
-        {% if e.tipo_evento == 'Deporte' %}{% set e_color = '#198754' %}{% set e_icon = 'trophy' %}
-        {% elif e.tipo_evento == 'Cultural' %}{% set e_color = '#0d6efd' %}{% set e_icon = 'palette' %}
-        {% else %}{% set e_color = '#6f42c1' %}{% set e_icon = 'otros' %}{% endif %}
+        {% set e_icon = 'trophy' if e.tipo_evento == 'Deporte' else 'palette' if e.tipo_evento == 'Cultural' else 'otros' %}
         <div class="card mb-2 border-0 shadow-sm">
             <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
-                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
-                     style="width:44px;height:44px;background:{{ e_color }}1a">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded bg-info bg-opacity-10"
+                     style="width:44px;height:44px">
                     {% if e_icon == 'otros' %}
-                    <span class="d-flex" style="color:{{ e_color }};font-size:1rem;gap:1px">
+                    <span class="d-flex text-info" style="font-size:1rem;gap:1px">
                         <i class="bi bi-person-arms-up"></i>
                         <i class="bi bi-person-arms-up" style="transform:scaleX(-1);display:inline-block"></i>
                     </span>
                     {% else %}
-                    <i class="bi bi-{{ e_icon }}" style="color:{{ e_color }};font-size:1.3rem"></i>
+                    <i class="bi bi-{{ e_icon }} text-info" style="font-size:1.3rem"></i>
                     {% endif %}
                 </div>
                 <div class="flex-grow-1 overflow-hidden text-start">
-                    <div class="d-flex align-items-center gap-1 overflow-hidden">
-                        <span class="badge bg-info text-dark flex-shrink-0">{{ e.tipo_evento }}</span>
-                        <strong class="text-truncate">{{ e.titulo }}</strong>
-                    </div>
+                    <strong class="text-truncate d-block" style="font-size:.85rem">{{ e.titulo }}</strong>
+                    <small class="text-muted">{{ e.fecha }}</small>
                 </div>
-                <div class="text-end text-nowrap flex-shrink-0">
-                    <small class="text-muted d-block">{{ e.fecha }}</small>
-                    <a href="{{ url_for('ocio.detalle', evento_id=e._id) }}"
-                       class="btn btn-sm btn-outline-info">Ver</a>
-                </div>
+                <a href="{{ url_for('ocio.detalle', evento_id=e._id) }}"
+                   class="btn btn-sm btn-outline-info flex-shrink-0">Ver</a>
             </div>
         </div>
         {% else %}

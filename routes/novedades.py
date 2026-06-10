@@ -99,9 +99,55 @@ def nueva():
     return redirect(url_for("novedades.listar"))
 
 
+@novedades_bp.route("/editar/<novedad_id>", methods=["POST"])
+@login_required
+@gestor_required
+def editar(novedad_id):
+    """Actualiza los campos de una novedad existente."""
+    db   = get_db()
+    tipo = request.form.get("tipo", "").strip()
+
+    if not tipo:
+        flash("El tipo de novedad es obligatorio.", "danger")
+        return redirect(url_for("novedades.listar"))
+
+    def campo(nombre):
+        valor = request.form.get(nombre, "").strip()
+        return valor if valor else None
+
+    hoy          = date_type.today().isoformat()
+    fecha_inicio = campo("fecha_inicio")
+    fecha_fin    = campo("fecha_fin")
+
+    if fecha_inicio and fecha_inicio < hoy:
+        flash("La fecha de inicio no puede ser una fecha pasada.", "danger")
+        return redirect(url_for("novedades.listar"))
+    if fecha_fin and fecha_fin < hoy:
+        flash("La fecha de fin no puede ser una fecha pasada.", "danger")
+        return redirect(url_for("novedades.listar"))
+    if fecha_inicio and fecha_fin and fecha_fin < fecha_inicio:
+        flash("La fecha de fin no puede ser anterior a la fecha de inicio.", "danger")
+        return redirect(url_for("novedades.listar"))
+
+    db.novedades.update_one(
+        {"_id": ObjectId(novedad_id)},
+        {"$set": {
+            "tipo":          tipo,
+            "destino":       campo("destino"),
+            "empleo":        campo("empleo"),
+            "localidad":     campo("localidad"),
+            "fecha_inicio":  fecha_inicio,
+            "fecha_fin":     fecha_fin,
+            "observaciones": campo("observaciones"),
+        }},
+    )
+    flash("Novedad actualizada correctamente.", "success")
+    return redirect(url_for("novedades.listar"))
+
+
 @novedades_bp.route("/eliminar/<novedad_id>", methods=["POST"])
 @login_required
-@gestor_required  # Admin y gestor pueden eliminar novedades
+@gestor_required
 def eliminar(novedad_id):
     """Elimina una novedad por su ObjectId."""
     db = get_db()

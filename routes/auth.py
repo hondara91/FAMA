@@ -181,9 +181,16 @@ def login():
 def logout():
     """Destruye la sesión activa y redirige al login."""
     nombre = session.get("nombre", "")
-    session.clear()  # Elimina todos los datos de la cookie de sesión
+    session.clear()
     flash(f"Sesion cerrada. Hasta pronto, {nombre}!", "info")
     return redirect(url_for("auth.login"))
+
+
+@auth_bp.route("/logout-tab", methods=["POST"])
+def logout_tab():
+    """Recibe el beacon del navegador al cerrar pestaña y destruye la sesión."""
+    session.clear()
+    return "", 204
 
 
 # ── Cambio de contraseña (usuario autenticado) ───────────────────────────────
