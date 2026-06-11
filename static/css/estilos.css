@@ -101,6 +101,12 @@ main {
     margin-left: -2.125rem;
 }
 
+@media (max-width: 991.98px) {
+    .fama-navbar .navbar-nav.me-auto {
+        margin-left: 0.75rem;
+    }
+}
+
 /* Badge de rol en el menu de usuario */
 .fama-badge-rol {
     font-size: 0.65rem;
@@ -251,6 +257,7 @@ main {
 @media (max-width: 576px) {
     .fama-hero h1 { font-size: 1.8rem; }
     .fama-módulo-card .card-body { padding: 1rem; }
+    .fama-logo-hero { transform: translateX(-12px); }
 }
 
 /* ── Zoom en hover sobre fotos de anuncio ────────────────── */
