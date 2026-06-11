@@ -279,12 +279,6 @@ main {
 /* ── Vista lista: altura uniforme + miniatura ────────────── */
 
 /* Todos los bloques en vista lista tienen la misma altura en desktop */
-@media (min-width: 768px) {
-    #vista-lista > .card {
-        height: 130px;
-        overflow: hidden;
-    }
-}
 
 /* Miniatura: tamaño fijo para que la foto se adapte al bloque y no al revés */
 .fama-list-thumb-wrap {
@@ -303,12 +297,12 @@ main {
 
 @media (min-width: 768px) {
     .fama-list-thumb-wrap {
-        width: 200px;
-        height: 130px;  /* desktop: exactamente la altura del bloque */
+        width: 160px;
+        height: 110px;
     }
     .fama-list-thumb {
-        width: 200px;
-        height: 130px;
+        width: 160px;
+        height: 110px;
     }
 }
 
