@@ -89,6 +89,11 @@ def registro():
             flash("Introduce un email válido.", "danger")
             return _render_registro()
 
+        dominio = email.split("@")[-1]
+        if dominio != "mde.es" and not dominio.endswith(".mde.es"):
+            flash("El correo electrónico debe pertenecer al dominio mde.es.", "danger")
+            return _render_registro()
+
         if password != confirmar_password:
             flash("Las contraseñas no coinciden.", "danger")
             return _render_registro()
