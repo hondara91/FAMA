@@ -1,0 +1,39 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Abrir presentación (PowerPoint)",
+            "type": "shell",
+            "command": "Start-Process",
+            "args": [
+                "${workspaceFolder}\\documentacion\\Presentacion_FAMA.pptx"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "never",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Abrir chuleta (Word)",
+            "type": "shell",
+            "command": "Start-Process",
+            "args": [
+                "${workspaceFolder}\\documentacion\\Chuleta_Presentacion_FAMA.docx"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "never",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Abrir presentación y chuleta",
+            "dependsOn": [
+                "Abrir presentación (PowerPoint)",
+                "Abrir chuleta (Word)"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}
